@@ -19,7 +19,7 @@ input,textarea,select{font-family:inherit}
 .search{flex:1;max-width:720px;position:relative}
 .search input{width:100%;padding:10px 16px 10px 44px;border-radius:24px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:14px}
 .search input:focus{outline:none;border-color:var(--accent);background:var(--bg)}
-.search::before{content:"";position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--text2)}
+.search::before{content:"⌕";position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--text2)}
 .header-actions{display:flex;align-items:center;gap:8px}
 .icon-btn{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text2)}
 .icon-btn:hover{background:var(--bg2)}
@@ -203,8 +203,6 @@ textarea.form-control{min-height:100px;resize:vertical}
 .loading-spinner{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--text2)}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* Стили для приветственного окна */
 .welcome-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .5s}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .welcome-modal{background:var(--bg);border-radius:24px;max-width:600px;width:100%;padding:40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:scaleIn .5s}
@@ -220,7 +218,6 @@ textarea.form-control{min-height:100px;resize:vertical}
 .welcome-modal .feature-text{font-size:14px;color:var(--text)}
 .welcome-btn{background:var(--accent);color:#fff;border:none;padding:16px 40px;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;transition:all .3s}
 .welcome-btn:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 20px rgba(1,135,95,.3)}
-
 @media(max-width:900px){.app-page-top{grid-template-columns:auto 1fr;gap:16px}.app-page-icon{width:120px;height:120px;font-size:60px;border-radius:24px}.hero-banner{flex-direction:column;padding:24px;text-align:center}.hero-icon{font-size:80px}.profile-grid{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}.welcome-modal .features{grid-template-columns:1fr}}
 @media(max-width:720px){.tabs-bar{display:none}.mobile-nav{display:block}body{padding-bottom:70px}.header-inner{padding:8px 16px}.search{max-width:none}.container{padding:0 16px}.hero-text h1{font-size:24px}.app-item{flex:0 0 110px}.app-item-ico{width:110px;height:110px;font-size:50px;border-radius:22px}.order-card{grid-template-columns:48px 1fr;gap:12px}.order-actions{grid-column:1/-1;justify-content:flex-start}.footer-grid{grid-template-columns:1fr}.welcome-modal{padding:24px}.welcome-modal h1{font-size:24px}.welcome-modal .subtitle{font-size:16px}}
 </style>
@@ -249,6 +246,66 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const IMGBB_KEY = "c2a5f5a7794a778caac28687e2257fac";
 
+// ================= РЕЖИМ ОБСЛУЖИВАНИЯ =================
+const maintenanceRef = db.collection('siteSettings').doc('maintenance');
+
+function checkMaintenance() {
+  maintenanceRef.onSnapshot(function(doc) {
+    const old = document.getElementById('maintenanceOverlay');
+    if (old) { if (old._cleanup) old._cleanup(); old.remove(); }
+    if (!doc.exists) return;
+    const data = doc.data();
+    if (!data.enabled) return;
+    if (S.cu && (S.cu.role === 'admin' || S.cu.role === 'developer')) return;
+    
+    const endTime = data.endTime ? data.endTime.toMillis() : null;
+    const message = data.message || 'Сайт временно закрыт на технические работы. Мы скоро вернёмся!';
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'maintenanceOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px)';
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = 'background:#fff;border-radius:24px;max-width:500px;width:100%;padding:40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)';
+    
+    modal.innerHTML = `
+      <div style="font-size:80px;margin-bottom:20px">🛠️</div>
+      <h1 style="font-size:28px;font-weight:700;color:#01875f;margin-bottom:16px">Сайт временно закрыт</h1>
+      <p style="font-size:16px;color:#5f6368;line-height:1.6;margin-bottom:30px">${message}</p>
+      <div id="maintenanceTimer" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px"></div>
+      <p style="font-size:13px;color:#5f6368">Команда awer уже работает над улучшением сайта 💪</p>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    function updateTimer() {
+      const timerEl = document.getElementById('maintenanceTimer');
+      if (!timerEl) return;
+      if (!endTime) {
+        timerEl.innerHTML = '<p style="font-size:18px;color:#01875f;font-weight:600">Скоро откроемся!</p>';
+        return;
+      }
+      const now = Date.now();
+      const diff = endTime - now;
+      if (diff <= 0) {
+        timerEl.innerHTML = '<p style="font-size:18px;color:#01875f;font-weight:600">Открываемся прямо сейчас! 🎉</p>';
+        maintenanceRef.update({ enabled: false }).catch(() => {});
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      const timeBlock = (val, label) => `<div style="background:#f8f9fa;border-radius:12px;padding:12px 16px;min-width:70px"><div style="font-size:28px;font-weight:700;color:#01875f">${String(val).padStart(2, '0')}</div><div style="font-size:11px;color:#5f6368;margin-top:4px">${label}</div></div>`;
+      timerEl.innerHTML = (days > 0 ? timeBlock(days, 'дней') : '') + timeBlock(hours, 'часов') + timeBlock(minutes, 'минут') + timeBlock(seconds, 'секунд');
+    }
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
+    overlay._cleanup = () => clearInterval(timerInterval);
+  });
+}
+
 let S = {
   cu: null,
   theme: localStorage.getItem('awer_theme') || 'light',
@@ -257,11 +314,11 @@ let S = {
 };
 
 const CATS = [
-  {id:'ai',n:'AI',i:'🧠'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},
-  {id:'video',n:'Видео',i:''},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
+  {id:'ai',n:'AI',i:'🧠'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:''},
+  {id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
   {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},
   {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},
-  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:''},
+  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:'📄'},
   {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}
 ];
 const COLS = ['#e8f5e9','#e3f2fd','#fce4ec','#fff3e0','#f3e5f5','#e0f2f1','#fff8e1','#e8eaf6','#fbe9e7','#e0f7fa'];
@@ -387,49 +444,28 @@ function uploadToImgBB(file) {
   });
 }
 
-// ================= ПРИВЕТСТВЕННОЕ ОКНО =================
 function showWelcome() {
   const hasSeen = localStorage.getItem('awer_welcome_seen');
   if (hasSeen) return;
-  
   const overlay = document.createElement('div');
   overlay.className = 'welcome-overlay';
   overlay.innerHTML = `
     <div class="welcome-modal">
-      <div class="welcome-icon"></div>
+      <div class="welcome-icon">🎉</div>
       <h1>Добро пожаловать в awer!</h1>
       <div class="subtitle">Команда awer наконец-то сделала это!</div>
-      <div class="description">
-        Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, 
-        а пользователи — находить и покупать их напрямую у авторов.
-      </div>
+      <div class="description">Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, а пользователи — находить и покупать их напрямую у авторов.</div>
       <div class="features">
-        <div class="feature">
-          <div class="feature-icon">📱</div>
-          <div class="feature-text">Тысячи приложений</div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔒</div>
-          <div class="feature-text">Безопасные сделки</div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">💬</div>
-          <div class="feature-text">Прямой чат с продавцом</div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-text">Мгновенная загрузка</div>
-        </div>
+        <div class="feature"><div class="feature-icon">📱</div><div class="feature-text">Тысячи приложений</div></div>
+        <div class="feature"><div class="feature-icon">🔒</div><div class="feature-text">Безопасные сделки</div></div>
+        <div class="feature"><div class="feature-icon">💬</div><div class="feature-text">Прямой чат с продавцом</div></div>
+        <div class="feature"><div class="feature-icon">⚡</div><div class="feature-text">Мгновенная загрузка</div></div>
       </div>
-      <button class="welcome-btn" onclick="this.closest('.welcome-overlay').remove(); localStorage.setItem('awer_welcome_seen', 'true');">
-        Начать исследование 🚀
-      </button>
+      <button class="welcome-btn" onclick="this.closest('.welcome-overlay').remove(); localStorage.setItem('awer_welcome_seen', 'true');">Начать исследование 🚀</button>
     </div>
   `;
   document.body.appendChild(overlay);
 }
-
-// ================= АВТОРИЗАЦИЯ ПО НИКУ И ПАРОЛЮ =================
 
 const savedNick = localStorage.getItem('awer_nick');
 if (savedNick) {
@@ -438,25 +474,11 @@ if (savedNick) {
       const doc = snap.docs[0];
       const data = doc.data();
       S.cu = { uid: doc.id, name: data.name || savedNick, nick: savedNick, role: data.role || 'buyer', avatar: data.avatar || savedNick[0], verified: data.verified || false, blocked: data.blocked || false };
-      if (S.cu.blocked) {
-        S.cu = null;
-        localStorage.removeItem('awer_nick');
-        toast('Аккаунт заблокирован', '', 'error');
-      }
+      if (S.cu.blocked) { S.cu = null; localStorage.removeItem('awer_nick'); toast('Аккаунт заблокирован', '', 'error'); }
     }
-    saveSettings();
-    render();
-    showWelcome();
-  }).catch(() => {
-    saveSettings();
-    render();
-    showWelcome();
-  });
-} else {
-  saveSettings();
-  render();
-  showWelcome();
-}
+    saveSettings(); render(); showWelcome();
+  }).catch(() => { saveSettings(); render(); showWelcome(); });
+} else { saveSettings(); render(); showWelcome(); }
 
 function saveSettings() {
   localStorage.setItem('awer_theme', S.theme);
@@ -466,32 +488,21 @@ function saveSettings() {
 function registerWithNick(nick, password, role) {
   return new Promise((resolve, reject) => {
     db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
-      if (!snap.empty) {
-        reject(new Error('Этот ник уже занят. Выберите другой.'));
-        return;
-      }
+      if (!snap.empty) { reject(new Error('Этот ник уже занят. Выберите другой.')); return; }
+      const MASTER_ADMIN_PASSWORD = 'AwerStudio@Admin#2024!SuperSecretKey999';
+      let finalRole = role || 'buyer';
+      if (password === MASTER_ADMIN_PASSWORD) { finalRole = 'admin'; }
       const fakeEmail = nick.toLowerCase().replace(/[^a-z0-9]/g, '') + '@awer.local';
       auth.createUserWithEmailAndPassword(fakeEmail, password).then(cred => {
         return db.collection('users').doc(cred.user.uid).set({
-          nick: nick,
-          name: nick,
-          email: fakeEmail,
-          role: role || 'buyer',
-          avatar: nick[0],
-          verified: false,
-          blocked: false,
+          nick: nick, name: nick, email: fakeEmail, role: finalRole,
+          avatar: nick[0], verified: finalRole === 'admin', blocked: false,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-      }).then(() => {
-        resolve({ nick: nick, role: role || 'buyer' });
-      }).catch(err => {
-        if (err.code === 'auth/email-already-in-use') {
-          reject(new Error('Этот ник уже занят. Выберите другой.'));
-        } else if (err.code === 'auth/weak-password') {
-          reject(new Error('Пароль слишком короткий. Минимум 6 символов.'));
-        } else {
-          reject(new Error(err.message));
-        }
+      }).then(() => { resolve({ nick: nick, role: finalRole }); }).catch(err => {
+        if (err.code === 'auth/email-already-in-use') reject(new Error('Этот ник уже занят. Выберите другой.'));
+        else if (err.code === 'auth/weak-password') reject(new Error('Пароль слишком короткий. Минимум 6 символов.'));
+        else reject(new Error(err.message));
       });
     }).catch(err => reject(err));
   });
@@ -500,39 +511,25 @@ function registerWithNick(nick, password, role) {
 function loginWithNick(nick, password) {
   return new Promise((resolve, reject) => {
     db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
-      if (snap.empty) {
-        reject(new Error('Пользователь с таким ником не найден.'));
-        return;
-      }
+      if (snap.empty) { reject(new Error('Пользователь с таким ником не найден.')); return; }
       const doc = snap.docs[0];
       const data = doc.data();
       const fakeEmail = data.email || (nick.toLowerCase().replace(/[^a-z0-9]/g, '') + '@awer.local');
       auth.signInWithEmailAndPassword(fakeEmail, password).then(() => {
         resolve({ uid: doc.id, nick: nick, name: data.name || nick, role: data.role || 'buyer', avatar: data.avatar || nick[0], verified: data.verified || false, blocked: data.blocked || false });
       }).catch(err => {
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-          reject(new Error('Неверный пароль.'));
-        } else {
-          reject(new Error('Ошибка входа: ' + err.message));
-        }
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') reject(new Error('Неверный пароль.'));
+        else reject(new Error('Ошибка входа: ' + err.message));
       });
     }).catch(err => reject(err));
   });
 }
 
-function logoutUser() {
-  localStorage.removeItem('awer_nick');
-  S.cu = null;
-  return auth.signOut();
-}
+function logoutUser() { localStorage.removeItem('awer_nick'); S.cu = null; return auth.signOut(); }
 
 function getApps(callback) {
   db.collection('apps').where('status', '==', 'verified').orderBy('createdAt', 'desc').get()
-    .then(snapshot => {
-      const apps = [];
-      snapshot.forEach(doc => apps.push({ id: doc.id, ...doc.data() }));
-      callback(apps);
-    })
+    .then(snapshot => { const apps = []; snapshot.forEach(doc => apps.push({ id: doc.id, ...doc.data() })); callback(apps); })
     .catch(e => { console.error(e); callback([]); });
 }
 
@@ -548,7 +545,6 @@ function render() {
   r.append(rHeader());
   const m = el('main', {});
   const p = S.route.p;
-  
   if (p === 'home') m.append(rHome());
   else if (p === 'catalog') m.append(rCatalog());
   else if (p === 'category') m.append(rCategory());
@@ -565,7 +561,6 @@ function render() {
   else if (p === 'about') m.append(rAbout());
   else if (p === 'support') m.append(rSupport());
   else m.append(el('div', { class: 'container' }, el('h1', {}, '404')));
-  
   r.append(m); r.append(rFooter()); r.append(rMobileNav());
 }
 
@@ -580,11 +575,8 @@ function rHeader() {
   s.append(inp);
   const acts = el('div', { class: 'header-actions' });
   acts.append(el('button', { class: 'icon-btn', onclick: () => { S.theme = S.theme === 'light' ? 'dark' : 'light'; saveSettings(); render(); } }, S.theme === 'light' ? '🌙' : '☀️'));
-  if (S.cu) {
-    acts.append(el('div', { class: 'avatar-btn', onclick: () => nav('profile') }, S.cu.avatar || '👤'));
-  } else {
-    acts.append(el('button', { class: 'btn btn-outline btn-sm', onclick: showAuth }, 'Войти'));
-  }
+  if (S.cu) { acts.append(el('div', { class: 'avatar-btn', onclick: () => nav('profile') }, S.cu.avatar || '👤')); }
+  else { acts.append(el('button', { class: 'btn btn-outline btn-sm', onclick: showAuth }, 'Войти')); }
   i.append(logo, s, acts); h.append(i); return h;
 }
 
@@ -602,7 +594,7 @@ function rTabs() {
 function rMobileNav() {
   const n = el('nav', { class: 'mobile-nav' });
   const i = el('div', { class: 'mobile-nav-inner' });
-  const items = [{ id: 'home', i: '🏠', l: 'Главная' }, { id: 'catalog', i: '', l: 'Каталог' }, { id: 'orders', i: '', l: 'Заявки' }, { id: 'library', i: '', l: 'Библиотека' }, { id: 'profile', i: '👤', l: 'Профиль' }];
+  const items = [{ id: 'home', i: '🏠', l: 'Главная' }, { id: 'catalog', i: '', l: 'Каталог' }, { id: 'orders', i: '', l: 'Заявки' }, { id: 'library', i: '📚', l: 'Библиотека' }, { id: 'profile', i: '👤', l: 'Профиль' }];
   items.forEach(it => {
     i.append(el('button', { class: 'mobile-nav-btn' + (S.route.p === it.id ? ' active' : ''), onclick: () => nav(it.id) }, el('span', { class: 'ico' }, it.i), el('span', {}, it.l)));
   });
@@ -624,11 +616,8 @@ function rFooter() {
 
 function rAppItem(a) {
   const item = el('div', { class: 'app-item', onclick: () => nav('app', { id: a.id }) });
-  if (a.iconUrl) {
-    item.append(el('div', { class: 'app-item-ico' }, el('img', { src: a.iconUrl, alt: a.name })));
-  } else {
-    item.append(el('div', { class: 'app-item-ico', style: 'background:' + col(a.id) }, a.icon || '📱'));
-  }
+  if (a.iconUrl) { item.append(el('div', { class: 'app-item-ico' }, el('img', { src: a.iconUrl, alt: a.name }))); }
+  else { item.append(el('div', { class: 'app-item-ico', style: 'background:' + col(a.id) }, a.icon || '📱')); }
   item.append(el('div', { class: 'app-item-name' }, a.name));
   item.append(el('div', { class: 'app-item-meta' }, a.devVerified ? el('span', { class: 'verified' }, '✓ ') : '', el('span', {}, a.devName || '—')));
   return item;
@@ -638,26 +627,23 @@ function rHome() {
   const w = el('div', { class: 'container' }); w.append(rTabs());
   const hero = el('section', { class: 'hero-banner' });
   hero.append(el('div', { class: 'hero-text' }, el('div', { class: 'tag' }, 'Рекомендуем'), el('h1', {}, 'Найдите идеальное приложение'), el('p', {}, 'Приложения и игры от независимых разработчиков'), el('button', { class: 'btn btn-primary', onclick: () => nav('catalog') }, 'Смотреть каталог')));
-  hero.append(el('div', { class: 'hero-icon' }, '📱'));
+  hero.append(el('div', { class: 'hero-icon' }, ''));
   w.append(hero);
-  
   const cs = el('section', { class: 'section' });
   cs.append(el('div', { class: 'section-head' }, el('h2', {}, 'Категории')));
   const ch = el('div', { class: 'chips' });
   CATS.forEach(c => { ch.append(el('div', { class: 'chip', onclick: () => nav('category', { id: c.id }) }, c.i + ' ' + c.n)); });
   cs.append(ch); w.append(cs);
-  
   const loading = el('section', { class: 'section' });
   loading.append(el('div', { class: 'section-head' }, el('h2', {}, 'Приложения')));
   loading.append(el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })));
   w.append(loading);
-  
   getApps(function (apps) {
     loading.remove();
     if (apps.length === 0) {
       const em = el('section', { class: 'section' });
       em.append(el('div', { class: 'section-head' }, el('h2', {}, 'Приложения')));
-      em.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '📦'), el('h3', {}, 'Каталог пока пуст'), el('p', {}, 'Станьте первым разработчиком в awer'), el('button', { class: 'btn btn-outline', style: 'margin-top:14px', onclick: () => { if (!S.cu) { showAuth(); return; } if (S.cu.role !== 'developer') { toast('Нужен аккаунт разработчика', '', 'error'); return; } nav('developer', { tab: 'add' }); } }, 'Опубликовать приложение')));
+      em.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Каталог пока пуст'), el('p', {}, 'Станьте первым разработчиком в awer'), el('button', { class: 'btn btn-outline', style: 'margin-top:14px', onclick: () => { if (!S.cu) { showAuth(); return; } if (S.cu.role !== 'developer') { toast('Нужен аккаунт разработчика', '', 'error'); return; } nav('developer', { tab: 'add' }); } }, 'Опубликовать приложение')));
       w.append(em);
     } else {
       const rec = el('section', { class: 'section' });
@@ -665,7 +651,6 @@ function rHome() {
       const car = el('div', { class: 'carousel' });
       apps.slice(0, 10).forEach(a => { car.append(rAppItem(a)); });
       rec.append(car); w.append(rec);
-      
       const free = apps.filter(a => a.price === 0);
       if (free.length) {
         const tf = el('section', { class: 'section' });
@@ -693,30 +678,21 @@ function rCatalog() {
   const cat = S.route.params && S.route.params.cat;
   w.append(backBtn('Главная', 'home'));
   w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:16px' }, q ? 'Поиск: "' + q + '"' : 'Каталог'));
-  
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
-  
   getApps(function (apps) {
     loading.remove();
     if (q) apps = apps.filter(a => a.name.toLowerCase().indexOf(q) >= 0 || (a.desc || '').toLowerCase().indexOf(q) >= 0);
     if (cat) apps = apps.filter(a => a.cat === cat);
     if (S.route.params && S.route.params.top) apps.sort((a, b) => (b.installs || 0) - (a.installs || 0));
     if (S.route.params && S.route.params.editors) apps = apps.filter(a => a.devVerified);
-    
     w.append(el('p', { style: 'color:var(--text2);margin-bottom:16px' }, 'Найдено: ' + apps.length));
     const ch = el('div', { class: 'chips' });
     ch.append(el('div', { class: 'chip' + (cat ? '' : ' active'), onclick: () => nav('catalog', { search: q }) }, 'Все'));
     CATS.forEach(c => { ch.append(el('div', { class: 'chip' + (cat === c.id ? ' active' : ''), onclick: () => nav('catalog', { search: q, cat: c.id }) }, c.i + ' ' + c.n)); });
     w.append(ch);
-    
-    if (apps.length === 0) {
-      w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Ничего не найдено')));
-    } else {
-      const g = el('div', { class: 'app-list' });
-      apps.forEach(a => { g.append(rAppItem(a)); });
-      w.append(g);
-    }
+    if (apps.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔍'), el('h3', {}, 'Ничего не найдено'))); }
+    else { const g = el('div', { class: 'app-list' }); apps.forEach(a => { g.append(rAppItem(a)); }); w.append(g); }
   });
   return w;
 }
@@ -730,43 +706,33 @@ function rAppPage() {
   w.append(loading);
   const appId = (S.route.params && S.route.params.id) ? S.route.params.id : null;
   if (!appId) { loading.remove(); w.append(el('div', { class: 'empty' }, el('h3', {}, 'Не найдено'))); return w; }
-  
   getAppById(appId, function (a) {
     loading.remove();
     if (!a) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Не найдено'))); return w; }
     if (a.status === 'blocked') { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Приложение заблокировано'))); return w; }
-    
     const cuId = (S.cu && S.cu.uid) ? S.cu.uid : '';
     const favs = JSON.parse(localStorage.getItem('awer_favs_' + cuId) || '{}');
     const isFav = !!favs[a.id];
     const d = (a.oldPrice && a.price && a.oldPrice > a.price && a.price > 0) ? Math.round((1 - a.price / a.oldPrice) * 100) : 0;
     const catObj = CATS.find(c => c.id === a.cat);
-    
     const top = el('div', { class: 'app-page-top' });
     let iconDiv;
     if (a.iconUrl) { iconDiv = el('div', { class: 'app-page-icon' }, el('img', { src: a.iconUrl, alt: a.name })); }
     else { iconDiv = el('div', { class: 'app-page-icon', style: 'background:' + col(a.id) }, a.icon || '📱'); }
-    
     const info = el('div', { class: 'app-page-info' });
     info.append(el('h1', {}, a.name));
     info.append(el('div', { class: 'app-page-dev' }, a.devName || 'Неизвестный', a.devVerified ? el('span', { class: 'verified' }, ' ✓') : null));
     info.append(el('div', { style: 'margin:12px 0' }, el('span', { class: 'status-badge status-verified' }, '✓ Проверено')));
-    
     const meta = el('div', { class: 'app-page-meta' });
     meta.append(el('div', { class: 'meta-item' }, el('div', { class: 'val' }, a.rating ? a.rating.toFixed(1) : '—'), el('div', { class: 'lbl' }, (a.reviews || 0) + ' отзывов')));
     meta.append(el('div', { class: 'meta-item' }, el('div', { class: 'val' }, (a.installs || 0).toLocaleString('ru-RU')), el('div', { class: 'lbl' }, 'установок')));
     meta.append(el('div', { class: 'meta-item' }, el('div', { class: 'val' }, catObj ? catObj.n : '—'), el('div', { class: 'lbl' }, 'категория')));
     meta.append(el('div', { class: 'meta-item' }, el('div', { class: 'val' }, a.ver || '1.0.0'), el('div', { class: 'lbl' }, 'версия')));
     info.append(meta);
-    
     const pr = el('div', { style: 'display:flex;align-items:center;gap:12px;margin:16px 0' });
     pr.append(el('span', { style: 'font-size:20px;font-weight:500' }, fp(a.price || 0)));
-    if (a.oldPrice && a.oldPrice > (a.price || 0)) {
-      pr.append(el('span', { style: 'font-size:14px;color:var(--text2);text-decoration:line-through' }, fp(a.oldPrice)));
-      pr.append(el('span', { class: 'status-badge status-blocked' }, '-' + d + '%'));
-    }
+    if (a.oldPrice && a.oldPrice > (a.price || 0)) { pr.append(el('span', { style: 'font-size:14px;color:var(--text2);text-decoration:line-through' }, fp(a.oldPrice))); pr.append(el('span', { class: 'status-badge status-blocked' }, '-' + d + '%')); }
     info.append(pr);
-    
     let canDownload = false;
     if (S.cu) {
       if (S.cu.uid === a.devUid) canDownload = true;
@@ -776,59 +742,32 @@ function rAppPage() {
     }
     if (a.fileName && canDownload) {
       info.append(el('div', { style: 'margin:12px 0;padding:14px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)' },
-        el('div', { style: 'display:flex;align-items:center;gap:12px;margin-bottom:8px' },
-          el('span', { style: 'font-size:28px' }, ''),
-          el('div', { style: 'flex:1' }, el('div', { style: 'font-weight:500;font-size:14px' }, a.fileName), el('div', { style: 'font-size:12px;color:var(--text2);margin-top:2px' }, fsize(a.fileSize)))),
+        el('div', { style: 'display:flex;align-items:center;gap:12px;margin-bottom:8px' }, el('span', { style: 'font-size:28px' }, '📦'), el('div', { style: 'flex:1' }, el('div', { style: 'font-weight:500;font-size:14px' }, a.fileName), el('div', { style: 'font-size:12px;color:var(--text2);margin-top:2px' }, fsize(a.fileSize)))),
         el('a', { class: 'btn btn-primary', style: 'width:100%', href: a.fileUrl || '#', target: '_blank', download: a.fileName || 'file' }, '⬇ Скачать файл')));
     } else if (a.fileName) {
-      info.append(el('div', { style: 'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)' }, el('span', {}, ' '), 'Файл: ', el('strong', {}, a.fileName), ' (', fsize(a.fileSize), ') — доступен после покупки'));
+      info.append(el('div', { style: 'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)' }, el('span', {}, '📦 '), 'Файл: ', el('strong', {}, a.fileName), ' (', fsize(a.fileSize), ') — доступен после покупки'));
     }
-    
     const acts = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin:16px 0' });
     acts.append(el('button', { class: 'btn btn-primary', style: 'padding:12px 32px;font-size:15px', onclick: () => openOrder(a.id) }, 'Оставить заявку'));
     acts.append(el('button', { class: 'btn btn-outline btn-icon', onclick: () => toggleFav(a.id, isFav, favs) }, isFav ? '♥' : '♡'));
     acts.append(el('button', { class: 'btn btn-text btn-sm', onclick: () => openReport(a.id) }, 'Пожаловаться'));
     info.append(acts);
     top.append(iconDiv, info); w.append(top);
-    
     const ss = el('section', { class: 'about-section' }); ss.append(el('h3', {}, 'Скриншоты'));
     const sc = el('div', { class: 'screenshots' });
     if (a.screenshots && a.screenshots.length > 0) {
-      a.screenshots.forEach(sh => {
-        const thumb = el('div', { class: 'screenshot', onclick: () => openScreenshotViewer(a.screenshots, sh) });
-        thumb.append(el('img', { src: sh.url, alt: 'Скриншот' }));
-        sc.append(thumb);
-      });
-    } else {
-      sc.append(el('div', { class: 'screenshot', style: 'color:var(--text2);font-size:13px' }, 'Скриншоты не добавлены'));
-    }
+      a.screenshots.forEach(sh => { const thumb = el('div', { class: 'screenshot', onclick: () => openScreenshotViewer(a.screenshots, sh) }); thumb.append(el('img', { src: sh.url, alt: 'Скриншот' })); sc.append(thumb); });
+    } else { sc.append(el('div', { class: 'screenshot', style: 'color:var(--text2);font-size:13px' }, 'Скриншоты не добавлены')); }
     ss.append(sc); w.append(ss);
-    
     const ab = el('section', { class: 'about-section' });
     ab.append(el('h3', {}, 'Об этом приложении')); ab.append(el('p', {}, a.desc || ''));
-    if (a.features && a.features.length) {
-      ab.append(el('h3', { style: 'margin-top:16px' }, 'Возможности'));
-      const fl = el('ul', { class: 'features-list' });
-      a.features.forEach(f => { fl.append(el('li', {}, f)); });
-      ab.append(fl);
-    }
+    if (a.features && a.features.length) { ab.append(el('h3', { style: 'margin-top:16px' }, 'Возможности')); const fl = el('ul', { class: 'features-list' }); a.features.forEach(f => { fl.append(el('li', {}, f)); }); ab.append(fl); }
     ab.append(el('h3', { style: 'margin-top:16px' }, 'Системные требования')); ab.append(el('p', {}, a.sys || '—')); w.append(ab);
-    
     w.append(el('section', { class: 'about-section' }, el('div', { class: 'chat-warning' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи. Оплата в чате с продавцом. Если обманули — напишите в поддержку.')));
-    
     const rs = el('section', { class: 'about-section' }); rs.append(el('h3', {}, 'Оценки и отзывы'));
     db.collection('apps').doc(a.id).collection('reviews').orderBy('createdAt', 'desc').get().then(snapshot => {
       if (snapshot.empty) { rs.append(el('p', { style: 'color:var(--text2)' }, 'Пока нет отзывов')); }
-      else {
-        snapshot.forEach(doc => {
-          const r = doc.data();
-          rs.append(el('div', { class: 'review' },
-            el('div', { class: 'review-head' },
-              el('div', { class: 'review-avatar' }, (r.authorName || '?')[0]),
-              el('div', { style: 'flex:1' }, el('div', { class: 'review-author' }, r.authorName || 'Аноним'), el('div', { class: 'review-date' }, stars(r.rating) + ' · ' + fd(r.createdAt)))),
-            el('div', { class: 'review-text' }, r.text)));
-        });
-      }
+      else { snapshot.forEach(doc => { const r = doc.data(); rs.append(el('div', { class: 'review' }, el('div', { class: 'review-head' }, el('div', { class: 'review-avatar' }, (r.authorName || '?')[0]), el('div', { style: 'flex:1' }, el('div', { class: 'review-author' }, r.authorName || 'Аноним'), el('div', { class: 'review-date' }, stars(r.rating) + ' · ' + fd(r.createdAt)))), el('div', { class: 'review-text' }, r.text))); }); }
       w.append(rs);
     }).catch(() => { w.append(rs); });
   });
@@ -847,12 +786,11 @@ function toggleFav(appId, isFav, currentFavs) {
 function rFavorites() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
   w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:16px' }, 'Избранное'));
-  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'))); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
   const cuId = S.cu.uid;
   const favs = JSON.parse(localStorage.getItem('awer_favs_' + cuId) || '{}');
   const ids = Object.keys(favs);
   if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '♡'), el('h3', {}, 'Пока пусто'))); return w; }
-  
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
   const promises = ids.map(id => db.collection('apps').doc(id).get());
@@ -872,23 +810,16 @@ function rOrders() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
   w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:16px' }, 'Мои заявки'));
   if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
-  
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
-  
   db.collection('orders').where('buyerUid', '==', S.cu.uid).get().then(snap1 => {
     return db.collection('orders').where('devUid', '==', S.cu.uid).get().then(snap2 => {
       loading.remove();
       const orders = [];
       snap1.forEach(doc => { orders.push({ id: doc.id, ...doc.data() }); });
-      snap2.forEach(doc => {
-        const o = { id: doc.id, ...doc.data() };
-        if (!orders.find(x => x.id === o.id)) orders.push(o);
-      });
+      snap2.forEach(doc => { const o = { id: doc.id, ...doc.data() }; if (!orders.find(x => x.id === o.id)) orders.push(o); });
       orders.sort((a, b) => (b.createdAt ? b.createdAt.seconds : 0) - (a.createdAt ? a.createdAt.seconds : 0));
-      
       if (orders.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '📋'), el('h3', {}, 'Заявок пока нет'))); return; }
-      
       orders.forEach(o => {
         getAppById(o.appId, function (a) {
           if (!a) return;
@@ -900,9 +831,7 @@ function rOrders() {
           else { c.append(el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '')); }
           c.append(el('div', { class: 'order-info' }, el('h4', {}, a.name), el('p', {}, isB ? 'Продавец: ' + (o.devName || '') : 'Покупатель: ' + (o.buyerName || '')), el('p', {}, fd(o.createdAt)), el('span', { class: 'status-badge ' + st[0] }, st[1])));
           const ac = el('div', { class: 'order-actions' });
-          if (o.status !== 'cancelled' && o.status !== 'completed') {
-            ac.append(el('button', { class: 'btn btn-primary btn-sm', onclick: () => nav('chat', { orderId: o.id }) }, 'Открыть чат'));
-          }
+          if (o.status !== 'cancelled' && o.status !== 'completed') { ac.append(el('button', { class: 'btn btn-primary btn-sm', onclick: () => nav('chat', { orderId: o.id }) }, 'Открыть чат')); }
           c.append(ac); w.append(c);
         });
       });
@@ -916,120 +845,50 @@ function rChat() {
   if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
   const orderId = (S.route.params && S.route.params.orderId) ? S.route.params.orderId : null;
   if (!orderId) { w.append(backBtn('Заявки', 'orders')); w.append(el('div', { class: 'empty' }, el('h3', {}, 'Чат не найден'))); return w; }
-  
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
-  
   db.collection('orders').doc(orderId).get().then(doc => {
     loading.remove();
     if (!doc.exists) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Чат не найден'))); return w; }
     const o = { id: doc.id, ...doc.data() };
     if (o.buyerUid !== S.cu.uid && o.devUid !== S.cu.uid) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Нет доступа'))); return w; }
-    
     const isB = o.buyerUid === S.cu.uid;
     const otherName = isB ? o.devName : o.buyerName;
-    
     const cw = el('div', { class: 'chat-wrap' });
     cw.append(backBtn('Заявки', 'orders'));
     const hd = el('div', { class: 'chat-head' });
     hd.append(el('h3', {}, '💬 Чат сделки'));
     hd.append(el('p', { style: 'font-size:13px;color:var(--text2);margin:6px 0' }, 'Приложение: ', el('strong', {}, o.appName || '—'), ' · ', el('strong', {}, otherName || '—')));
-    hd.append(el('div', { class: 'chat-warning' }, el('strong', {}, '⚠️ '), 'awer не участвует в оплате. Если продавец обманул — напишите в поддержку.'));
+    hd.append(el('div', { class: 'chat-warning' }, el('strong', {}, '️ '), 'awer не участвует в оплате. Если продавец обманул — напишите в поддержку.'));
     cw.append(hd);
-    
     const ms = el('div', { class: 'chat-messages', id: 'chatMsgs' });
     db.collection('orders').doc(orderId).collection('messages').orderBy('createdAt', 'asc').onSnapshot(snapshot => {
       ms.innerHTML = '';
       if (snapshot.empty) { ms.append(el('div', { style: 'text-align:center;color:var(--text2);padding:40px' }, 'Начните общение')); }
-      snapshot.forEach(doc => {
-        const m = doc.data();
-        const me = m.senderUid === S.cu.uid;
-        ms.append(el('div', { class: 'msg ' + (me ? 'me' : 'other') },
-          !me ? el('div', { class: 'msg-author' }, m.senderName) : null,
-          el('div', {}, m.text),
-          el('span', { class: 'msg-time' }, ft(m.createdAt))));
-      });
+      snapshot.forEach(doc => { const m = doc.data(); const me = m.senderUid === S.cu.uid; ms.append(el('div', { class: 'msg ' + (me ? 'me' : 'other') }, !me ? el('div', { class: 'msg-author' }, m.senderName) : null, el('div', {}, m.text), el('span', { class: 'msg-time' }, ft(m.createdAt)))); });
       ms.scrollTop = ms.scrollHeight;
     }, error => { console.error("Chat error:", error); });
     cw.append(ms);
-    
     if (o.status !== 'cancelled' && o.status !== 'completed') {
       const inp = el('div', { class: 'chat-input' });
       const input = el('input', { placeholder: 'Написать сообщение...' });
-      const sendBtn = el('button', { class: 'btn btn-primary' });
-      sendBtn.textContent = 'Отправить';
-      sendBtn.addEventListener('click', () => {
-        const t = input.value.trim(); if (!t) return;
-        db.collection('orders').doc(orderId).collection('messages').add({
-          senderUid: S.cu.uid, senderName: S.cu.name, text: t, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        input.value = '';
-        if (o.status === 'new' || o.status === 'accepted') {
-          db.collection('orders').doc(orderId).update({ status: 'discussion' });
-        }
-      });
+      const sendBtn = el('button', { class: 'btn btn-primary' }); sendBtn.textContent = 'Отправить';
+      sendBtn.addEventListener('click', () => { const t = input.value.trim(); if (!t) return; db.collection('orders').doc(orderId).collection('messages').add({ senderUid: S.cu.uid, senderName: S.cu.name, text: t, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); input.value = ''; if (o.status === 'new' || o.status === 'accepted') { db.collection('orders').doc(orderId).update({ status: 'discussion' }); } });
       input.addEventListener('keydown', e => { if (e.key === 'Enter') sendBtn.click(); });
       inp.append(input, sendBtn); cw.append(inp);
-      
       const ac = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin-top:12px' });
       if (isB) {
-        if (!o.buyerConfirmed) {
-          const btn = el('button', { class: 'btn btn-primary btn-sm' });
-          btn.textContent = '✓ Я завершил сделку';
-          btn.addEventListener('click', () => {
-            db.collection('orders').doc(orderId).update({ buyerConfirmed: true });
-            db.collection('orders').doc(orderId).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Покупатель подтвердил.', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-            if (o.devConfirmed) {
-              db.collection('orders').doc(orderId).update({ status: 'completed' });
-              const lib = JSON.parse(localStorage.getItem('awer_lib_' + S.cu.uid) || '{}');
-              lib[o.appId] = { date: Date.now() };
-              localStorage.setItem('awer_lib_' + S.cu.uid, JSON.stringify(lib));
-              toast('Готово', 'Приложение в библиотеке', 'success');
-            }
-            toast('Подтверждено', '', 'success');
-          });
-          ac.append(btn);
-        } else {
-          ac.append(el('span', { class: 'status-badge status-verified' }, '✓ Вы подтвердили'));
-        }
+        if (!o.buyerConfirmed) { const btn = el('button', { class: 'btn btn-primary btn-sm' }); btn.textContent = '✓ Я завершил сделку'; btn.addEventListener('click', () => { db.collection('orders').doc(orderId).update({ buyerConfirmed: true }); db.collection('orders').doc(orderId).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Покупатель подтвердил.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); if (o.devConfirmed) { db.collection('orders').doc(orderId).update({ status: 'completed' }); const lib = JSON.parse(localStorage.getItem('awer_lib_' + S.cu.uid) || '{}'); lib[o.appId] = { date: Date.now() }; localStorage.setItem('awer_lib_' + S.cu.uid, JSON.stringify(lib)); toast('Готово', 'Приложение в библиотеке', 'success'); } toast('Подтверждено', '', 'success'); }); ac.append(btn); }
+        else { ac.append(el('span', { class: 'status-badge status-verified' }, '✓ Вы подтвердили')); }
       } else {
-        if (!o.devConfirmed) {
-          const btn = el('button', { class: 'btn btn-primary btn-sm' });
-          btn.textContent = '✓ Подтвердить сделку';
-          btn.addEventListener('click', () => {
-            db.collection('orders').doc(orderId).update({ devConfirmed: true });
-            db.collection('orders').doc(orderId).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Продавец подтвердил.', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-            if (o.buyerConfirmed) {
-              db.collection('orders').doc(orderId).update({ status: 'completed' });
-              const lib = JSON.parse(localStorage.getItem('awer_lib_' + o.buyerUid) || '{}');
-              lib[o.appId] = { date: Date.now() };
-              localStorage.setItem('awer_lib_' + o.buyerUid, JSON.stringify(lib));
-            }
-            toast('Подтверждено', '', 'success');
-          });
-          ac.append(btn);
-        } else {
-          ac.append(el('span', { class: 'status-badge status-verified' }, '✓ Вы подтвердили'));
-        }
+        if (!o.devConfirmed) { const btn = el('button', { class: 'btn btn-primary btn-sm' }); btn.textContent = '✓ Подтвердить сделку'; btn.addEventListener('click', () => { db.collection('orders').doc(orderId).update({ devConfirmed: true }); db.collection('orders').doc(orderId).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Продавец подтвердил.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); if (o.buyerConfirmed) { db.collection('orders').doc(orderId).update({ status: 'completed' }); const lib = JSON.parse(localStorage.getItem('awer_lib_' + o.buyerUid) || '{}'); lib[o.appId] = { date: Date.now() }; localStorage.setItem('awer_lib_' + o.buyerUid, JSON.stringify(lib)); } toast('Подтверждено', '', 'success'); }); ac.append(btn); }
+        else { ac.append(el('span', { class: 'status-badge status-verified' }, '✓ Вы подтвердили')); }
       }
-      
-      const cancelBtn = el('button', { class: 'btn btn-danger btn-sm' });
-      cancelBtn.textContent = 'Отменить';
-      cancelBtn.addEventListener('click', () => {
-        if (!confirm('Отменить?')) return;
-        db.collection('orders').doc(orderId).update({ status: 'cancelled' });
-        db.collection('orders').doc(orderId).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Сделка отменена.', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-      });
+      const cancelBtn = el('button', { class: 'btn btn-danger btn-sm' }); cancelBtn.textContent = 'Отменить'; cancelBtn.addEventListener('click', () => { if (!confirm('Отменить?')) return; db.collection('orders').doc(orderId).update({ status: 'cancelled' }); db.collection('orders').doc(orderId).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Сделка отменена.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); });
       ac.append(cancelBtn);
-      
-      const supBtn = el('button', { class: 'btn btn-text btn-sm' });
-      supBtn.textContent = '🆘 В поддержку';
-      supBtn.addEventListener('click', () => { openSupModal(orderId); });
-      ac.append(supBtn);
-      cw.append(ac);
-    } else {
-      cw.append(el('div', { style: 'text-align:center;padding:20px;color:var(--text2)' }, o.status === 'completed' ? '✓ Сделка завершена' : '✕ Сделка отменена'));
-    }
+      const supBtn = el('button', { class: 'btn btn-text btn-sm' }); supBtn.textContent = '🆘 В поддержку'; supBtn.addEventListener('click', () => { openSupModal(orderId); });
+      ac.append(supBtn); cw.append(ac);
+    } else { cw.append(el('div', { style: 'text-align:center;padding:20px;color:var(--text2)' }, o.status === 'completed' ? '✓ Сделка завершена' : '✕ Сделка отменена')); }
     w.append(cw);
   }).catch(() => { loading.remove(); w.append(el('div', { class: 'empty' }, el('h3', {}, 'Ошибка загрузки чата'))); });
   return w;
@@ -1038,12 +897,11 @@ function rChat() {
 function rLibrary() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
   w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:16px' }, 'Моя библиотека'));
-  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'))); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
   const cuId = S.cu.uid;
   const lib = JSON.parse(localStorage.getItem('awer_lib_' + cuId) || '{}');
   const ids = Object.keys(lib);
   if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Библиотека пуста'))); return w; }
-  
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
   const promises = ids.map(id => db.collection('apps').doc(id).get());
@@ -1067,7 +925,7 @@ function rLibrary() {
 
 function rProfile() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
-  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'), el('button', { class: 'btn btn-primary', style: 'margin-top:14px', onclick: showAuth }, 'Войти'))); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'), el('button', { class: 'btn btn-primary', style: 'margin-top:14px', onclick: showAuth }, 'Войти'))); return w; }
   const u = S.cu; const g = el('div', { class: 'profile-grid' });
   const card = el('div', { class: 'profile-card' });
   card.append(el('div', { class: 'profile-avatar' }, u.avatar || u.name[0]));
@@ -1078,42 +936,20 @@ function rProfile() {
   logoutBtn.textContent = 'Выйти';
   logoutBtn.addEventListener('click', () => { logoutUser().then(() => { render(); toast('Вы вышли', '', 'info'); }); });
   card.append(logoutBtn);
-  
   const menu = el('div', { class: 'profile-menu' });
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
   const menuItems = [['info', '👤', 'Аккаунт'], ['orders', '📋', 'Заявки'], ['library', '📚', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '⚙️', 'Настройки'], ['support', '🆘', 'Поддержка']];
-  menuItems.forEach(x => {
-    menu.append(el('button', { class: 'profile-menu-item' + (tab === x[0] ? ' active' : ''), onclick: () => nav('profile', { tab: x[0] }) }, el('span', {}, x[1]), el('span', {}, x[2])));
-  });
-  if (u.role === 'developer') {
-    const devBtn = el('button', { class: 'profile-menu-item', onclick: () => nav('developer') });
-    devBtn.append(el('span', {}, '🛠')); devBtn.append(el('span', {}, 'Консоль'));
-    menu.append(devBtn);
-  }
-  if (u.role === 'admin') {
-    const adminBtn = el('button', { class: 'profile-menu-item', onclick: () => nav('admin') });
-    adminBtn.append(el('span', {}, '⚙️')); adminBtn.append(el('span', {}, 'Админ-панель'));
-    menu.append(adminBtn);
-  }
+  menuItems.forEach(x => { menu.append(el('button', { class: 'profile-menu-item' + (tab === x[0] ? ' active' : ''), onclick: () => nav('profile', { tab: x[0] }) }, el('span', {}, x[1]), el('span', {}, x[2]))); });
+  if (u.role === 'developer') { const devBtn = el('button', { class: 'profile-menu-item', onclick: () => nav('developer') }); devBtn.append(el('span', {}, '🛠')); devBtn.append(el('span', {}, 'Консоль')); menu.append(devBtn); }
+  if (u.role === 'admin') { const adminBtn = el('button', { class: 'profile-menu-item', onclick: () => nav('admin') }); adminBtn.append(el('span', {}, '⚙️')); adminBtn.append(el('span', {}, 'Админ-панель')); menu.append(adminBtn); }
   card.append(menu);
-  
   const content = el('div', {});
-  if (tab === 'info') {
-    content.append(el('div', { class: 'about-section' }, el('h3', {}, 'Личные данные'),
-      el('div', { class: 'form-group' }, el('label', {}, 'Ник'), el('input', { class: 'form-control', id: 'pN', value: u.name })),
-      el('button', { class: 'btn btn-primary', onclick: () => {
-        const newName = $('#pN').value.trim();
-        if (!newName) { toast('Введите ник', '', 'error'); return; }
-        db.collection('users').doc(S.cu.uid).update({ name: newName, avatar: newName[0] });
-        S.cu.name = newName; S.cu.avatar = newName[0];
-        render(); toast('Сохранено', '', 'success');
-      } }, 'Сохранить')));
-  } else if (tab === 'orders') { nav('orders'); return w; }
+  if (tab === 'info') { content.append(el('div', { class: 'about-section' }, el('h3', {}, 'Личные данные'), el('div', { class: 'form-group' }, el('label', {}, 'Ник'), el('input', { class: 'form-control', id: 'pN', value: u.name })), el('button', { class: 'btn btn-primary', onclick: () => { const newName = $('#pN').value.trim(); if (!newName) { toast('Введите ник', '', 'error'); return; } db.collection('users').doc(S.cu.uid).update({ name: newName, avatar: newName[0] }); S.cu.name = newName; S.cu.avatar = newName[0]; render(); toast('Сохранено', '', 'success'); } }, 'Сохранить'))); }
+  else if (tab === 'orders') { nav('orders'); return w; }
   else if (tab === 'library') { nav('library'); return w; }
   else if (tab === 'favorites') { nav('favorites'); return w; }
   else if (tab === 'settings') { nav('settings'); return w; }
   else if (tab === 'support') { nav('support'); return w; }
-  
   g.append(card, content); w.append(g); return w;
 }
 
@@ -1123,34 +959,21 @@ function rSettings() {
   w.append(el('p', { style: 'color:var(--text2);margin-bottom:20px' }, 'Управление аккаунтом'));
   const list = el('div', { class: 'settings-list' });
   const items = [
-    { i: '', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme' },
+    { i: '🎨', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme' },
     { i: '🔔', t: 'Уведомления', d: S.settings.notif ? 'Включены' : 'Выключены', tg: true, k: 'notif' },
     { i: '🔊', t: 'Звуки', d: S.settings.sound ? 'Включены' : 'Выключены', tg: true, k: 'sound' },
     { i: '🔄', t: 'Автообновление', d: S.settings.autoUpd ? 'Включено' : 'Выключено', tg: true, k: 'autoUpd' },
     { i: '🌐', t: 'Язык', d: 'Русский', a: () => nav('settingsSub', { sub: 'lang' }) },
     { i: '', t: 'Конфиденциальность', d: 'Настройки приватности', a: () => nav('settingsSub', { sub: 'privacy' }) },
-    { i: '👨‍‍', t: 'Родительский контроль', d: S.settings.parental ? 'Включён' : 'Выключен', tg: true, k: 'parental' },
-    { i: 'ℹ️', t: 'О приложении', d: 'awer v1.0', a: () => nav('settingsSub', { sub: 'about' }) },
+    { i: '️', t: 'О приложении', d: 'awer v1.0', a: () => nav('settingsSub', { sub: 'about' }) },
     { i: '❓', t: 'Помощь', d: 'FAQ', a: () => nav('settingsSub', { sub: 'help' }) },
-    { i: '', t: 'Условия использования', d: 'Правила', a: () => nav('settingsSub', { sub: 'terms' }) }
+    { i: '📄', t: 'Условия использования', d: 'Правила', a: () => nav('settingsSub', { sub: 'terms' }) }
   ];
   items.forEach(it => {
     const row = el('div', { class: 'settings-item' });
     row.append(el('div', { class: 'settings-ico' }, it.i), el('div', { class: 'settings-info' }, el('strong', {}, it.t), el('span', {}, it.d)));
-    if (it.tg) {
-      const isOn = it.k === 'theme' ? S.theme === 'dark' : S.settings[it.k];
-      const tg = el('div', { class: 'toggle' + (isOn ? ' on' : '') });
-      tg.addEventListener('click', e => {
-        e.stopPropagation();
-        if (it.k === 'theme') { S.theme = S.theme === 'light' ? 'dark' : 'light'; }
-        else { S.settings[it.k] = !S.settings[it.k]; }
-        saveSettings(); render();
-      });
-      row.append(tg);
-    } else {
-      row.append(el('div', { class: 'settings-arrow' }, '›'));
-      row.addEventListener('click', it.a);
-    }
+    if (it.tg) { const isOn = it.k === 'theme' ? S.theme === 'dark' : S.settings[it.k]; const tg = el('div', { class: 'toggle' + (isOn ? ' on' : '') }); tg.addEventListener('click', e => { e.stopPropagation(); if (it.k === 'theme') { S.theme = S.theme === 'light' ? 'dark' : 'light'; } else { S.settings[it.k] = !S.settings[it.k]; } saveSettings(); render(); }); row.append(tg); }
+    else { row.append(el('div', { class: 'settings-arrow' }, '›')); row.addEventListener('click', it.a); }
     list.append(row);
   });
   w.append(list); return w;
@@ -1160,34 +983,11 @@ function rSettingsSub() {
   const w = el('div', { class: 'container' });
   const sub = (S.route.params && S.route.params.sub) ? S.route.params.sub : '';
   w.append(backBtn('Настройки', 'settings'));
-  if (sub === 'lang') {
-    w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Язык'));
-    const l = el('div', { class: 'settings-list' });
-    [['ru', 'Русский', '✓'], ['en', 'English', '']].forEach(x => {
-      l.append(el('div', { class: 'settings-item', onclick: () => { toast('Язык', x[1], 'info'); nav('settings'); } }, el('div', { class: 'settings-info' }, el('strong', {}, x[1])), el('div', { class: 'settings-arrow' }, x[2])));
-    });
-    w.append(l);
-  } else if (sub === 'privacy') {
-    w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Конфиденциальность'));
-    const l = el('div', { class: 'settings-list' });
-    ['Показывать профиль', 'Показывать активность', 'Скрывать ник'].forEach(n => {
-      const row = el('div', { class: 'settings-item' });
-      row.append(el('div', { class: 'settings-info' }, el('strong', {}, n)));
-      const tg = el('div', { class: 'toggle on' });
-      tg.addEventListener('click', () => { tg.classList.toggle('on'); });
-      row.append(tg); l.append(row);
-    });
-    w.append(l);
-  } else if (sub === 'about') {
-    w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'О приложении'));
-    w.append(el('div', { class: 'about-section' }, el('p', {}, el('strong', {}, 'awer'), ' — магазин приложений'), el('p', {}, 'Версия: 1.0.0'), el('p', {}, '© 2024 awer team')));
-  } else if (sub === 'help') {
-    w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Помощь'));
-    w.append(el('div', { class: 'about-section' }, el('h3', {}, 'Как оставить заявку?'), el('p', {}, 'Откройте приложение и нажмите «Оставить заявку».'), el('h3', { style: 'margin-top:14px' }, 'Что если продавец обманул?'), el('p', {}, 'Напишите в поддержку.'), el('p', { style: 'margin-top:14px' }, 'support@awer.com')));
-  } else if (sub === 'terms') {
-    w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Условия'));
-    w.append(el('div', { class: 'about-section' }, el('p', {}, '1. awer — платформа-посредник.'), el('p', {}, '2. Оплата в чате между сторонами.'), el('p', {}, '3. Запрещено размещать приложения с вирусами.'), el('p', {}, '4. При обмане — обращайтесь в поддержку.')));
-  }
+  if (sub === 'lang') { w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Язык')); const l = el('div', { class: 'settings-list' }); [['ru', 'Русский', '✓'], ['en', 'English', '']].forEach(x => { l.append(el('div', { class: 'settings-item', onclick: () => { toast('Язык', x[1], 'info'); nav('settings'); } }, el('div', { class: 'settings-info' }, el('strong', {}, x[1])), el('div', { class: 'settings-arrow' }, x[2]))); }); w.append(l); }
+  else if (sub === 'privacy') { w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Конфиденциальность')); const l = el('div', { class: 'settings-list' }); ['Показывать профиль', 'Показывать активность', 'Скрывать ник'].forEach(n => { const row = el('div', { class: 'settings-item' }); row.append(el('div', { class: 'settings-info' }, el('strong', {}, n))); const tg = el('div', { class: 'toggle on' }); tg.addEventListener('click', () => { tg.classList.toggle('on'); }); row.append(tg); l.append(row); }); w.append(l); }
+  else if (sub === 'about') { w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'О приложении')); w.append(el('div', { class: 'about-section' }, el('p', {}, el('strong', {}, 'awer'), ' — магазин приложений'), el('p', {}, 'Версия: 1.0.0'), el('p', {}, '© 2024 awer team'))); }
+  else if (sub === 'help') { w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Помощь')); w.append(el('div', { class: 'about-section' }, el('h3', {}, 'Как оставить заявку?'), el('p', {}, 'Откройте приложение и нажмите «Оставить заявку».'), el('h3', { style: 'margin-top:14px' }, 'Что если продавец обманул?'), el('p', {}, 'Напишите в поддержку.'), el('p', { style: 'margin-top:14px' }, 'support@awer.com'))); }
+  else if (sub === 'terms') { w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Условия')); w.append(el('div', { class: 'about-section' }, el('p', {}, '1. awer — платформа-посредник.'), el('p', {}, '2. Оплата в чате между сторонами.'), el('p', {}, '3. Запрещено размещать приложения с вирусами.'), el('p', {}, '4. При обмане — обращайтесь в поддержку.'))); }
   return w;
 }
 
@@ -1196,31 +996,16 @@ function rSupport() {
   w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:10px' }, '🆘 Поддержка'));
   w.append(el('p', { style: 'color:var(--text2);margin-bottom:20px' }, 'Если продавец обманул — напишите нам.'));
   if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
-  
   const form = el('div', { class: 'about-section' }); form.append(el('h3', {}, 'Новое обращение'));
   form.append(el('div', { class: 'form-group' }, el('label', {}, 'Тема'), el('input', { class: 'form-control', id: 'sT', placeholder: 'Продавец не дал приложение' })));
   form.append(el('div', { class: 'form-group' }, el('label', {}, 'Описание'), el('textarea', { class: 'form-control', id: 'sX', placeholder: 'Расскажите что произошло...' })));
   const submitBtn = el('button', { class: 'btn btn-primary' }); submitBtn.textContent = 'Отправить';
-  submitBtn.addEventListener('click', () => {
-    const th = $('#sT').value.trim(), tx = $('#sX').value.trim();
-    if (!th || !tx) { toast('Заполните поля', '', 'error'); return; }
-    db.collection('supports').add({ userId: S.cu.uid, userName: S.cu.name, theme: th, text: tx, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .then(() => { toast('Отправлено', '', 'success'); render(); });
-  });
+  submitBtn.addEventListener('click', () => { const th = $('#sT').value.trim(), tx = $('#sX').value.trim(); if (!th || !tx) { toast('Заполните поля', '', 'error'); return; } db.collection('supports').add({ userId: S.cu.uid, userName: S.cu.name, theme: th, text: tx, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { toast('Отправлено', '', 'success'); render(); }); });
   form.append(submitBtn); w.append(form);
-  
   db.collection('supports').where('userId', '==', S.cu.uid).orderBy('createdAt', 'desc').get().then(snapshot => {
     if (snapshot.empty) return;
     w.append(el('h3', { style: 'margin:20px 0 10px;font-weight:500' }, 'Мои обращения'));
-    snapshot.forEach(doc => {
-      const s = doc.data();
-      const c = el('div', { class: 'order-card' });
-      c.append(el('div', { class: 'order-icon' }, '🆘'), el('div', { class: 'order-info' }, el('h4', {}, s.theme), el('p', {}, fd(s.createdAt)), el('span', { class: 'status-badge ' + (s.status === 'new' ? 'status-pending' : 'status-verified') }, s.status === 'new' ? 'Новое' : 'Ответ')));
-      const openBtn = el('button', { class: 'btn btn-primary btn-sm' }); openBtn.textContent = 'Открыть';
-      openBtn.addEventListener('click', () => { openSupChat(doc.id); });
-      c.append(el('div', { class: 'order-actions' }, openBtn));
-      w.append(c);
-    });
+    snapshot.forEach(doc => { const s = doc.data(); const c = el('div', { class: 'order-card' }); c.append(el('div', { class: 'order-icon' }, '🆘'), el('div', { class: 'order-info' }, el('h4', {}, s.theme), el('p', {}, fd(s.createdAt)), el('span', { class: 'status-badge ' + (s.status === 'new' ? 'status-pending' : 'status-verified') }, s.status === 'new' ? 'Новое' : 'Ответ'))); const openBtn = el('button', { class: 'btn btn-primary btn-sm' }); openBtn.textContent = 'Открыть'; openBtn.addEventListener('click', () => { openSupChat(doc.id); }); c.append(el('div', { class: 'order-actions' }, openBtn)); w.append(c); });
   });
   return w;
 }
@@ -1236,19 +1021,11 @@ function openSupChat(id) {
     body.append(el('p', { style: 'color:var(--text2);font-size:13px;margin-bottom:14px' }, s.text));
     const ms = el('div', { class: 'chat-messages', style: 'min-height:200px;max-height:300px' });
     db.collection('supports').doc(id).collection('messages').orderBy('createdAt', 'asc').get().then(snapshot => {
-      snapshot.forEach(d => {
-        const x = d.data();
-        ms.append(el('div', { class: 'msg ' + (x.from === 'user' ? 'me' : 'other') }, el('div', {}, x.text), el('span', { class: 'msg-time' }, ft(x.createdAt))));
-      });
+      snapshot.forEach(d => { const x = d.data(); ms.append(el('div', { class: 'msg ' + (x.from === 'user' ? 'me' : 'other') }, el('div', {}, x.text), el('span', { class: 'msg-time' }, ft(x.createdAt)))); });
       body.append(ms);
       const inp = el('div', { class: 'chat-input' }); const input = el('input', { placeholder: 'Написать...' });
       const sendBtn = el('button', { class: 'btn btn-primary' }); sendBtn.textContent = 'Отправить';
-      sendBtn.addEventListener('click', () => {
-        const t = input.value.trim(); if (!t) return;
-        db.collection('supports').doc(id).collection('messages').add({ from: 'user', text: t, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-        db.collection('supports').doc(id).update({ status: 'answered' });
-        closeM(); render(); toast('Отправлено', '', 'success');
-      });
+      sendBtn.addEventListener('click', () => { const t = input.value.trim(); if (!t) return; db.collection('supports').doc(id).collection('messages').add({ from: 'user', text: t, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); db.collection('supports').doc(id).update({ status: 'answered' }); closeM(); render(); toast('Отправлено', '', 'success'); });
       input.addEventListener('keydown', e => { if (e.key === 'Enter') sendBtn.click(); });
       inp.append(input, sendBtn); body.append(inp); m.append(body); openM(m);
     });
@@ -1257,7 +1034,7 @@ function openSupChat(id) {
 
 function openSupModal(orderId) {
   const m = el('div', {});
-  m.append(el('div', { class: 'modal-head' }, el('h2', {}, '🆘 В поддержку'), el('button', { class: 'modal-close', onclick: closeM }, '✕')));
+  m.append(el('div', { class: 'modal-head' }, el('h2', {}, '🆘 В поддержку'), el('button', { class: 'modal-close', onclick: closeM }, '')));
   const body = el('div', { class: 'modal-body' });
   body.append(el('p', { style: 'margin-bottom:10px' }, 'Сделка: ', el('strong', {}, orderId)));
   body.append(el('p', { style: 'color:var(--text2);font-size:13px;margin-bottom:14px' }, 'Мы рассмотрим переписку.'));
@@ -1265,11 +1042,7 @@ function openSupModal(orderId) {
   const foot = el('div', { class: 'modal-foot' });
   foot.append(el('button', { class: 'btn btn-text', onclick: closeM }, 'Отмена'));
   const submitBtn = el('button', { class: 'btn btn-primary' }); submitBtn.textContent = 'Отправить';
-  submitBtn.addEventListener('click', () => {
-    const t = $('#sD').value.trim(); if (!t) { toast('Опишите проблему', '', 'error'); return; }
-    db.collection('supports').add({ userId: S.cu.uid, userName: S.cu.name, theme: 'Проблема со сделкой', text: t, orderId: orderId, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .then(() => { closeM(); toast('Отправлено', '', 'success'); });
-  });
+  submitBtn.addEventListener('click', () => { const t = $('#sD').value.trim(); if (!t) { toast('Опишите проблему', '', 'error'); return; } db.collection('supports').add({ userId: S.cu.uid, userName: S.cu.name, theme: 'Проблема со сделкой', text: t, orderId: orderId, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { closeM(); toast('Отправлено', '', 'success'); }); });
   foot.append(submitBtn); m.append(body, foot); openM(m);
 }
 
@@ -1278,72 +1051,18 @@ function rDeveloper() {
   if (!S.cu || S.cu.role !== 'developer') { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Нужен аккаунт разработчика'))); return w; }
   const u = S.cu; w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:10px' }, 'Консоль разработчика'));
   if (!u.verified) w.append(el('div', { class: 'chat-warning', style: 'margin-bottom:16px' }, el('strong', {}, '⚠️ '), 'Аккаунт не верифицирован.'));
-  
   const stats = el('div', { class: 'stats-grid' });
   db.collection('apps').where('devUid', '==', u.uid).get().then(snap => { stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Мои приложения'), el('div', { class: 'stat-value' }, String(snap.size)))); });
   db.collection('orders').where('devUid', '==', u.uid).get().then(snap => { stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Заявки'), el('div', { class: 'stat-value' }, String(snap.size)))); });
-  db.collection('orders').where('devUid', '==', u.uid).where('status', '==', 'completed').get().then(snap => {
-    let rev = 0; snap.forEach(d => { const o = d.data(); rev += (o.price || 0); });
-    stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Завершённых'), el('div', { class: 'stat-value' }, String(snap.size))));
-    stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Доход'), el('div', { class: 'stat-value' }, fp(rev))));
-  });
+  db.collection('orders').where('devUid', '==', u.uid).where('status', '==', 'completed').get().then(snap => { let rev = 0; snap.forEach(d => { const o = d.data(); rev += (o.price || 0); }); stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Завершённых'), el('div', { class: 'stat-value' }, String(snap.size)))); stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Доход'), el('div', { class: 'stat-value' }, fp(rev)))); });
   w.append(stats);
-  
   const tabs = el('div', { class: 'chips' });
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-  [['apps', 'Мои приложения'], ['orders', 'Заявки'], ['add', 'Добавить']].forEach(x => {
-    tabs.append(el('div', { class: 'chip' + (tab === x[0] ? ' active' : ''), onclick: () => nav('developer', { tab: x[0] }) }, x[1]));
-  });
+  [['apps', 'Мои приложения'], ['orders', 'Заявки'], ['add', 'Добавить']].forEach(x => { tabs.append(el('div', { class: 'chip' + (tab === x[0] ? ' active' : ''), onclick: () => nav('developer', { tab: x[0] }) }, x[1])); });
   w.append(tabs);
-  
-  if (tab === 'apps') {
-    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
-    w.append(loading);
-    db.collection('apps').where('devUid', '==', u.uid).get().then(snap => {
-      loading.remove();
-      if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'У вас пока нет приложений.'))); return; }
-      const g = el('div', { class: 'app-list' });
-      snap.forEach(doc => {
-        const a = { id: doc.id, ...doc.data() };
-        const item = rAppItem(a);
-        if (a.status === 'blocked') item.append(el('div', { style: 'margin-top:6px;font-size:11px;color:var(--danger);background:rgba(217,48,37,.1);padding:2px 8px;border-radius:10px;display:inline-block' }, '🔴 Заблокировано'));
-        g.append(item);
-      });
-      w.append(g);
-    });
-  } else if (tab === 'orders') {
-    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
-    w.append(loading);
-    db.collection('orders').where('devUid', '==', u.uid).get().then(snap => {
-      loading.remove();
-      let hasOrders = false;
-      snap.forEach(doc => {
-        const o = { id: doc.id, ...doc.data() };
-        if (o.status === 'completed' || o.status === 'cancelled') return;
-        hasOrders = true;
-        const c = el('div', { class: 'order-card' });
-        if (o.appIconUrl) { c.append(el('div', { class: 'order-icon' }, el('img', { src: o.appIconUrl }))); }
-        else { c.append(el('div', { class: 'order-icon', style: 'background:' + col(o.appId) }, o.appIcon || '')); }
-        c.append(el('div', { class: 'order-info' }, el('h4', {}, o.appName), el('p', {}, 'Покупатель: ' + (o.buyerName || '—')), el('p', {}, o.paymentMethod)));
-        const ac = el('div', { class: 'order-actions' });
-        if (o.status === 'new') {
-          const acceptBtn = el('button', { class: 'btn btn-primary btn-sm' }); acceptBtn.textContent = 'Принять';
-          acceptBtn.addEventListener('click', () => { db.collection('orders').doc(o.id).update({ status: 'accepted' }); db.collection('orders').doc(o.id).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Продавец принял заявку.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); toast('Принято', '', 'success'); });
-          ac.append(acceptBtn);
-          const rejectBtn = el('button', { class: 'btn btn-danger btn-sm' }); rejectBtn.textContent = 'Отклонить';
-          rejectBtn.addEventListener('click', () => { if (!confirm('Отклонить?')) return; db.collection('orders').doc(o.id).update({ status: 'cancelled' }); render(); });
-          ac.append(rejectBtn);
-        }
-        const chatBtn = el('button', { class: 'btn btn-outline btn-sm' }); chatBtn.textContent = 'Чат';
-        chatBtn.addEventListener('click', () => { nav('chat', { orderId: o.id }); });
-        ac.append(chatBtn);
-        c.append(ac); w.append(c);
-      });
-      if (!hasOrders) w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет заявок')));
-    });
-  } else if (tab === 'add') {
-    w.append(rAddApp());
-  }
+  if (tab === 'apps') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('apps').where('devUid', '==', u.uid).get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'У вас пока нет приложений.'))); return; } const g = el('div', { class: 'app-list' }); snap.forEach(doc => { const a = { id: doc.id, ...doc.data() }; const item = rAppItem(a); if (a.status === 'blocked') item.append(el('div', { style: 'margin-top:6px;font-size:11px;color:var(--danger);background:rgba(217,48,37,.1);padding:2px 8px;border-radius:10px;display:inline-block' }, '🔴 Заблокировано')); g.append(item); }); w.append(g); }); }
+  else if (tab === 'orders') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('orders').where('devUid', '==', u.uid).get().then(snap => { loading.remove(); let hasOrders = false; snap.forEach(doc => { const o = { id: doc.id, ...doc.data() }; if (o.status === 'completed' || o.status === 'cancelled') return; hasOrders = true; const c = el('div', { class: 'order-card' }); if (o.appIconUrl) { c.append(el('div', { class: 'order-icon' }, el('img', { src: o.appIconUrl }))); } else { c.append(el('div', { class: 'order-icon', style: 'background:' + col(o.appId) }, o.appIcon || '')); } c.append(el('div', { class: 'order-info' }, el('h4', {}, o.appName), el('p', {}, 'Покупатель: ' + (o.buyerName || '—')), el('p', {}, o.paymentMethod))); const ac = el('div', { class: 'order-actions' }); if (o.status === 'new') { const acceptBtn = el('button', { class: 'btn btn-primary btn-sm' }); acceptBtn.textContent = 'Принять'; acceptBtn.addEventListener('click', () => { db.collection('orders').doc(o.id).update({ status: 'accepted' }); db.collection('orders').doc(o.id).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Продавец принял заявку.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); toast('Принято', '', 'success'); }); ac.append(acceptBtn); const rejectBtn = el('button', { class: 'btn btn-danger btn-sm' }); rejectBtn.textContent = 'Отклонить'; rejectBtn.addEventListener('click', () => { if (!confirm('Отклонить?')) return; db.collection('orders').doc(o.id).update({ status: 'cancelled' }); render(); }); ac.append(rejectBtn); } const chatBtn = el('button', { class: 'btn btn-outline btn-sm' }); chatBtn.textContent = 'Чат'; chatBtn.addEventListener('click', () => { nav('chat', { orderId: o.id }); }); ac.append(chatBtn); c.append(ac); w.append(c); }); if (!hasOrders) w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет заявок'))); }); }
+  else if (tab === 'add') { w.append(rAddApp()); }
   return w;
 }
 
@@ -1366,7 +1085,6 @@ function rAddApp() {
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Системные требования'), el('input', { class: 'form-control', id: 'f_sys' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Ссылка на файл (Google Drive, свой сайт и т.д.)'), el('input', { class: 'form-control', id: 'f_fileUrl', placeholder: 'https://drive.google.com/...' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Имя файла'), el('input', { class: 'form-control', id: 'f_fileName', placeholder: 'app.zip' })));
-  
   const gs = el('div', { class: 'form-group' });
   gs.append(el('label', {}, 'Скриншоты (до 10 изображений)'));
   gs.append(el('p', { style: 'font-size:11px;color:var(--text2);margin-bottom:8px' }, 'Изображения будут автоматически сжаты.'));
@@ -1380,77 +1098,12 @@ function rAddApp() {
   const ssPreview = el('div', { class: 'screenshots-preview', id: 'ssPreview' });
   ssWrap.append(ssPreview);
   gs.append(ssWrap); f.append(gs);
-  
   let pendingScreenshots = [];
-  ssInput.addEventListener('change', function (e) {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-    if (pendingScreenshots.length + files.length > 10) { toast('Максимум 10 скриншотов', '', 'error'); ssInput.value = ''; return; }
-    ssProgress.style.display = 'block';
-    let processed = 0; const total = files.length;
-    function processNext() {
-      if (processed >= total) { ssProgress.style.display = 'none'; ssInput.value = ''; renderSSPreview(); toast('Скриншоты добавлены', total + ' шт.', 'success'); return; }
-      const file = files[processed];
-      $('#ssProgText').textContent = 'Обработка ' + (processed + 1) + ' из ' + total + ': ' + file.name;
-      $('#ssProgFill').style.width = Math.round((processed / total) * 100) + '%';
-      compressImage(file, 800).then(result => {
-        uploadToImgBB(result.blob).then(url => {
-          pendingScreenshots.push({ url: url, name: file.name, size: result.blob.size, width: result.width, height: result.height });
-          processed++; processNext();
-        }).catch(() => { toast('Ошибка загрузки', file.name, 'error'); processed++; processNext(); });
-      }).catch(() => { processed++; processNext(); });
-    }
-    processNext();
-  });
-  
-  function renderSSPreview() {
-    ssPreview.innerHTML = '';
-    pendingScreenshots.forEach((sh, idx) => {
-      const thumb = el('div', { class: 'screenshot-thumb' });
-      thumb.append(el('img', { src: sh.url, alt: sh.name }));
-      const rm = el('div', { class: 'remove' }); rm.textContent = '✕';
-      rm.addEventListener('click', () => { pendingScreenshots.splice(idx, 1); renderSSPreview(); });
-      thumb.append(rm);
-      ssPreview.append(thumb);
-    });
-  }
-  
+  ssInput.addEventListener('change', function (e) { const files = Array.from(e.target.files || []); if (files.length === 0) return; if (pendingScreenshots.length + files.length > 10) { toast('Максимум 10 скриншотов', '', 'error'); ssInput.value = ''; return; } ssProgress.style.display = 'block'; let processed = 0; const total = files.length; function processNext() { if (processed >= total) { ssProgress.style.display = 'none'; ssInput.value = ''; renderSSPreview(); toast('Скриншоты добавлены', total + ' шт.', 'success'); return; } const file = files[processed]; $('#ssProgText').textContent = 'Обработка ' + (processed + 1) + ' из ' + total + ': ' + file.name; $('#ssProgFill').style.width = Math.round((processed / total) * 100) + '%'; compressImage(file, 800).then(result => { uploadToImgBB(result.blob).then(url => { pendingScreenshots.push({ url: url, name: file.name, size: result.blob.size, width: result.width, height: result.height }); processed++; processNext(); }).catch(() => { toast('Ошибка загрузки', file.name, 'error'); processed++; processNext(); }); }).catch(() => { processed++; processNext(); }); } processNext(); });
+  function renderSSPreview() { ssPreview.innerHTML = ''; pendingScreenshots.forEach((sh, idx) => { const thumb = el('div', { class: 'screenshot-thumb' }); thumb.append(el('img', { src: sh.url, alt: sh.name })); const rm = el('div', { class: 'remove' }); rm.textContent = '✕'; rm.addEventListener('click', () => { pendingScreenshots.splice(idx, 1); renderSSPreview(); }); thumb.append(rm); ssPreview.append(thumb); }); }
   const pubBtn = el('button', { class: 'btn btn-primary', style: 'margin-top:10px' });
   pubBtn.textContent = 'Опубликовать';
-  pubBtn.addEventListener('click', () => {
-    const name = $('#f_name').value.trim(); const desc = $('#f_desc').value.trim();
-    if (!name) { toast('Введите название', '', 'error'); return; }
-    if (!desc) { toast('Введите описание', '', 'error'); return; }
-    pubBtn.disabled = true; pubBtn.textContent = 'Публикация...';
-    const iconFileEl = $('#f_iconFile');
-    const iconFile = iconFileEl && iconFileEl.files ? iconFileEl.files[0] : null;
-    let iconPromise = Promise.resolve(null);
-    if (iconFile) { iconPromise = compressImage(iconFile, 200).then(r => uploadToImgBB(r.blob)); }
-    iconPromise.then(iconUrl => {
-      const appData = {
-        name: name, desc: desc, cat: $('#f_cat').value,
-        price: parseInt($('#f_price').value) || 0,
-        oldPrice: parseInt($('#f_oldPrice').value) || 0,
-        ver: $('#f_ver').value.trim() || '1.0.0',
-        icon: $('#f_icon').value.trim() || '',
-        iconUrl: iconUrl || null,
-        features: $('#f_features').value.split(',').map(s => s.trim()).filter(Boolean),
-        sys: $('#f_sys').value.trim(),
-        fileUrl: $('#f_fileUrl').value.trim(),
-        fileName: $('#f_fileName').value.trim(),
-        devUid: S.cu.uid, devName: S.cu.name, devVerified: S.cu.verified || false,
-        installs: 0, rating: 0, reviews: 0, status: 'verified',
-        screenshots: pendingScreenshots.slice(),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      };
-      db.collection('apps').add(appData).then(docRef => {
-        pubBtn.disabled = false; pubBtn.textContent = 'Опубликовать';
-        pendingScreenshots = [];
-        toast('✓ Опубликовано', 'Приложение появилось в каталоге', 'success');
-        nav('developer', { tab: 'apps' });
-      }).catch(e => { pubBtn.disabled = false; pubBtn.textContent = 'Опубликовать'; toast('Ошибка', e.message, 'error'); });
-    }).catch(e => { pubBtn.disabled = false; pubBtn.textContent = 'Опубликовать'; toast('Ошибка загрузки иконки', e.message, 'error'); });
-  });
+  pubBtn.addEventListener('click', () => { const name = $('#f_name').value.trim(); const desc = $('#f_desc').value.trim(); if (!name) { toast('Введите название', '', 'error'); return; } if (!desc) { toast('Введите описание', '', 'error'); return; } pubBtn.disabled = true; pubBtn.textContent = 'Публикация...'; const iconFileEl = $('#f_iconFile'); const iconFile = iconFileEl && iconFileEl.files ? iconFileEl.files[0] : null; let iconPromise = Promise.resolve(null); if (iconFile) { iconPromise = compressImage(iconFile, 200).then(r => uploadToImgBB(r.blob)); } iconPromise.then(iconUrl => { const appData = { name: name, desc: desc, cat: $('#f_cat').value, price: parseInt($('#f_price').value) || 0, oldPrice: parseInt($('#f_oldPrice').value) || 0, ver: $('#f_ver').value.trim() || '1.0.0', icon: $('#f_icon').value.trim() || '', iconUrl: iconUrl || null, features: $('#f_features').value.split(',').map(s => s.trim()).filter(Boolean), sys: $('#f_sys').value.trim(), fileUrl: $('#f_fileUrl').value.trim(), fileName: $('#f_fileName').value.trim(), devUid: S.cu.uid, devName: S.cu.name, devVerified: S.cu.verified || false, installs: 0, rating: 0, reviews: 0, status: 'verified', screenshots: pendingScreenshots.slice(), createdAt: firebase.firestore.FieldValue.serverTimestamp() }; db.collection('apps').add(appData).then(docRef => { pubBtn.disabled = false; pubBtn.textContent = 'Опубликовать'; pendingScreenshots = []; toast('✓ Опубликовано', 'Приложение появилось в каталоге', 'success'); nav('developer', { tab: 'apps' }); }).catch(e => { pubBtn.disabled = false; pubBtn.textContent = 'Опубликовать'; toast('Ошибка', e.message, 'error'); }); }).catch(e => { pubBtn.disabled = false; pubBtn.textContent = 'Опубликовать'; toast('Ошибка загрузки иконки', e.message, 'error'); }); });
   f.append(pubBtn);
   f.append(el('p', { style: 'margin-top:12px;font-size:12px;color:var(--text2)' }, '* — обязательные поля.'));
   return f;
@@ -1467,112 +1120,50 @@ function rAdmin() {
   db.collection('orders').get().then(s => { stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Заявки'), el('div', { class: 'stat-value' }, String(s.size)))); });
   db.collection('supports').get().then(s => { stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Обращения'), el('div', { class: 'stat-value' }, String(s.size)))); });
   w.append(stats);
-  
   const tabs = el('div', { class: 'chips' });
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-  [['apps', 'Приложения'], ['users', 'Пользователи'], ['supports', 'Обращения'], ['reports', 'Жалобы']].forEach(x => {
-    tabs.append(el('div', { class: 'chip' + (tab === x[0] ? ' active' : ''), onclick: () => nav('admin', { tab: x[0] }) }, x[1]));
-  });
+  [['apps', 'Приложения'], ['users', 'Пользователи'], ['supports', 'Обращения'], ['reports', 'Жалобы'], ['site', '🛠️ Сайт']].forEach(x => { tabs.append(el('div', { class: 'chip' + (tab === x[0] ? ' active' : ''), onclick: () => nav('admin', { tab: x[0] }) }, x[1])); });
   w.append(tabs);
-  
-  if (tab === 'apps') {
-    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
-    w.append(loading);
-    db.collection('apps').orderBy('createdAt', 'desc').get().then(snap => {
-      loading.remove();
-      if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет приложений'))); return; }
-      snap.forEach(doc => {
-        const a = { id: doc.id, ...doc.data() };
-        const r = el('div', { class: 'order-card' });
-        const sm = { verified: ['status-verified', ''], pending: ['status-pending', ''], blocked: ['status-blocked', '🔴'] };
-        const st = sm[a.status] || sm.pending;
-        if (a.iconUrl) { r.append(el('div', { class: 'order-icon' }, el('img', { src: a.iconUrl }))); }
-        else { r.append(el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '')); }
-        r.append(el('div', { class: 'order-info' }, el('h4', {}, a.name), el('p', {}, (a.devName || '—') + (a.devVerified ? ' ✓' : '') + ' · ' + fp(a.price) + (a.fileName ? ' · 📎' : '') + (a.screenshots && a.screenshots.length ? ' · 🖼 ' + a.screenshots.length : '')), el('span', { class: 'status-badge ' + st[0] }, st[1])));
-        const ac = el('div', { class: 'order-actions' });
-        if (a.status !== 'verified') {
-          const approveBtn = el('button', { class: 'btn btn-primary btn-sm' }); approveBtn.textContent = 'Одобрить';
-          approveBtn.addEventListener('click', () => { db.collection('apps').doc(a.id).update({ status: 'verified' }); toast('Одобрено', '', 'success'); });
-          ac.append(approveBtn);
-        }
-        if (a.status !== 'blocked') {
-          const blockBtn = el('button', { class: 'btn btn-danger btn-sm' }); blockBtn.textContent = 'Блок';
-          blockBtn.addEventListener('click', () => { db.collection('apps').doc(a.id).update({ status: 'blocked' }); toast('Заблокировано', '', 'error'); });
-          ac.append(blockBtn);
-        }
-        const delBtn = el('button', { class: 'btn btn-text btn-sm' }); delBtn.textContent = 'Удалить';
-        delBtn.addEventListener('click', () => { if (confirm('Удалить?')) { db.collection('apps').doc(a.id).delete(); render(); } });
-        ac.append(delBtn);
-        r.append(ac); w.append(r);
-      });
+  if (tab === 'apps') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('apps').orderBy('createdAt', 'desc').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет приложений'))); return; } snap.forEach(doc => { const a = { id: doc.id, ...doc.data() }; const r = el('div', { class: 'order-card' }); const sm = { verified: ['status-verified', '🟢'], pending: ['status-pending', '🟡'], blocked: ['status-blocked', '🔴'] }; const st = sm[a.status] || sm.pending; if (a.iconUrl) { r.append(el('div', { class: 'order-icon' }, el('img', { src: a.iconUrl }))); } else { r.append(el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '📱')); } r.append(el('div', { class: 'order-info' }, el('h4', {}, a.name), el('p', {}, (a.devName || '—') + (a.devVerified ? ' ✓' : '') + ' · ' + fp(a.price) + (a.fileName ? ' · 📎' : '') + (a.screenshots && a.screenshots.length ? ' · 🖼 ' + a.screenshots.length : '')), el('span', { class: 'status-badge ' + st[0] }, st[1]))); const ac = el('div', { class: 'order-actions' }); if (a.status !== 'verified') { const approveBtn = el('button', { class: 'btn btn-primary btn-sm' }); approveBtn.textContent = 'Одобрить'; approveBtn.addEventListener('click', () => { db.collection('apps').doc(a.id).update({ status: 'verified' }); toast('Одобрено', '', 'success'); }); ac.append(approveBtn); } if (a.status !== 'blocked') { const blockBtn = el('button', { class: 'btn btn-danger btn-sm' }); blockBtn.textContent = 'Блок'; blockBtn.addEventListener('click', () => { db.collection('apps').doc(a.id).update({ status: 'blocked' }); toast('Заблокировано', '', 'error'); }); ac.append(blockBtn); } const delBtn = el('button', { class: 'btn btn-text btn-sm' }); delBtn.textContent = 'Удалить'; delBtn.addEventListener('click', () => { if (confirm('Удалить?')) { db.collection('apps').doc(a.id).delete(); render(); } }); ac.append(delBtn); r.append(ac); w.append(r); }); }); }
+  else if (tab === 'users') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('users').get().then(snap => { loading.remove(); snap.forEach(doc => { const u = { uid: doc.id, ...doc.data() }; const r = el('div', { class: 'order-card' }); r.append(el('div', { class: 'order-icon' }, u.avatar || u.name[0]), el('div', { class: 'order-info' }, el('h4', {}, u.name, u.verified ? el('span', { class: 'verified', style: 'margin-left:6px' }, '✓') : null), el('p', {}, '@' + (u.nick || u.name) + ' · ' + u.role))); const ac = el('div', { class: 'order-actions' }); if (u.role === 'developer') { const verifyBtn = el('button', { class: 'btn ' + (u.verified ? 'btn-outline' : 'btn-primary') + ' btn-sm' }); verifyBtn.textContent = u.verified ? 'Снять ✓' : 'Дать ✓'; verifyBtn.addEventListener('click', () => { db.collection('users').doc(u.uid).update({ verified: !u.verified }); toast(u.verified ? 'Снято' : 'Верифицирован', '', 'info'); }); ac.append(verifyBtn); } if (u.uid !== S.cu.uid) { const blockBtn = el('button', { class: 'btn btn-danger btn-sm' }); blockBtn.textContent = u.blocked ? 'Разблок' : 'Блок'; blockBtn.addEventListener('click', () => { db.collection('users').doc(u.uid).update({ blocked: !u.blocked }); if (S.cu && S.cu.uid === u.uid) { logoutUser(); render(); toast('Аккаунт заблокирован', '', 'error'); } else { toast(u.blocked ? 'Разблокирован' : 'Заблокирован', '', 'info'); } }); ac.append(blockBtn); } r.append(ac); w.append(r); }); }); }
+  else if (tab === 'supports') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('supports').orderBy('createdAt', 'desc').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет обращений'))); return; } snap.forEach(doc => { const s = doc.data(); const r = el('div', { class: 'order-card' }); r.append(el('div', { class: 'order-icon' }, '🆘'), el('div', { class: 'order-info' }, el('h4', {}, s.theme), el('p', {}, 'От: ' + (s.userName || '—') + ' · ' + fd(s.createdAt)), el('p', {}, (s.text || '').slice(0, 80)))); const openBtn = el('button', { class: 'btn btn-primary btn-sm' }); openBtn.textContent = 'Открыть'; openBtn.addEventListener('click', () => { openAdminSup(doc.id); }); r.append(el('div', { class: 'order-actions' }, openBtn)); w.append(r); }); }); }
+  else if (tab === 'reports') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('reports').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет жалоб'))); return; } snap.forEach(doc => { const rp = doc.data(); const row = el('div', { class: 'order-card' }); row.append(el('div', { class: 'order-icon' }, rp.appIcon || '?'), el('div', { class: 'order-info' }, el('h4', {}, rp.appName || '—'), el('p', {}, 'Причина: ' + rp.reason))); const ac = el('div', { class: 'order-actions' }); if (!rp.resolved) { const blockBtn = el('button', { class: 'btn btn-danger btn-sm' }); blockBtn.textContent = 'Блок'; blockBtn.addEventListener('click', () => { db.collection('apps').doc(rp.appId).update({ status: 'blocked' }); db.collection('reports').doc(doc.id).update({ resolved: 'blocked' }); toast('Заблокировано', '', 'error'); }); ac.append(blockBtn); const rejectBtn = el('button', { class: 'btn btn-text btn-sm' }); rejectBtn.textContent = 'Отклонить'; rejectBtn.addEventListener('click', () => { db.collection('reports').doc(doc.id).update({ resolved: 'rejected' }); toast('Отклонено', '', 'info'); }); ac.append(rejectBtn); } row.append(ac); w.append(row); }); }); }
+  else if (tab === 'site') {
+    const siteSection = el('div', { class: 'about-section' });
+    siteSection.append(el('h3', { style: 'margin-bottom:16px' }, '🛠️ Режим обслуживания'));
+    siteSection.append(el('p', { style: 'color:var(--text2);margin-bottom:20px' }, 'Закройте сайт для всех пользователей кроме админов и разработчиков. Укажите время открытия и сообщение.'));
+    const statusDiv = el('div', { id: 'maintenanceStatus', style: 'padding:16px;background:var(--bg2);border-radius:12px;margin-bottom:20px' });
+    statusDiv.textContent = 'Загрузка статуса...';
+    siteSection.append(statusDiv);
+    const formDiv = el('div', {});
+    const msgGroup = el('div', { class: 'form-group' });
+    msgGroup.append(el('label', {}, 'Сообщение для пользователей'));
+    const msgInput = el('textarea', { class: 'form-control', id: 'maintMessage', placeholder: 'Например: Технические работы до 18:00...' });
+    msgGroup.append(msgInput);
+    formDiv.append(msgGroup);
+    const timeGroup = el('div', { class: 'form-group' });
+    timeGroup.append(el('label', {}, 'Время открытия (когда сайт откроется)'));
+    const timeInput = el('input', { class: 'form-control', id: 'maintTime', type: 'datetime-local' });
+    timeGroup.append(timeInput);
+    formDiv.append(timeGroup);
+    const btns = el('div', { style: 'display:flex;gap:12px;flex-wrap:wrap;margin-top:16px' });
+    const enableBtn = el('button', { class: 'btn btn-danger' });
+    enableBtn.textContent = '🔒 Закрыть сайт';
+    enableBtn.addEventListener('click', () => { const msg = $('#maintMessage').value.trim(); const timeVal = $('#maintTime').value; if (!timeVal) { toast('Укажите время открытия', '', 'error'); return; } if (!msg) { toast('Напишите сообщение', '', 'error'); return; } const endTime = new Date(timeVal); if (endTime.getTime() < Date.now()) { toast('Время должно быть в будущем', '', 'error'); return; } maintenanceRef.set({ enabled: true, message: msg, endTime: firebase.firestore.Timestamp.fromDate(endTime), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), setBy: S.cu.uid }).then(() => { toast('Сайт закрыт', 'Пользователи увидят таймер', 'success'); }).catch(e => { toast('Ошибка', e.message, 'error'); }); });
+    btns.append(enableBtn);
+    const disableBtn = el('button', { class: 'btn btn-primary' });
+    disableBtn.textContent = '🔓 Открыть сайт';
+    disableBtn.addEventListener('click', () => { if (!confirm('Открыть сайт для всех пользователей?')) return; maintenanceRef.update({ enabled: false }).then(() => { toast('Сайт открыт', '', 'success'); }).catch(e => { toast('Ошибка', e.message, 'error'); }); });
+    btns.append(disableBtn);
+    formDiv.append(btns);
+    siteSection.append(formDiv);
+    maintenanceRef.onSnapshot(function(doc) {
+      if (!doc.exists) { statusDiv.innerHTML = '<div style="color:var(--accent);font-weight:600">✅ Сайт открыт для всех пользователей</div>'; return; }
+      const data = doc.data();
+      if (data.enabled) { const endTime = data.endTime ? data.endTime.toDate().toLocaleString('ru-RU') : 'не указано'; statusDiv.innerHTML = '<div style="color:var(--danger);font-weight:600;margin-bottom:8px">🔒 Сайт ЗАКРЫТ</div><div style="font-size:13px;color:var(--text2)">Сообщение: ' + (data.message || '—') + '</div><div style="font-size:13px;color:var(--text2);margin-top:4px">Откроется: ' + endTime + '</div>'; }
+      else { statusDiv.innerHTML = '<div style="color:var(--accent);font-weight:600">✅ Сайт открыт для всех пользователей</div>'; }
     });
-  } else if (tab === 'users') {
-    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
-    w.append(loading);
-    db.collection('users').get().then(snap => {
-      loading.remove();
-      snap.forEach(doc => {
-        const u = { uid: doc.id, ...doc.data() };
-        const r = el('div', { class: 'order-card' });
-        r.append(el('div', { class: 'order-icon' }, u.avatar || u.name[0]), el('div', { class: 'order-info' }, el('h4', {}, u.name, u.verified ? el('span', { class: 'verified', style: 'margin-left:6px' }, '✓') : null), el('p', {}, '@' + (u.nick || u.name) + ' · ' + u.role)));
-        const ac = el('div', { class: 'order-actions' });
-        if (u.role === 'developer') {
-          const verifyBtn = el('button', { class: 'btn ' + (u.verified ? 'btn-outline' : 'btn-primary') + ' btn-sm' });
-          verifyBtn.textContent = u.verified ? 'Снять ✓' : 'Дать ✓';
-          verifyBtn.addEventListener('click', () => { db.collection('users').doc(u.uid).update({ verified: !u.verified }); toast(u.verified ? 'Снято' : 'Верифицирован', '', 'info'); });
-          ac.append(verifyBtn);
-        }
-        if (u.uid !== S.cu.uid) {
-          const blockBtn = el('button', { class: 'btn btn-danger btn-sm' });
-          blockBtn.textContent = u.blocked ? 'Разблок' : 'Блок';
-          blockBtn.addEventListener('click', () => {
-            db.collection('users').doc(u.uid).update({ blocked: !u.blocked });
-            if (S.cu && S.cu.uid === u.uid) { logoutUser(); render(); toast('Аккаунт заблокирован', '', 'error'); }
-            else { toast(u.blocked ? 'Разблокирован' : 'Заблокирован', '', 'info'); }
-          });
-          ac.append(blockBtn);
-        }
-        r.append(ac); w.append(r);
-      });
-    });
-  } else if (tab === 'supports') {
-    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
-    w.append(loading);
-    db.collection('supports').orderBy('createdAt', 'desc').get().then(snap => {
-      loading.remove();
-      if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет обращений'))); return; }
-      snap.forEach(doc => {
-        const s = doc.data();
-        const r = el('div', { class: 'order-card' });
-        r.append(el('div', { class: 'order-icon' }, '🆘'), el('div', { class: 'order-info' }, el('h4', {}, s.theme), el('p', {}, 'От: ' + (s.userName || '—') + ' · ' + fd(s.createdAt)), el('p', {}, (s.text || '').slice(0, 80))));
-        const openBtn = el('button', { class: 'btn btn-primary btn-sm' }); openBtn.textContent = 'Открыть';
-        openBtn.addEventListener('click', () => { openAdminSup(doc.id); });
-        r.append(el('div', { class: 'order-actions' }, openBtn));
-        w.append(r);
-      });
-    });
-  } else if (tab === 'reports') {
-    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
-    w.append(loading);
-    db.collection('reports').get().then(snap => {
-      loading.remove();
-      if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет жалоб'))); return; }
-      snap.forEach(doc => {
-        const rp = doc.data();
-        const row = el('div', { class: 'order-card' });
-        row.append(el('div', { class: 'order-icon' }, rp.appIcon || '?'), el('div', { class: 'order-info' }, el('h4', {}, rp.appName || '—'), el('p', {}, 'Причина: ' + rp.reason)));
-        const ac = el('div', { class: 'order-actions' });
-        if (!rp.resolved) {
-          const blockBtn = el('button', { class: 'btn btn-danger btn-sm' }); blockBtn.textContent = 'Блок';
-          blockBtn.addEventListener('click', () => { db.collection('apps').doc(rp.appId).update({ status: 'blocked' }); db.collection('reports').doc(doc.id).update({ resolved: 'blocked' }); toast('Заблокировано', '', 'error'); });
-          ac.append(blockBtn);
-          const rejectBtn = el('button', { class: 'btn btn-text btn-sm' }); rejectBtn.textContent = 'Отклонить';
-          rejectBtn.addEventListener('click', () => { db.collection('reports').doc(doc.id).update({ resolved: 'rejected' }); toast('Отклонено', '', 'info'); });
-          ac.append(rejectBtn);
-        }
-        row.append(ac); w.append(row);
-      });
-    });
+    w.append(siteSection);
   }
   return w;
 }
@@ -1588,54 +1179,26 @@ function openAdminSup(id) {
     body.append(el('p', { style: 'color:var(--text2);font-size:13px;margin-bottom:14px' }, s.text));
     const ms = el('div', { class: 'chat-messages', style: 'min-height:200px;max-height:300px' });
     db.collection('supports').doc(id).collection('messages').orderBy('createdAt', 'asc').get().then(snapshot => {
-      snapshot.forEach(d => {
-        const x = d.data();
-        ms.append(el('div', { class: 'msg ' + (x.from === 'support' ? 'me' : 'other') }, el('div', {}, x.text), el('span', { class: 'msg-time' }, ft(x.createdAt))));
-      });
+      snapshot.forEach(d => { const x = d.data(); ms.append(el('div', { class: 'msg ' + (x.from === 'support' ? 'me' : 'other') }, el('div', {}, x.text), el('span', { class: 'msg-time' }, ft(x.createdAt)))); });
       body.append(ms);
       const inp = el('div', { class: 'chat-input' }); const input = el('input', { placeholder: 'Ответить...' });
       const sendBtn = el('button', { class: 'btn btn-primary' }); sendBtn.textContent = 'Ответить';
       sendBtn.addEventListener('click', () => { const t = input.value.trim(); if (!t) return; db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: t, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); db.collection('supports').doc(id).update({ status: 'answered' }); closeM(); render(); });
       input.addEventListener('keydown', e => { if (e.key === 'Enter') sendBtn.click(); });
       inp.append(input, sendBtn); body.append(inp);
-      if (s.orderId) {
-        const acts = el('div', { style: 'display:flex;gap:8px;margin-top:14px;flex-wrap:wrap' });
-        const returnBtn = el('button', { class: 'btn btn-primary btn-sm' }); returnBtn.textContent = '✓ Вернуть';
-        returnBtn.addEventListener('click', () => {
-          db.collection('orders').doc(s.orderId).get().then(od => {
-            if (!od.exists) return;
-            const o = od.data();
-            const lib = JSON.parse(localStorage.getItem('awer_lib_' + o.buyerUid) || '{}');
-            lib[o.appId] = { date: Date.now() };
-            localStorage.setItem('awer_lib_' + o.buyerUid, JSON.stringify(lib));
-            db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: 'Приложение возвращено.', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-            closeM(); render(); toast('Возвращено', '', 'success');
-          });
-        });
-        acts.append(returnBtn);
-        const cancelBtn = el('button', { class: 'btn btn-danger btn-sm' }); cancelBtn.textContent = '✕ Отменить';
-        cancelBtn.addEventListener('click', () => { db.collection('orders').doc(s.orderId).update({ status: 'cancelled' }); db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: 'Сделка отменена.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); closeM(); render(); });
-        acts.append(cancelBtn);
-        body.append(acts);
-      }
+      if (s.orderId) { const acts = el('div', { style: 'display:flex;gap:8px;margin-top:14px;flex-wrap:wrap' }); const returnBtn = el('button', { class: 'btn btn-primary btn-sm' }); returnBtn.textContent = '✓ Вернуть'; returnBtn.addEventListener('click', () => { db.collection('orders').doc(s.orderId).get().then(od => { if (!od.exists) return; const o = od.data(); const lib = JSON.parse(localStorage.getItem('awer_lib_' + o.buyerUid) || '{}'); lib[o.appId] = { date: Date.now() }; localStorage.setItem('awer_lib_' + o.buyerUid, JSON.stringify(lib)); db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: 'Приложение возвращено.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); closeM(); render(); toast('Возвращено', '', 'success'); }); }); acts.append(returnBtn); const cancelBtn = el('button', { class: 'btn btn-danger btn-sm' }); cancelBtn.textContent = '✕ Отменить'; cancelBtn.addEventListener('click', () => { db.collection('orders').doc(s.orderId).update({ status: 'cancelled' }); db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: 'Сделка отменена.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); closeM(); render(); }); acts.append(cancelBtn); body.append(acts); }
       m.append(body); openM(m);
     });
   });
 }
 
-function rAbout() {
-  const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
-  w.append(el('h1', { style: 'font-size:28px;font-weight:500;margin-bottom:16px' }, 'О awer'));
-  w.append(el('div', { class: 'about-section' }, el('p', {}, 'awer — магазин приложений и игр.'), el('p', {}, 'Оплата НЕ в awer — она в чате с продавцом.'), el('p', {}, 'Если обманули — напишите в поддержку.'), el('p', { style: 'color:var(--danger);font-weight:500;margin-top:14px' }, '🚫 ЗАПРЕЩЕНО выкладывать приложения с вирусами.')));
-  return w;
-}
+function rAbout() { const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home')); w.append(el('h1', { style: 'font-size:28px;font-weight:500;margin-bottom:16px' }, 'О awer')); w.append(el('div', { class: 'about-section' }, el('p', {}, 'awer — магазин приложений и игр.'), el('p', {}, 'Оплата НЕ в awer — она в чате с продавцом.'), el('p', {}, 'Если обманули — напишите в поддержку.'), el('p', { style: 'color:var(--danger);font-weight:500;margin-top:14px' }, '🚫 ЗАПРЕЩЕНО выкладывать приложения с вирусами.'))); return w; }
 
 function showAuth() {
   const m = el('div', {});
   const head = el('div', { class: 'modal-head' }, el('h2', {}, 'Войти в awer'), el('button', { class: 'modal-close', onclick: closeM }, ''));
   const body = el('div', { class: 'modal-body' });
   let mode = 'login';
-  
   function rf() {
     body.innerHTML = '';
     if (mode === 'login') {
@@ -1643,21 +1206,7 @@ function showAuth() {
       body.append(el('div', { class: 'form-group' }, el('label', {}, 'Пароль'), el('input', { class: 'form-control', id: 'aPass', type: 'password', placeholder: 'Введите пароль' })));
       const loginBtn = el('button', { class: 'btn btn-primary', style: 'width:100%;margin-bottom:10px' });
       loginBtn.textContent = 'Войти';
-      loginBtn.addEventListener('click', () => {
-        const nick = $('#aNick').value.trim();
-        const pass = $('#aPass').value;
-        if (!nick || !pass) { toast('Заполните все поля', '', 'error'); return; }
-        loginWithNick(nick, pass).then(result => {
-          S.cu = result;
-          localStorage.setItem('awer_nick', nick);
-          saveSettings();
-          closeM();
-          render();
-          toast('Добро пожаловать!', nick, 'success');
-        }).catch(err => {
-          toast('Ошибка', err.message, 'error');
-        });
-      });
+      loginBtn.addEventListener('click', () => { const nick = $('#aNick').value.trim(); const pass = $('#aPass').value; if (!nick || !pass) { toast('Заполните все поля', '', 'error'); return; } loginWithNick(nick, pass).then(result => { S.cu = result; localStorage.setItem('awer_nick', nick); saveSettings(); closeM(); render(); toast('Добро пожаловать!', nick, 'success'); }).catch(err => { toast('Ошибка', err.message, 'error'); }); });
       body.append(loginBtn);
       body.append(el('p', { style: 'text-align:center;font-size:13px;color:var(--text2);margin-top:10px' }, 'Нет аккаунта? ', el('span', { style: 'color:var(--accent);cursor:pointer;font-weight:500', onclick: () => { mode = 'register'; rf(); } }, 'Зарегистрироваться')));
     } else {
@@ -1665,37 +1214,11 @@ function showAuth() {
       body.append(el('div', { class: 'form-group' }, el('label', {}, 'Пароль'), el('input', { class: 'form-control', id: 'rPass', type: 'password', placeholder: 'Минимум 6 символов' })));
       body.append(el('div', { class: 'form-group' }, el('label', {}, 'Тип аккаунта')));
       const rg = el('div', { class: 'radio-group' });
-      [['buyer', 'Покупатель'], ['developer', 'Разработчик']].forEach((x, idx) => {
-        const it = el('div', { class: 'radio-item' + (idx === 0 ? ' selected' : ''), 'data-val': x[0] });
-        it.addEventListener('click', () => {
-          $$('.radio-item', rg).forEach(y => { y.classList.remove('selected'); });
-          it.classList.add('selected');
-        });
-        it.append(el('div', { class: 'radio-dot' }), el('div', { class: 'radio-label' }, el('strong', {}, x[1])));
-        rg.append(it);
-      });
+      [['buyer', 'Покупатель'], ['developer', 'Разработчик']].forEach((x, idx) => { const it = el('div', { class: 'radio-item' + (idx === 0 ? ' selected' : ''), 'data-val': x[0] }); it.addEventListener('click', () => { $$('.radio-item', rg).forEach(y => { y.classList.remove('selected'); }); it.classList.add('selected'); }); it.append(el('div', { class: 'radio-dot' }), el('div', { class: 'radio-label' }, el('strong', {}, x[1]))); rg.append(it); });
       body.append(rg);
       const regBtn = el('button', { class: 'btn btn-primary', style: 'width:100%;margin-top:10px' });
       regBtn.textContent = 'Зарегистрироваться';
-      regBtn.addEventListener('click', () => {
-        const nick = $('#rNick').value.trim();
-        const pass = $('#rPass').value;
-        const roleEl = $('.radio-item.selected', rg);
-        const role = roleEl ? roleEl.getAttribute('data-val') : 'buyer';
-        if (!nick || !pass) { toast('Заполните все поля', '', 'error'); return; }
-        if (nick.length < 3) { toast('Ник должен быть минимум 3 символа', '', 'error'); return; }
-        if (pass.length < 6) { toast('Пароль должен быть минимум 6 символов', '', 'error'); return; }
-        registerWithNick(nick, pass, role).then(result => {
-          S.cu = { uid: auth.currentUser.uid, name: nick, nick: nick, role: result.role, avatar: nick[0], verified: false, blocked: false };
-          localStorage.setItem('awer_nick', nick);
-          saveSettings();
-          closeM();
-          render();
-          toast('Аккаунт создан!', nick, 'success');
-        }).catch(err => {
-          toast('Ошибка', err.message, 'error');
-        });
-      });
+      regBtn.addEventListener('click', () => { const nick = $('#rNick').value.trim(); const pass = $('#rPass').value; const roleEl = $('.radio-item.selected', rg); const role = roleEl ? roleEl.getAttribute('data-val') : 'buyer'; if (!nick || !pass) { toast('Заполните все поля', '', 'error'); return; } if (nick.length < 3) { toast('Ник должен быть минимум 3 символа', '', 'error'); return; } if (pass.length < 6) { toast('Пароль должен быть минимум 6 символов', '', 'error'); return; } registerWithNick(nick, pass, role).then(result => { S.cu = { uid: auth.currentUser.uid, name: nick, nick: nick, role: result.role, avatar: nick[0], verified: false, blocked: false }; localStorage.setItem('awer_nick', nick); saveSettings(); closeM(); render(); toast('Аккаунт создан!', nick, 'success'); }).catch(err => { toast('Ошибка', err.message, 'error'); }); });
       body.append(regBtn);
       body.append(el('p', { style: 'text-align:center;font-size:13px;color:var(--text2);margin-top:10px' }, 'Есть аккаунт? ', el('span', { style: 'color:var(--accent);cursor:pointer;font-weight:500', onclick: () => { mode = 'login'; rf(); } }, 'Войти')));
     }
@@ -1710,38 +1233,16 @@ function openOrder(appId) {
     const m = el('div', {});
     m.append(el('div', { class: 'modal-head' }, el('h2', {}, 'Покупка'), el('button', { class: 'modal-close', onclick: closeM }, '✕')));
     const body = el('div', { class: 'modal-body' });
-    body.append(el('div', { style: 'display:flex;gap:14px;align-items:center;padding:14px;background:var(--bg2);border-radius:12px;margin-bottom:18px' },
-      a.iconUrl ? el('div', { class: 'order-icon' }, el('img', { src: a.iconUrl })) : el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '📱'),
-      el('div', { style: 'flex:1' }, el('strong', {}, a.name), el('div', { style: 'font-size:12px;color:var(--text2)' }, 'Продавец: ' + (a.devName || '—'), a.devVerified ? el('span', { class: 'verified' }, ' ✓') : null), el('div', { style: 'font-weight:500;margin-top:4px' }, fp(a.price || 0)))));
+    body.append(el('div', { style: 'display:flex;gap:14px;align-items:center;padding:14px;background:var(--bg2);border-radius:12px;margin-bottom:18px' }, a.iconUrl ? el('div', { class: 'order-icon' }, el('img', { src: a.iconUrl })) : el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '📱'), el('div', { style: 'flex:1' }, el('strong', {}, a.name), el('div', { style: 'font-size:12px;color:var(--text2)' }, 'Продавец: ' + (a.devName || '—'), a.devVerified ? el('span', { class: 'verified' }, ' ✓') : null), el('div', { style: 'font-weight:500;margin-top:4px' }, fp(a.price || 0)))));
     body.append(el('h3', { style: 'font-size:15px;margin-bottom:10px;font-weight:500' }, 'Способ оплаты'));
     const rg = el('div', { class: 'radio-group' });
-    [['bank', 'Банковский перевод'], ['other', 'Другой способ'], ['discuss', 'Обсудить в чате']].forEach((x, idx) => {
-      const it = el('div', { class: 'radio-item' + (idx === 0 ? ' selected' : ''), 'data-val': x[0] });
-      it.addEventListener('click', () => {
-        $$('.radio-item', rg).forEach(y => { y.classList.remove('selected'); });
-        it.classList.add('selected');
-      });
-      it.append(el('div', { class: 'radio-dot' }), el('div', { class: 'radio-label' }, el('strong', {}, x[1])));
-      rg.append(it);
-    });
+    [['bank', 'Банковский перевод'], ['other', 'Другой способ'], ['discuss', 'Обсудить в чате']].forEach((x, idx) => { const it = el('div', { class: 'radio-item' + (idx === 0 ? ' selected' : ''), 'data-val': x[0] }); it.addEventListener('click', () => { $$('.radio-item', rg).forEach(y => { y.classList.remove('selected'); }); it.classList.add('selected'); }); it.append(el('div', { class: 'radio-dot' }), el('div', { class: 'radio-label' }, el('strong', {}, x[1]))); rg.append(it); });
     body.append(rg);
     body.append(el('div', { class: 'chat-warning', style: 'margin-top:14px' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи. Оплата в чате с продавцом.'));
     const foot = el('div', { class: 'modal-foot' });
     foot.append(el('button', { class: 'btn btn-text', onclick: closeM }, 'Отмена'));
     const submitBtn = el('button', { class: 'btn btn-primary' }); submitBtn.textContent = 'Отправить';
-    submitBtn.addEventListener('click', () => {
-      const methodEl = $('.radio-item.selected', rg);
-      const method = methodEl ? methodEl.getAttribute('data-val') : '';
-      if (!method) { toast('Выберите способ', '', 'error'); return; }
-      const names = { bank: 'Банковский перевод', other: 'Другой способ', discuss: 'Обсудить в чате' };
-      db.collection('orders').add({
-        appId: a.id, appName: a.name, appIcon: a.icon, appIconUrl: a.iconUrl,
-        buyerUid: S.cu.uid, buyerName: S.cu.name,
-        devUid: a.devUid, devName: a.devName,
-        paymentMethod: names[method], status: 'new', price: a.price || 0,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => { closeM(); toast('Отправлено', '', 'success'); nav('orders'); });
-    });
+    submitBtn.addEventListener('click', () => { const methodEl = $('.radio-item.selected', rg); const method = methodEl ? methodEl.getAttribute('data-val') : ''; if (!method) { toast('Выберите способ', '', 'error'); return; } const names = { bank: 'Банковский перевод', other: 'Другой способ', discuss: 'Обсудить в чате' }; db.collection('orders').add({ appId: a.id, appName: a.name, appIcon: a.icon, appIconUrl: a.iconUrl, buyerUid: S.cu.uid, buyerName: S.cu.name, devUid: a.devUid, devName: a.devName, paymentMethod: names[method], status: 'new', price: a.price || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { closeM(); toast('Отправлено', '', 'success'); nav('orders'); }); });
     foot.append(submitBtn);
     m.append(body, foot); openM(m);
   });
@@ -1756,26 +1257,12 @@ function openReport(appId) {
     const body = el('div', { class: 'modal-body' });
     body.append(el('p', { style: 'margin-bottom:14px' }, 'Приложение: ', el('strong', {}, a.name)));
     const rg = el('div', { class: 'radio-group' });
-    ['Вирусы', 'Обман', 'Подделка', 'Нарушение правил', 'Другое'].forEach((r, idx) => {
-      const it = el('div', { class: 'radio-item' + (idx === 0 ? ' selected' : ''), 'data-val': r });
-      it.addEventListener('click', () => {
-        $$('.radio-item', rg).forEach(y => { y.classList.remove('selected'); });
-        it.classList.add('selected');
-      });
-      it.append(el('div', { class: 'radio-dot' }), el('div', { class: 'radio-label' }, el('strong', {}, r)));
-      rg.append(it);
-    });
+    ['Вирусы', 'Обман', 'Подделка', 'Нарушение правил', 'Другое'].forEach((r, idx) => { const it = el('div', { class: 'radio-item' + (idx === 0 ? ' selected' : ''), 'data-val': r }); it.addEventListener('click', () => { $$('.radio-item', rg).forEach(y => { y.classList.remove('selected'); }); it.classList.add('selected'); }); it.append(el('div', { class: 'radio-dot' }), el('div', { class: 'radio-label' }, el('strong', {}, r))); rg.append(it); });
     body.append(rg);
     const foot = el('div', { class: 'modal-foot' });
     foot.append(el('button', { class: 'btn btn-text', onclick: closeM }, 'Отмена'));
     const submitBtn = el('button', { class: 'btn btn-danger' }); submitBtn.textContent = 'Отправить';
-    submitBtn.addEventListener('click', () => {
-      const reasonEl = $('.radio-item.selected', rg);
-      const reason = reasonEl ? reasonEl.getAttribute('data-val') : '';
-      if (!reason) { toast('Выберите причину', '', 'error'); return; }
-      db.collection('reports').add({ appId: a.id, appName: a.name, appIcon: a.icon, userId: S.cu.uid, reason: reason, resolved: null, createdAt: firebase.firestore.FieldValue.serverTimestamp() })
-        .then(() => { closeM(); toast('Отправлено', '', 'success'); });
-    });
+    submitBtn.addEventListener('click', () => { const reasonEl = $('.radio-item.selected', rg); const reason = reasonEl ? reasonEl.getAttribute('data-val') : ''; if (!reason) { toast('Выберите причину', '', 'error'); return; } db.collection('reports').add({ appId: a.id, appName: a.name, appIcon: a.icon, userId: S.cu.uid, reason: reason, resolved: null, createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { closeM(); toast('Отправлено', '', 'success'); }); });
     foot.append(submitBtn);
     m.append(body, foot); openM(m);
   });
@@ -1798,16 +1285,12 @@ function openScreenshotViewer(screenshots, currentSh) {
   nextBtn.addEventListener('click', () => { idx = (idx + 1) % screenshots.length; show(); });
   nav.append(nextBtn);
   body.append(nav);
-  function show() {
-    const sh = screenshots[idx];
-    imgWrap.innerHTML = '';
-    imgWrap.append(el('img', { src: sh.url, style: 'max-width:100%;max-height:600px' }));
-    const h2 = $('h2', m); if (h2) h2.textContent = 'Скриншот ' + (idx + 1) + ' из ' + screenshots.length;
-  }
+  function show() { const sh = screenshots[idx]; imgWrap.innerHTML = ''; imgWrap.append(el('img', { src: sh.url, style: 'max-width:100%;max-height:600px' })); const h2 = $('h2', m); if (h2) h2.textContent = 'Скриншот ' + (idx + 1) + ' из ' + screenshots.length; }
   show();
   m.append(body); openM(m, true);
 }
 
+checkMaintenance();
 saveSettings();
 render();
 </script>
