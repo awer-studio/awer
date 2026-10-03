@@ -72,6 +72,7 @@ input,textarea,select{font-family:inherit}
 .app-page-info h1{font-size:28px;font-weight:500;margin-bottom:4px}
 .app-page-dev{font-size:14px;color:var(--accent);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:4px}
 .verified{color:var(--accent);font-size:14px}
+.official{color:#ffd700;font-size:16px;font-weight:700}
 .app-page-meta{display:flex;gap:24px;padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap}
 .meta-item{text-align:center}
 .meta-item .val{font-size:15px;font-weight:500;margin-bottom:2px}
@@ -241,7 +242,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const IMGBB_KEY = "c2a5f5a7794a778caac28687e2257fac";
 
-// ================= РЕЖИМ ОБСЛУЖИВАНИЯ =================
 const maintenanceRef = db.collection('siteSettings').doc('maintenance');
 function checkMaintenance() {
   maintenanceRef.onSnapshot(function(doc) {
@@ -258,7 +258,7 @@ function checkMaintenance() {
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px)';
     const modal = document.createElement('div');
     modal.style.cssText = 'background:#fff;border-radius:24px;max-width:500px;width:100%;padding:40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)';
-    modal.innerHTML = '<div style="font-size:80px;margin-bottom:20px">🛠️</div><h1 style="font-size:28px;font-weight:700;color:#01875f;margin-bottom:16px">Сайт временно закрыт</h1><p style="font-size:16px;color:#5f6368;line-height:1.6;margin-bottom:30px">' + message + '</p><div id="maintenanceTimer" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px"></div>';
+    modal.innerHTML = '<div style="font-size:80px;margin-bottom:20px">️</div><h1 style="font-size:28px;font-weight:700;color:#01875f;margin-bottom:16px">Сайт временно закрыт</h1><p style="font-size:16px;color:#5f6368;line-height:1.6;margin-bottom:30px">' + message + '</p><div id="maintenanceTimer" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px"></div>';
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
     function updateTimer() {
@@ -278,7 +278,7 @@ function checkMaintenance() {
 }
 
 let S = { cu: null, theme: localStorage.getItem('awer_theme') || 'light', route: { p: 'home' }, settings: JSON.parse(localStorage.getItem('awer_settings') || '{"notif":true,"sound":true,"autoUpd":true,"lang":"ru","parental":false}') };
-const CATS = [{id:'ai',n:'AI',i:''},{id:'design',n:'Дизайн',i:''},{id:'photo',n:'Фото',i:'📷'},{id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},{id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:''},{id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:''},{id:'security',n:'Безопасность',i:''},{id:'docs',n:'Документы',i:'📄'},{id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:''}];
+const CATS = [{id:'ai',n:'AI',i:'🧠'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},{id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:''},{id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},{id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},{id:'security',n:'Безопасность',i:''},{id:'docs',n:'Документы',i:'📄'},{id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}];
 const COLS = ['#e8f5e9','#e3f2fd','#fce4ec','#fff3e0','#f3e5f5','#e0f2f1','#fff8e1','#e8eaf6','#fbe9e7','#e0f7fa'];
 
 function $(s,c){return(c||document).querySelector(s)}
@@ -326,29 +326,38 @@ function uploadToImgBB(file){
   });
 }
 
-// ================= РЕГИСТРАЦИЯ БЕЗ FIREBASE AUTH =================
+// ================= ОФИЦИАЛЬНЫЙ АККАУНТ =================
+const OFFICIAL_NICK = 'awer_studio';
+
+function getOfficialUser() {
+  return {
+    uid: 'official_awer_studio',
+    nick: OFFICIAL_NICK,
+    name: OFFICIAL_NICK,
+    role: 'developer',
+    avatar: '',
+    verified: true,
+    official: true,
+    blocked: false
+  };
+}
+
 function registerWithNick(nick, role) {
   return new Promise((resolve, reject) => {
-    // Проверяем занятость ника
+    // АВТОМАТИЧЕСКАЯ РЕГИСТРАЦИЯ awer_studio
+    if (nick === OFFICIAL_NICK) {
+      resolve(getOfficialUser());
+      return;
+    }
     db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
       if (!snap.empty) { reject(new Error('Этот ник уже занят.')); return; }
-      
-      const MASTER_ADMIN_PASSWORD = 'AwerStudio@Admin#2024!SuperSecretKey999';
-      let finalRole = role || 'buyer';
-      // Если пароль совпадает с мастером — делаем админом
-      // Пароль передаётся через поле password в форме
-      
       const uid = 'user_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
       db.collection('users').doc(uid).set({
-        nick: nick,
-        name: nick,
-        role: finalRole,
-        avatar: nick[0],
-        verified: finalRole === 'admin',
-        blocked: false,
+        nick: nick, name: nick, role: role || 'buyer',
+        avatar: nick[0], verified: false, official: false, blocked: false,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
-        resolve({ uid: uid, nick: nick, name: nick, role: finalRole, avatar: nick[0], verified: finalRole === 'admin', blocked: false });
+        resolve({ uid: uid, nick: nick, name: nick, role: role || 'buyer', avatar: nick[0], verified: false, official: false, blocked: false });
       }).catch(err => reject(new Error(err.message)));
     }).catch(err => reject(new Error('Ошибка проверки ника')));
   });
@@ -356,19 +365,24 @@ function registerWithNick(nick, role) {
 
 function loginWithNick(nick) {
   return new Promise((resolve, reject) => {
+    // АВТОМАТИЧЕСКИЙ ВХОД ДЛЯ awer_studio
+    if (nick === OFFICIAL_NICK) {
+      resolve(getOfficialUser());
+      return;
+    }
     db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
       if (snap.empty) { reject(new Error('Пользователь не найден.')); return; }
       const doc = snap.docs[0];
       const data = doc.data();
       if (data.blocked) { reject(new Error('Аккаунт заблокирован.')); return; }
-      resolve({ uid: doc.id, nick: nick, name: data.name || nick, role: data.role || 'buyer', avatar: data.avatar || nick[0], verified: data.verified || false, blocked: data.blocked || false });
+      resolve({ uid: doc.id, nick: nick, name: data.name || nick, role: data.role || 'buyer', avatar: data.avatar || nick[0], verified: data.verified || false, official: false, blocked: data.blocked || false });
     }).catch(err => reject(new Error('Ошибка входа')));
   });
 }
 
 function logoutUser() { localStorage.removeItem('awer_nick'); S.cu = null; render(); toast('Вы вышли', '', 'info'); }
 
-// Автозагрузка сохранённого ника
+// Автозагрузка сохранённого ника (при обновлении/закрытии вкладки)
 const savedNick = localStorage.getItem('awer_nick');
 if (savedNick) {
   loginWithNick(savedNick).then(u => { S.cu = u; saveSettings(); render(); showWelcome(); })
@@ -421,7 +435,7 @@ function rHeader() {
   inp.addEventListener('input',e=>{S.route={p:'catalog',params:{search:e.target.value}};render()});
   s.append(inp);
   const acts = el('div',{class:'header-actions'});
-  acts.append(el('button',{class:'icon-btn',onclick:()=>{S.theme=S.theme==='light'?'dark':'light';saveSettings();render()}},S.theme==='light'?'':'☀️'));
+  acts.append(el('button',{class:'icon-btn',onclick:()=>{S.theme=S.theme==='light'?'dark':'light';saveSettings();render()}},S.theme==='light'?'🌙':'️'));
   if (S.cu) { acts.append(el('div',{class:'avatar-btn',onclick:()=>nav('profile')},S.cu.avatar||'👤')); }
   else { acts.append(el('button',{class:'btn btn-outline btn-sm',onclick:showAuth},'Войти')); }
   i.append(logo,s,acts); h.append(i); return h;
@@ -439,7 +453,7 @@ function rTabs() {
 function rMobileNav() {
   const n = el('nav',{class:'mobile-nav'});
   const i = el('div',{class:'mobile-nav-inner'});
-  [{id:'home',i:'',l:'Главная'},{id:'catalog',i:'🔍',l:'Каталог'},{id:'orders',i:'📋',l:'Заявки'},{id:'library',i:'📚',l:'Библиотека'},{id:'profile',i:'👤',l:'Профиль'}].forEach(it=>{
+  [{id:'home',i:'🏠',l:'Главная'},{id:'catalog',i:'🔍',l:'Каталог'},{id:'orders',i:'',l:'Заявки'},{id:'library',i:'📚',l:'Библиотека'},{id:'profile',i:'👤',l:'Профиль'}].forEach(it=>{
     i.append(el('button',{class:'mobile-nav-btn'+(S.route.p===it.id?' active':''),onclick:()=>nav(it.id)},el('span',{class:'ico'},it.i),el('span',{},it.l)));
   });
   n.append(i); return n;
@@ -448,7 +462,7 @@ function rMobileNav() {
 function rFooter() {
   const f = el('footer',{class:'footer'});
   const c = el('div',{class:'container'});
-  c.append(el('div',{class:'footer-warning'},el('strong',{},'⚠️ '),'awer не является платёжным посредником. Оплата в чате с продавцом.'));
+  c.append(el('div',{class:'footer-warning'},el('strong',{},'️ '),'awer не является платёжным посредником. Оплата в чате с продавцом.'));
   const g = el('div',{class:'footer-grid'});
   g.append(el('div',{},el('div',{class:'logo',style:'margin-bottom:12px'},el('div',{class:'logo-mark'},'a'),el('span',{},'awer')),el('p',{style:'font-size:13px;color:var(--text2)'},'Магазин приложений и игр.')));
   g.append(el('div',{},el('h4',{},'awer'),el('ul',{},el('li',{onclick:()=>nav('about')},'О нас'),el('li',{onclick:()=>nav('support')},'Поддержка'))));
@@ -461,9 +475,11 @@ function rFooter() {
 function rAppItem(a) {
   const item = el('div',{class:'app-item',onclick:()=>nav('app',{id:a.id})});
   if (a.iconUrl) { item.append(el('div',{class:'app-item-ico'},el('img',{src:a.iconUrl,alt:a.name}))); }
-  else { item.append(el('div',{class:'app-item-ico',style:'background:'+col(a.id)},a.icon||'📱')); }
+  else { item.append(el('div',{class:'app-item-ico',style:'background:'+col(a.id)},a.icon||'')); }
   item.append(el('div',{class:'app-item-name'},a.name));
-  item.append(el('div',{class:'app-item-meta'},a.devVerified?el('span',{class:'verified'},'✓ '):'',el('span',{},a.devName||'—')));
+  // Официальный аккаунт = золотая галочка ✓, обычный верифицированный = зелёная ✓
+  const badge = a.official ? el('span',{class:'official'},'✓ ') : (a.devVerified ? el('span',{class:'verified'},'✓ ') : '');
+  item.append(el('div',{class:'app-item-meta'},badge,el('span',{},a.devName||'—')));
   return item;
 }
 
@@ -521,7 +537,7 @@ function rCatalog() {
     ch.append(el('div',{class:'chip'+(cat?'':' active'),onclick:()=>nav('catalog',{search:q})},'Все'));
     CATS.forEach(c=>{ch.append(el('div',{class:'chip'+(cat===c.id?' active':''),onclick:()=>nav('catalog',{search:q,cat:c.id})},c.i+' '+c.n))});
     w.append(ch);
-    if (apps.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},''),el('h3',{},'Ничего не найдено'))); }
+    if (apps.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'🔍'),el('h3',{},'Ничего не найдено'))); }
     else { const g=el('div',{class:'app-list'});apps.forEach(a=>{g.append(rAppItem(a))});w.append(g); }
   });
   return w;
@@ -548,10 +564,12 @@ function rAppPage() {
     const top = el('div',{class:'app-page-top'});
     let iconDiv;
     if (a.iconUrl) { iconDiv=el('div',{class:'app-page-icon'},el('img',{src:a.iconUrl,alt:a.name})); }
-    else { iconDiv=el('div',{class:'app-page-icon',style:'background:'+col(a.id)},a.icon||'📱'); }
+    else { iconDiv=el('div',{class:'app-page-icon',style:'background:'+col(a.id)},a.icon||''); }
     const info = el('div',{class:'app-page-info'});
     info.append(el('h1',{},a.name));
-    info.append(el('div',{class:'app-page-dev'},a.devName||'Неизвестный',a.devVerified?el('span',{class:'verified'},' ✓'):null));
+    // Официальный аккаунт = золотая галочка
+    const devBadge = a.official ? el('span',{class:'official',style:'margin-left:6px'},'✓') : (a.devVerified ? el('span',{class:'verified',style:'margin-left:6px'},'✓') : null);
+    info.append(el('div',{class:'app-page-dev'},a.devName||'Неизвестный',devBadge));
     info.append(el('div',{style:'margin:12px 0'},el('span',{class:'status-badge status-verified'},'✓ Проверено')));
     const meta = el('div',{class:'app-page-meta'});
     meta.append(el('div',{class:'meta-item'},el('div',{class:'val'},a.rating?a.rating.toFixed(1):'—'),el('div',{class:'lbl'},(a.reviews||0)+' отзывов')));
@@ -567,10 +585,10 @@ function rAppPage() {
     if (S.cu) { if (S.cu.uid===a.devUid) canDownload=true; if (S.cu.role==='admin') canDownload=true; const lib=JSON.parse(localStorage.getItem('awer_lib_'+S.cu.uid)||'{}'); if (lib[a.id]) canDownload=true; }
     if (a.fileName && canDownload) {
       info.append(el('div',{style:'margin:12px 0;padding:14px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)'},
-        el('div',{style:'display:flex;align-items:center;gap:12px;margin-bottom:8px'},el('span',{style:'font-size:28px'},'📦'),el('div',{style:'flex:1'},el('div',{style:'font-weight:500;font-size:14px'},a.fileName),el('div',{style:'font-size:12px;color:var(--text2);margin-top:2px'},fsize(a.fileSize)))),
-        el('a',{class:'btn btn-primary',style:'width:100%',href:a.fileUrl||'#',target:'_blank',download:a.fileName||'file'},'⬇ Скачать файл')));
+        el('div',{style:'display:flex;align-items:center;gap:12px;margin-bottom:8px'},el('span',{style:'font-size:28px'},''),el('div',{style:'flex:1'},el('div',{style:'font-weight:500;font-size:14px'},a.fileName),el('div',{style:'font-size:12px;color:var(--text2);margin-top:2px'},fsize(a.fileSize)))),
+        el('a',{class:'btn btn-primary',style:'width:100%',href:a.fileUrl||'#',target:'_blank',download:a.fileName||'file'},' Скачать файл')));
     } else if (a.fileName) {
-      info.append(el('div',{style:'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)'},el('span',{},'📦 '),'Файл: ',el('strong',{},a.fileName),' (',fsize(a.fileSize),') — доступен после покупки'));
+      info.append(el('div',{style:'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)'},el('span',{},' '),'Файл: ',el('strong',{},a.fileName),' (',fsize(a.fileSize),') — доступен после покупки'));
     }
     const acts = el('div',{style:'display:flex;gap:8px;flex-wrap:wrap;margin:16px 0'});
     acts.append(el('button',{class:'btn btn-primary',style:'padding:12px 32px;font-size:15px',onclick:()=>openOrder(a.id)},'Оставить заявку'));
@@ -643,7 +661,7 @@ function rOrders() {
       s1.forEach(d=>{orders.push({id:d.id,...d.data()})});
       s2.forEach(d=>{const o={id:d.id,...d.data()};if(!orders.find(x=>x.id===o.id))orders.push(o)});
       orders.sort((a,b)=>(b.createdAt?b.createdAt.seconds:0)-(a.createdAt?a.createdAt.seconds:0));
-      if (orders.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'📋'),el('h3',{},'Заявок нет'))); return; }
+      if (orders.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},''),el('h3',{},'Заявок нет'))); return; }
       orders.forEach(o=>{
         getAppById(o.appId,function(a) {
           if (!a) return;
@@ -709,7 +727,7 @@ function rChat() {
         else { ac.append(el('span',{class:'status-badge status-verified'},'✓ Вы подтвердили')); }
       }
       const cancelBtn=el('button',{class:'btn btn-danger btn-sm'});cancelBtn.textContent='Отменить';cancelBtn.addEventListener('click',()=>{if(!confirm('Отменить?'))return;db.collection('orders').doc(orderId).update({status:'cancelled'});db.collection('orders').doc(orderId).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Сделка отменена.',createdAt:firebase.firestore.FieldValue.serverTimestamp()})});ac.append(cancelBtn);
-      const supBtn=el('button',{class:'btn btn-text btn-sm'});supBtn.textContent='🆘 В поддержку';supBtn.addEventListener('click',()=>{openSupModal(orderId)});ac.append(supBtn);
+      const supBtn=el('button',{class:'btn btn-text btn-sm'});supBtn.textContent=' В поддержку';supBtn.addEventListener('click',()=>{openSupModal(orderId)});ac.append(supBtn);
       cw.append(ac);
     } else { cw.append(el('div',{style:'text-align:center;padding:20px;color:var(--text2)'},o.status==='completed'?'✓ Сделка завершена':'✕ Сделка отменена')); }
     w.append(cw);
@@ -752,8 +770,11 @@ function rProfile() {
   const u = S.cu; const g = el('div',{class:'profile-grid'});
   const card = el('div',{class:'profile-card'});
   card.append(el('div',{class:'profile-avatar'},u.avatar||u.name[0]));
-  card.append(el('h3',{},u.name,u.verified?el('span',{class:'verified',style:'margin-left:6px'},'✓'):null));
+  // Официальный аккаунт = золотая галочка ✓
+  const badge = u.official ? el('span',{class:'official',style:'margin-left:6px;font-size:18px'},'✓') : (u.verified ? el('span',{class:'verified',style:'margin-left:6px'},'✓') : null);
+  card.append(el('h3',{},u.name,badge));
   card.append(el('p',{style:'font-size:13px;color:var(--text2);margin-bottom:14px'},'@'+u.nick));
+  if (u.official) { card.append(el('p',{style:'font-size:11px;color:#ffd700;margin-bottom:8px;font-weight:600'},'⭐ Официальный аккаунт')); }
   card.append(el('p',{style:'font-size:11px;color:var(--text2);margin-bottom:14px'},u.role==='buyer'?'Покупатель':u.role==='developer'?'Разработчик':'Администратор'));
   const logoutBtn = el('button',{class:'btn btn-text btn-sm',style:'width:100%'});
   logoutBtn.textContent='Выйти';
@@ -761,13 +782,13 @@ function rProfile() {
   card.append(logoutBtn);
   const menu = el('div',{class:'profile-menu'});
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
-  [['info','👤','Аккаунт'],['orders','📋','Заявки'],['library','📚','Библиотека'],['favorites','♡','Избранное'],['settings','⚙️','Настройки'],['support','🆘','Поддержка']].forEach(x=>{menu.append(el('button',{class:'profile-menu-item'+(tab===x[0]?' active':''),onclick:()=>nav('profile',{tab:x[0]})},el('span',{},x[1]),el('span',{},x[2])))});
-  if (u.role==='developer') { const b=el('button',{class:'profile-menu-item',onclick:()=>nav('developer')});b.append(el('span',{},''));b.append(el('span',{},'Консоль'));menu.append(b); }
+  [['info','👤','Аккаунт'],['orders','📋','Заявки'],['library','📚','Библиотека'],['favorites','♡','Избранное'],['settings','️','Настройки'],['support','🆘','Поддержка']].forEach(x=>{menu.append(el('button',{class:'profile-menu-item'+(tab===x[0]?' active':''),onclick:()=>nav('profile',{tab:x[0]})},el('span',{},x[1]),el('span',{},x[2])))});
+  if (u.role==='developer') { const b=el('button',{class:'profile-menu-item',onclick:()=>nav('developer')});b.append(el('span',{},'🛠'));b.append(el('span',{},'Консоль'));menu.append(b); }
   if (u.role==='admin') { const b=el('button',{class:'profile-menu-item',onclick:()=>nav('admin')});b.append(el('span',{},'⚙️'));b.append(el('span',{},'Админ-панель'));menu.append(b); }
   card.append(menu);
   const content = el('div',{});
   if (tab==='info') {
-    content.append(el('div',{class:'about-section'},el('h3',{},'Личные данные'),el('div',{class:'form-group'},el('label',{},'Ник'),el('input',{class:'form-control',id:'pN',value:u.name})),el('button',{class:'btn btn-primary',onclick:()=>{const n=$('#pN').value.trim();if(!n){toast('Введите ник','','error');return}db.collection('users').doc(S.cu.uid).update({name:n,avatar:n[0]});S.cu.name=n;S.cu.avatar=n[0];render();toast('Сохранено','','success')}},'Сохранить')));
+    content.append(el('div',{class:'about-section'},el('h3',{},'Личные данные'),el('div',{class:'form-group'},el('label',{},'Ник'),el('input',{class:'form-control',id:'pN',value:u.name,disabled:u.official})),u.official?el('p',{style:'font-size:12px;color:#ffd700;margin-bottom:12px'},'⭐ Официальный аккаунт — ник нельзя изменить'):el('button',{class:'btn btn-primary',onclick:()=>{const n=$('#pN').value.trim();if(!n){toast('Введите ник','','error');return}db.collection('users').doc(S.cu.uid).update({name:n,avatar:n[0]});S.cu.name=n;S.cu.avatar=n[0];render();toast('Сохранено','','success')}},'Сохранить'))));
   } else if (tab==='orders') { nav('orders'); return w; }
   else if (tab==='library') { nav('library'); return w; }
   else if (tab==='favorites') { nav('favorites'); return w; }
@@ -780,7 +801,7 @@ function rSettings() {
   const w = el('div',{class:'container'}); w.append(backBtn('Профиль','profile'));
   w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:8px'},'Настройки'));
   const list = el('div',{class:'settings-list'});
-  [{i:'',t:'Тема',d:S.theme==='light'?'Светлая':'Тёмная',tg:true,k:'theme'},{i:'🔔',t:'Уведомления',d:S.settings.notif?'Включены':'Выключены',tg:true,k:'notif'},{i:'🔊',t:'Звуки',d:S.settings.sound?'Включены':'Выключены',tg:true,k:'sound'},{i:'🔄',t:'Автообновление',d:S.settings.autoUpd?'Включено':'Выключено',tg:true,k:'autoUpd'},{i:'🌐',t:'Язык',d:'Русский',a:()=>nav('settingsSub',{sub:'lang'})},{i:'️',t:'О приложении',d:'awer v1.0',a:()=>nav('settingsSub',{sub:'about'})}].forEach(it=>{
+  [{i:'🎨',t:'Тема',d:S.theme==='light'?'Светлая':'Тёмная',tg:true,k:'theme'},{i:'🔔',t:'Уведомления',d:S.settings.notif?'Включены':'Выключены',tg:true,k:'notif'},{i:'🔊',t:'Звуки',d:S.settings.sound?'Включены':'Выключены',tg:true,k:'sound'},{i:'🔄',t:'Автообновление',d:S.settings.autoUpd?'Включено':'Выключено',tg:true,k:'autoUpd'},{i:'🌐',t:'Язык',d:'Русский',a:()=>nav('settingsSub',{sub:'lang'})},{i:'ℹ️',t:'О приложении',d:'awer v1.0',a:()=>nav('settingsSub',{sub:'about'})}].forEach(it=>{
     const row=el('div',{class:'settings-item'});
     row.append(el('div',{class:'settings-ico'},it.i),el('div',{class:'settings-info'},el('strong',{},it.t),el('span',{},it.d)));
     if (it.tg) { const isOn=it.k==='theme'?S.theme==='dark':S.settings[it.k];const tg=el('div',{class:'toggle'+(isOn?' on':'')});tg.addEventListener('click',e=>{e.stopPropagation();if(it.k==='theme'){S.theme=S.theme==='light'?'dark':'light'}else{S.settings[it.k]=!S.settings[it.k]}saveSettings();render()});row.append(tg); }
@@ -856,7 +877,8 @@ function rDeveloper() {
   const w = el('div',{class:'container'}); w.append(backBtn('Профиль','profile'));
   if (!S.cu||S.cu.role!=='developer') { w.append(el('div',{class:'empty'},el('h3',{},'Нужен аккаунт разработчика'))); return w; }
   const u = S.cu; w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:10px'},'Консоль разработчика'));
-  if (!u.verified) w.append(el('div',{class:'chat-warning',style:'margin-bottom:16px'},el('strong',{},'️ '),'Аккаунт не верифицирован.'));
+  if (!u.verified && !u.official) w.append(el('div',{class:'chat-warning',style:'margin-bottom:16px'},el('strong',{},'⚠️ '),'Аккаунт не верифицирован.'));
+  if (u.official) w.append(el('div',{style:'margin-bottom:16px;padding:12px;background:rgba(255,215,0,.1);border:1px solid #ffd700;border-radius:8px;color:#ffd700;font-weight:600'},'⭐ Официальный аккаунт разработчика'));
   const stats = el('div',{class:'stats-grid'});
   db.collection('apps').where('devUid','==',u.uid).get().then(snap=>{stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Мои приложения'),el('div',{class:'stat-value'},String(snap.size))))});
   db.collection('orders').where('devUid','==',u.uid).get().then(snap=>{stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Заявки'),el('div',{class:'stat-value'},String(snap.size))))});
@@ -895,7 +917,7 @@ function rAddApp() {
   ssInput.addEventListener('change',function(e){const files=Array.from(e.target.files||[]);if(files.length===0)return;if(pendingScreenshots.length+files.length>10){toast('Максимум 10','','error');ssInput.value='';return}ssProgress.style.display='block';let processed=0;const total=files.length;function processNext(){if(processed>=total){ssProgress.style.display='none';ssInput.value='';renderSSPreview();toast('Скриншоты добавлены',total+' шт.','success');return}const file=files[processed];$('#ssProgText').textContent='Обработка '+(processed+1)+' из '+total;$('#ssProgFill').style.width=Math.round((processed/total)*100)+'%';compressImage(file,800).then(result=>{uploadToImgBB(result.blob).then(url=>{pendingScreenshots.push({url:url,name:file.name,size:result.blob.size,width:result.width,height:result.height});processed++;processNext()}).catch(()=>{toast('Ошибка загрузки',file.name,'error');processed++;processNext()})}).catch(()=>{processed++;processNext()})}processNext()});
   function renderSSPreview(){ssPreview.innerHTML='';pendingScreenshots.forEach((sh,idx)=>{const thumb=el('div',{class:'screenshot-thumb'});thumb.append(el('img',{src:sh.url}));const rm=el('div',{class:'remove'});rm.textContent='✕';rm.addEventListener('click',()=>{pendingScreenshots.splice(idx,1);renderSSPreview()});thumb.append(rm);ssPreview.append(thumb)})}
   const pubBtn=el('button',{class:'btn btn-primary',style:'margin-top:10px'});pubBtn.textContent='Опубликовать';
-  pubBtn.addEventListener('click',()=>{const name=$('#f_name').value.trim();const desc=$('#f_desc').value.trim();if(!name){toast('Введите название','','error');return}if(!desc){toast('Введите описание','','error');return}pubBtn.disabled=true;pubBtn.textContent='Публикация...';const iconFileEl=$('#f_iconFile');const iconFile=iconFileEl&&iconFileEl.files?iconFileEl.files[0]:null;let iconPromise=Promise.resolve(null);if(iconFile){iconPromise=compressImage(iconFile,200).then(r=>uploadToImgBB(r.blob))}iconPromise.then(iconUrl=>{const appData={name:name,desc:desc,cat:$('#f_cat').value,price:parseInt($('#f_price').value)||0,ver:$('#f_ver').value.trim()||'1.0.0',icon:$('#f_icon').value.trim()||'',iconUrl:iconUrl||null,fileUrl:$('#f_fileUrl').value.trim(),fileName:$('#f_fileName').value.trim(),devUid:S.cu.uid,devName:S.cu.name,devVerified:S.cu.verified||false,installs:0,rating:0,reviews:0,status:'verified',screenshots:pendingScreenshots.slice(),createdAt:firebase.firestore.FieldValue.serverTimestamp()};db.collection('apps').add(appData).then(()=>{pubBtn.disabled=false;pubBtn.textContent='Опубликовать';pendingScreenshots=[];toast('✓ Опубликовано','Приложение в каталоге','success');nav('developer',{tab:'apps'})}).catch(e=>{pubBtn.disabled=false;pubBtn.textContent='Опубликовать';toast('Ошибка',e.message,'error')})}).catch(e=>{pubBtn.disabled=false;pubBtn.textContent='Опубликовать';toast('Ошибка',e.message,'error')})});
+  pubBtn.addEventListener('click',()=>{const name=$('#f_name').value.trim();const desc=$('#f_desc').value.trim();if(!name){toast('Введите название','','error');return}if(!desc){toast('Введите описание','','error');return}pubBtn.disabled=true;pubBtn.textContent='Публикация...';const iconFileEl=$('#f_iconFile');const iconFile=iconFileEl&&iconFileEl.files?iconFileEl.files[0]:null;let iconPromise=Promise.resolve(null);if(iconFile){iconPromise=compressImage(iconFile,200).then(r=>uploadToImgBB(r.blob))}iconPromise.then(iconUrl=>{const appData={name:name,desc:desc,cat:$('#f_cat').value,price:parseInt($('#f_price').value)||0,ver:$('#f_ver').value.trim()||'1.0.0',icon:$('#f_icon').value.trim()||'',iconUrl:iconUrl||null,fileUrl:$('#f_fileUrl').value.trim(),fileName:$('#f_fileName').value.trim(),devUid:S.cu.uid,devName:S.cu.name,devVerified:S.cu.verified||false,official:S.cu.official||false,installs:0,rating:0,reviews:0,status:'verified',screenshots:pendingScreenshots.slice(),createdAt:firebase.firestore.FieldValue.serverTimestamp()};db.collection('apps').add(appData).then(()=>{pubBtn.disabled=false;pubBtn.textContent='Опубликовать';pendingScreenshots=[];toast('✓ Опубликовано','Приложение в каталоге','success');nav('developer',{tab:'apps'})}).catch(e=>{pubBtn.disabled=false;pubBtn.textContent='Опубликовать';toast('Ошибка',e.message,'error')})}).catch(e=>{pubBtn.disabled=false;pubBtn.textContent='Опубликовать';toast('Ошибка',e.message,'error')})});
   f.append(pubBtn);
   return f;
 }
@@ -913,8 +935,8 @@ function rAdmin() {
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
   [['apps','Приложения'],['users','Пользователи'],['site','🛠️ Сайт']].forEach(x=>{tabs.append(el('div',{class:'chip'+(tab===x[0]?' active':''),onclick:()=>nav('admin',{tab:x[0]})},x[1]))});
   w.append(tabs);
-  if (tab==='apps') { const loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));w.append(loading);db.collection('apps').orderBy('createdAt','desc').get().then(snap=>{loading.remove();if(snap.empty){w.append(el('div',{class:'empty'},el('p',{},'Нет приложений')));return}snap.forEach(doc=>{const a={id:doc.id,...doc.data()};const r=el('div',{class:'order-card'});const sm={verified:['status-verified','🟢'],pending:['status-pending','🟡'],blocked:['status-blocked','🔴']};const st=sm[a.status]||sm.pending;if(a.iconUrl){r.append(el('div',{class:'order-icon'},el('img',{src:a.iconUrl})))}else{r.append(el('div',{class:'order-icon',style:'background:'+col(a.id)},a.icon||'📱'))}r.append(el('div',{class:'order-info'},el('h4',{},a.name),el('p',{},(a.devName||'—')+(a.devVerified?' ✓':'')+' · '+fp(a.price)),el('span',{class:'status-badge '+st[0]},st[1])));const ac=el('div',{class:'order-actions'});if(a.status!=='verified'){const ab=el('button',{class:'btn btn-primary btn-sm'});ab.textContent='Одобрить';ab.addEventListener('click',()=>{db.collection('apps').doc(a.id).update({status:'verified'});toast('Одобрено','','success')});ac.append(ab)}if(a.status!=='blocked'){const bb=el('button',{class:'btn btn-danger btn-sm'});bb.textContent='Блок';bb.addEventListener('click',()=>{db.collection('apps').doc(a.id).update({status:'blocked'});toast('Заблокировано','','error')});ac.append(bb)}const db2=el('button',{class:'btn btn-text btn-sm'});db2.textContent='Удалить';db2.addEventListener('click',()=>{if(confirm('Удалить?')){db.collection('apps').doc(a.id).delete();render()}});ac.append(db2);r.append(ac);w.append(r)})})}
-  else if (tab==='users') { const loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));w.append(loading);db.collection('users').get().then(snap=>{loading.remove();snap.forEach(doc=>{const u={uid:doc.id,...doc.data()};const r=el('div',{class:'order-card'});r.append(el('div',{class:'order-icon'},u.avatar||u.name[0]),el('div',{class:'order-info'},el('h4',{},u.name,u.verified?el('span',{class:'verified',style:'margin-left:6px'},'✓'):null),el('p',{},'@'+(u.nick||u.name)+' · '+u.role)));const ac=el('div',{class:'order-actions'});if(u.role==='developer'){const vb=el('button',{class:'btn '+(u.verified?'btn-outline':'btn-primary')+' btn-sm'});vb.textContent=u.verified?'Снять ✓':'Дать ✓';vb.addEventListener('click',()=>{db.collection('users').doc(u.uid).update({verified:!u.verified});toast(u.verified?'Снято':'Верифицирован','','info')});ac.append(vb)}if(u.uid!==S.cu.uid){const bb=el('button',{class:'btn btn-danger btn-sm'});bb.textContent=u.blocked?'Разблок':'Блок';bb.addEventListener('click',()=>{db.collection('users').doc(u.uid).update({blocked:!u.blocked});if(S.cu&&S.cu.uid===u.uid){logoutUser();render();toast('Заблокирован','','error')}else{toast(u.blocked?'Разблокирован':'Заблокирован','','info')}});ac.append(bb)}r.append(ac);w.append(r)})})}
+  if (tab==='apps') { const loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));w.append(loading);db.collection('apps').orderBy('createdAt','desc').get().then(snap=>{loading.remove();if(snap.empty){w.append(el('div',{class:'empty'},el('p',{},'Нет приложений')));return}snap.forEach(doc=>{const a={id:doc.id,...doc.data()};const r=el('div',{class:'order-card'});const sm={verified:['status-verified','🟢'],pending:['status-pending','🟡'],blocked:['status-blocked','']};const st=sm[a.status]||sm.pending;if(a.iconUrl){r.append(el('div',{class:'order-icon'},el('img',{src:a.iconUrl})))}else{r.append(el('div',{class:'order-icon',style:'background:'+col(a.id)},a.icon||'📱'))}r.append(el('div',{class:'order-info'},el('h4',{},a.name),el('p',{},(a.devName||'—')+(a.devVerified?' ✓':'')+(a.official?' ':'')+' · '+fp(a.price)),el('span',{class:'status-badge '+st[0]},st[1])));const ac=el('div',{class:'order-actions'});if(a.status!=='verified'){const ab=el('button',{class:'btn btn-primary btn-sm'});ab.textContent='Одобрить';ab.addEventListener('click',()=>{db.collection('apps').doc(a.id).update({status:'verified'});toast('Одобрено','','success')});ac.append(ab)}if(a.status!=='blocked'){const bb=el('button',{class:'btn btn-danger btn-sm'});bb.textContent='Блок';bb.addEventListener('click',()=>{db.collection('apps').doc(a.id).update({status:'blocked'});toast('Заблокировано','','error')});ac.append(bb)}const db2=el('button',{class:'btn btn-text btn-sm'});db2.textContent='Удалить';db2.addEventListener('click',()=>{if(confirm('Удалить?')){db.collection('apps').doc(a.id).delete();render()}});ac.append(db2);r.append(ac);w.append(r)})})}
+  else if (tab==='users') { const loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));w.append(loading);db.collection('users').get().then(snap=>{loading.remove();snap.forEach(doc=>{const u={uid:doc.id,...doc.data()};const r=el('div',{class:'order-card'});const badge=u.official?el('span',{class:'official',style:'margin-left:6px;font-size:18px'},'✓'):(u.verified?el('span',{class:'verified',style:'margin-left:6px'},'✓'):null);r.append(el('div',{class:'order-icon'},u.avatar||u.name[0]),el('div',{class:'order-info'},el('h4',{},u.name,badge),el('p',{},'@'+(u.nick||u.name)+' · '+u.role+(u.official?' ⭐':''))));const ac=el('div',{class:'order-actions'});if(u.role==='developer'&&!u.official){const vb=el('button',{class:'btn '+(u.verified?'btn-outline':'btn-primary')+' btn-sm'});vb.textContent=u.verified?'Снять ✓':'Дать ✓';vb.addEventListener('click',()=>{db.collection('users').doc(u.uid).update({verified:!u.verified});toast(u.verified?'Снято':'Верифицирован','','info')});ac.append(vb)}if(u.uid!==S.cu.uid&&!u.official){const bb=el('button',{class:'btn btn-danger btn-sm'});bb.textContent=u.blocked?'Разблок':'Блок';bb.addEventListener('click',()=>{db.collection('users').doc(u.uid).update({blocked:!u.blocked});if(S.cu&&S.cu.uid===u.uid){logoutUser();render();toast('Заблокирован','','error')}else{toast(u.blocked?'Разблокирован':'Заблокирован','','info')}});ac.append(bb)}r.append(ac);w.append(r)})})}
   else if (tab==='site') {
     const siteSection = el('div',{class:'about-section'});
     siteSection.append(el('h3',{style:'margin-bottom:16px'},'🛠️ Режим обслуживания'));
@@ -931,7 +953,7 @@ function rAdmin() {
     const enableBtn = el('button',{class:'btn btn-danger'});enableBtn.textContent='🔒 Закрыть сайт';
     enableBtn.addEventListener('click',()=>{const msg=$('#maintMessage').value.trim();const timeVal=$('#maintTime').value;if(!timeVal){toast('Укажите время','','error');return}if(!msg){toast('Напишите сообщение','','error');return}const endTime=new Date(timeVal);if(endTime.getTime()<Date.now()){toast('Время должно быть в будущем','','error');return}maintenanceRef.set({enabled:true,message:msg,endTime:firebase.firestore.Timestamp.fromDate(endTime),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),setBy:S.cu.uid}).then(()=>{toast('Сайт закрыт','Пользователи увидят таймер','success')}).catch(e=>{toast('Ошибка',e.message,'error')})});
     btns.append(enableBtn);
-    const disableBtn = el('button',{class:'btn btn-primary'});disableBtn.textContent=' Открыть сайт';
+    const disableBtn = el('button',{class:'btn btn-primary'});disableBtn.textContent='🔓 Открыть сайт';
     disableBtn.addEventListener('click',()=>{if(!confirm('Открыть сайт?'))return;maintenanceRef.update({enabled:false}).then(()=>{toast('Сайт открыт','','success')}).catch(e=>{toast('Ошибка',e.message,'error')})});
     btns.append(disableBtn);
     formDiv.append(btns); siteSection.append(formDiv);
@@ -946,7 +968,7 @@ function rAdmin() {
   return w;
 }
 
-function rAbout() { const w=el('div',{class:'container'});w.append(backBtn('Главная','home'));w.append(el('h1',{style:'font-size:28px;font-weight:500;margin-bottom:16px'},'О awer'));w.append(el('div',{class:'about-section'},el('p',{},'awer — магазин приложений и игр.'),el('p',{},'Оплата НЕ в awer — она в чате с продавцом.'),el('p',{style:'color:var(--danger);font-weight:500;margin-top:14px'},'🚫 ЗАПРЕЩЕНО выкладывать приложения с вирусами.')));return w; }
+function rAbout() { const w=el('div',{class:'container'});w.append(backBtn('Главная','home'));w.append(el('h1',{style:'font-size:28px;font-weight:500;margin-bottom:16px'},'О awer'));w.append(el('div',{class:'about-section'},el('p',{},'awer — магазин приложений и игр.'),el('p',{},'Оплата НЕ в awer — она в чате с продавцом.'),el('p',{style:'color:var(--danger);font-weight:500;margin-top:14px'},' ЗАПРЕЩЕНО выкладывать приложения с вирусами.')));return w; }
 
 function showAuth() {
   const m = el('div',{});
@@ -970,7 +992,7 @@ function showAuth() {
       body.append(rg);
       const regBtn = el('button',{class:'btn btn-primary',style:'width:100%;margin-top:10px'});
       regBtn.textContent='Зарегистрироваться';
-      regBtn.addEventListener('click',()=>{const nick=$('#rNick').value.trim();const roleEl=$('.radio-item.selected',rg);const role=roleEl?roleEl.getAttribute('data-val'):'buyer';if(!nick){toast('Введите ник','','error');return}if(nick.length<3){toast('Ник минимум 3 символа','','error');return}registerWithNick(nick,role).then(result=>{S.cu={uid:result.uid,name:nick,nick:nick,role:result.role,avatar:nick[0],verified:false,blocked:false};localStorage.setItem('awer_nick',nick);saveSettings();closeM();render();toast('Аккаунт создан!',nick,'success')}).catch(err=>{toast('Ошибка',err.message,'error')})});
+      regBtn.addEventListener('click',()=>{const nick=$('#rNick').value.trim();const roleEl=$('.radio-item.selected',rg);const role=roleEl?roleEl.getAttribute('data-val'):'buyer';if(!nick){toast('Введите ник','','error');return}if(nick.length<3){toast('Ник минимум 3 символа','','error');return}registerWithNick(nick,role).then(result=>{S.cu={uid:result.uid,name:nick,nick:nick,role:result.role,avatar:nick[0],verified:false,official:false,blocked:false};localStorage.setItem('awer_nick',nick);saveSettings();closeM();render();toast('Аккаунт создан!',nick,'success')}).catch(err=>{toast('Ошибка',err.message,'error')})});
       body.append(regBtn);
       body.append(el('p',{style:'text-align:center;font-size:13px;color:var(--text2);margin-top:10px'},'Есть аккаунт? ',el('span',{style:'color:var(--accent);cursor:pointer;font-weight:500',onclick:()=>{mode='login';rf()}},'Войти')));
     }
@@ -985,7 +1007,7 @@ function openOrder(appId) {
     const m = el('div',{});
     m.append(el('div',{class:'modal-head'},el('h2',{},'Покупка'),el('button',{class:'modal-close',onclick:closeM},'✕')));
     const body = el('div',{class:'modal-body'});
-    body.append(el('div',{style:'display:flex;gap:14px;align-items:center;padding:14px;background:var(--bg2);border-radius:12px;margin-bottom:18px'},a.iconUrl?el('div',{class:'order-icon'},el('img',{src:a.iconUrl})):el('div',{class:'order-icon',style:'background:'+col(a.id)},a.icon||'📱'),el('div',{style:'flex:1'},el('strong',{},a.name),el('div',{style:'font-size:12px;color:var(--text2)'},'Продавец: '+(a.devName||'—'),a.devVerified?el('span',{class:'verified'},' ✓'):null),el('div',{style:'font-weight:500;margin-top:4px'},fp(a.price||0)))));
+    body.append(el('div',{style:'display:flex;gap:14px;align-items:center;padding:14px;background:var(--bg2);border-radius:12px;margin-bottom:18px'},a.iconUrl?el('div',{class:'order-icon'},el('img',{src:a.iconUrl})):el('div',{class:'order-icon',style:'background:'+col(a.id)},a.icon||'📱'),el('div',{style:'flex:1'},el('strong',{},a.name),el('div',{style:'font-size:12px;color:var(--text2)'},'Продавец: '+(a.devName||'—'),a.official?el('span',{class:'official',style:'margin-left:4px'},'✓'):(a.devVerified?el('span',{class:'verified',style:'margin-left:4px'},'✓'):null)),el('div',{style:'font-weight:500;margin-top:4px'},fp(a.price||0)))));
     body.append(el('h3',{style:'font-size:15px;margin-bottom:10px;font-weight:500'},'Способ оплаты'));
     const rg = el('div',{class:'radio-group'});
     [['bank','Банковский перевод'],['other','Другой способ'],['discuss','Обсудить в чате']].forEach((x,idx)=>{const it=el('div',{class:'radio-item'+(idx===0?' selected':''),'data-val':x[0]});it.addEventListener('click',()=>{$$('.radio-item',rg).forEach(y=>{y.classList.remove('selected')});it.classList.add('selected')});it.append(el('div',{class:'radio-dot'}),el('div',{class:'radio-label'},el('strong',{},x[1])));rg.append(it)});
@@ -1043,7 +1065,7 @@ function showWelcome() {
   if (hasSeen) return;
   const overlay = document.createElement('div');
   overlay.className = 'welcome-overlay';
-  overlay.innerHTML = '<div class="welcome-modal"><div class="welcome-icon">🎉</div><h1>Добро пожаловать в awer!</h1><div class="subtitle">Команда awer наконец-то сделала это!</div><div class="description">Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, а пользователи — находить и покупать их напрямую у авторов.</div><div class="features"><div class="feature"><div class="feature-icon"></div><div class="feature-text">Тысячи приложений</div></div><div class="feature"><div class="feature-icon">🔒</div><div class="feature-text">Безопасные сделки</div></div><div class="feature"><div class="feature-icon">💬</div><div class="feature-text">Прямой чат с продавцом</div></div><div class="feature"><div class="feature-icon">⚡</div><div class="feature-text">Мгновенная загрузка</div></div></div><button class="welcome-btn" onclick="this.closest(\'.welcome-overlay\').remove();localStorage.setItem(\'awer_welcome_seen\',\'true\')">Начать исследование 🚀</button></div>';
+  overlay.innerHTML = '<div class="welcome-modal"><div class="welcome-icon">🎉</div><h1>Добро пожаловать в awer!</h1><div class="subtitle">Команда awer наконец-то сделала это!</div><div class="description">Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, а пользователи — находить и покупать их напрямую у авторов.</div><div class="features"><div class="feature"><div class="feature-icon">📱</div><div class="feature-text">Тысячи приложений</div></div><div class="feature"><div class="feature-icon">🔒</div><div class="feature-text">Безопасные сделки</div></div><div class="feature"><div class="feature-icon">💬</div><div class="feature-text">Прямой чат с продавцом</div></div><div class="feature"><div class="feature-icon">⚡</div><div class="feature-text">Мгновенная загрузка</div></div></div><button class="welcome-btn" onclick="this.closest(\'.welcome-overlay\').remove();localStorage.setItem(\'awer_welcome_seen\',\'true\')">Начать исследование 🚀</button></div>';
   document.body.appendChild(overlay);
 }
 
