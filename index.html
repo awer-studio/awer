@@ -10,25 +10,23 @@
   document.documentElement.setAttribute('data-theme', t);
   if (t === 'dark') {
     document.documentElement.style.cssText = 'background:#202124;color:#e8eaed';
-    document.body.style.cssText = 'background:#202124;color:#e8eaed';
   }
 })();
 </script>
 <style>
-:root{--bg:#fff;--bg2:#f8f9fa;--text:#202124;--text2:#5f6368;--border:#dadce0;--accent:#01875f;--accent2:#1e8e3e;--danger:#d93025;--chip:#e8eaed;--shadow:0 1px 3px rgba(0,0,0,.1)}
-[data-theme="dark"]{--bg:#202124;--bg2:#2d2e30;--text:#e8eaed;--text2:#9aa0a6;--border:#3c4043;--accent:#81c995;--accent2:#81c995;--chip:#3c4043;--shadow:0 1px 3px rgba(0,0,0,.3)}
+:root{--bg:#fff;--bg2:#f8f9fa;--text:#202124;--text2:#5f6368;--border:#dadce0;--accent:#01875f;--accent2:#1e8e3e;--danger:#d93025;--chip:#e8eaed}
+[data-theme="dark"]{--bg:#202124;--bg2:#2d2e30;--text:#e8eaed;--text2:#9aa0a6;--border:#3c4043;--accent:#81c995;--accent2:#81c995;--chip:#3c4043}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;font-size:14px}
+html,body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;font-size:14px}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea,select{font-family:inherit}
 .container{max-width:1200px;margin:0 auto;padding:0 20px}
 .header{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:16px}
 .logo{font-size:22px;font-weight:700;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:8px}
 .logo-mark{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
-.search{flex:1;max-width:600px;position:relative}
-.search input{width:100%;padding:10px 16px 10px 40px;border-radius:24px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:14px}
+.search{flex:1;max-width:600px}
+.search input{width:100%;padding:10px 16px;border-radius:24px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:14px}
 .search input:focus{outline:none;border-color:var(--accent)}
-.search::before{content:"🔍";position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px}
 .header-actions{display:flex;align-items:center;gap:8px}
 .icon-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
 .icon-btn:hover{background:var(--bg2)}
@@ -50,7 +48,7 @@ input,textarea,select{font-family:inherit}
 .carousel{display:flex;gap:16px;overflow-x:auto;padding-bottom:8px}
 .carousel::-webkit-scrollbar{display:none}
 .app-item{flex:0 0 130px;cursor:pointer;text-align:center}
-.app-ico{width:130px;height:130px;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:56px;margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow)}
+.app-ico{width:130px;height:130px;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:56px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 .app-ico img{width:100%;height:100%;object-fit:cover}
 .app-name{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .app-dev{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:4px;justify-content:center}
@@ -69,7 +67,7 @@ input,textarea,select{font-family:inherit}
 .back-btn:hover{text-decoration:underline}
 .app-page{padding:24px 0}
 .app-top{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;margin-bottom:24px}
-.app-icon{width:160px;height:160px;border-radius:32px;display:flex;align-items:center;justify-content:center;font-size:80px;overflow:hidden;box-shadow:var(--shadow)}
+.app-icon{width:160px;height:160px;border-radius:32px;display:flex;align-items:center;justify-content:center;font-size:80px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 .app-icon img{width:100%;height:100%;object-fit:cover}
 .app-info h1{font-size:24px;margin-bottom:8px}
 .app-info .dev{color:var(--accent);font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:4px}
@@ -242,11 +240,11 @@ var S = {
 };
 
 var CATS = [
-  {id:'ai',n:'AI',i:'🧠'},{id:'design',n:'Дизайн',i:''},{id:'photo',n:'Фото',i:'📷'},
-  {id:'video',n:'Видео',i:''},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
+  {id:'ai',n:'AI',i:'🧠'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},
+  {id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
   {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},
   {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},
-  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:''},
+  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:'📄'},
   {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}
 ];
 var COLS = ['#e8f5e9','#e3f2fd','#fce4ec','#fff3e0','#f3e5f5','#e0f2f1','#fff8e1','#e8eaf6','#fbe9e7','#e0f7fa'];
@@ -559,7 +557,7 @@ function rCatalog() {
     w.appendChild(ch);
 
     if (apps.length === 0) {
-      w.appendChild(el('div', {class: 'empty'}, el('div', {class: 'ico'}, ''), el('h3', {}, 'Ничего не найдено')));
+      w.appendChild(el('div', {class: 'empty'}, el('div', {class: 'ico'}, '🔍'), el('h3', {}, 'Ничего не найдено')));
     } else {
       var g = el('div', {class: 'app-list'});
       apps.forEach(function(a) { g.appendChild(rAppItem(a)); });
@@ -627,8 +625,8 @@ function rAppPage() {
 
     if (a.fileName && canDownload) {
       info.appendChild(el('div', {style: 'margin:12px 0;padding:14px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)'},
-        el('div', {style: 'display:flex;align-items:center;gap:12px;margin-bottom:8px'}, el('span', {style: 'font-size:28px'}, ''), el('div', {style: 'flex:1'}, el('div', {style: 'font-weight:500;font-size:14px'}, a.fileName), el('div', {style: 'font-size:12px;color:var(--text2);margin-top:2px'}, fsize(a.fileSize)))),
-        el('a', {class: 'btn btn-primary', style: 'width:100%', href: a.fileUrl || '#', target: '_blank', download: a.fileName || 'file'}, ' Скачать файл')
+        el('div', {style: 'display:flex;align-items:center;gap:12px;margin-bottom:8px'}, el('span', {style: 'font-size:28px'}, '📦'), el('div', {style: 'flex:1'}, el('div', {style: 'font-weight:500;font-size:14px'}, a.fileName), el('div', {style: 'font-size:12px;color:var(--text2);margin-top:2px'}, fsize(a.fileSize)))),
+        el('a', {class: 'btn btn-primary', style: 'width:100%', href: a.fileUrl || '#', target: '_blank', download: a.fileName || 'file'}, '⬇ Скачать файл')
       ));
     } else if (a.fileName) {
       info.appendChild(el('div', {style: 'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)'}, '📦 Файл: ', el('strong', {}, a.fileName), ' (', fsize(a.fileSize), ') — доступен после покупки'));
@@ -734,7 +732,7 @@ function rOrders() {
   var w = el('div', {class: 'container'});
   w.appendChild(el('div', {class: 'back-btn', onclick: function() { nav('home'); }}, '← Главная'));
   w.appendChild(el('h1', {style: 'font-size:24px;font-weight:500;margin-bottom:16px'}, 'Мои заявки'));
-  if (!S.cu) { w.appendChild(el('div', {class: 'empty'}, el('div', {class: 'ico'}, ''), el('h3', {}, 'Войдите'))); return w; }
+  if (!S.cu) { w.appendChild(el('div', {class: 'empty'}, el('div', {class: 'ico'}, '🔐'), el('h3', {}, 'Войдите'))); return w; }
 
   var loading = el('div', {class: 'spinner'});
   w.appendChild(loading);
@@ -798,7 +796,7 @@ function rChat() {
     cw.appendChild(el('div', {class: 'back-btn', onclick: function() { nav('orders'); }}, '← Заявки'));
 
     var hd = el('div', {class: 'chat-head'});
-    hd.appendChild(el('h3', {}, '💬 Чат сделки'));
+    hd.appendChild(el('h3', {}, ' Чат сделки'));
     hd.appendChild(el('p', {style: 'font-size:13px;color:var(--text2);margin:6px 0'}, 'Приложение: ', el('strong', {}, o.appName || '—'), ' · ', el('strong', {}, otherName || '—')));
     hd.appendChild(el('div', {class: 'chat-warning'}, el('strong', {}, '⚠️ '), 'awer не участвует в оплате.'));
     cw.appendChild(hd);
@@ -895,7 +893,7 @@ function rChat() {
       ac.appendChild(supBtn);
       cw.appendChild(ac);
     } else {
-      cw.appendChild(el('div', {style: 'text-align:center;padding:20px;color:var(--text2)'}, o.status === 'completed' ? '✓ Сделка завершена' : '✕ Сделка отменена'));
+      cw.appendChild(el('div', {style: 'text-align:center;padding:20px;color:var(--text2)'}, o.status === 'completed' ? '✓ Сделка завершена' : ' Сделка отменена'));
     }
     w.appendChild(cw);
   }).catch(function() { loading.remove(); w.appendChild(el('div', {class: 'empty'}, el('h3', {}, 'Ошибка'))); });
@@ -906,11 +904,11 @@ function rLibrary() {
   var w = el('div', {class: 'container'});
   w.appendChild(el('div', {class: 'back-btn', onclick: function() { nav('home'); }}, '← Главная'));
   w.appendChild(el('h1', {style: 'font-size:24px;font-weight:500;margin-bottom:16px'}, 'Моя библиотека'));
-  if (!S.cu) { w.appendChild(el('div', {class: 'empty'}, el('div', {class: 'ico'}, ''), el('h3', {}, 'Войдите'))); return w; }
+  if (!S.cu) { w.appendChild(el('div', {class: 'empty'}, el('div', {class: 'ico'}, '🔐'), el('h3', {}, 'Войдите'))); return w; }
   var cuId = S.cu.uid;
   var lib = JSON.parse(localStorage.getItem('awer_lib_' + cuId) || '{}');
   var ids = Object.keys(lib);
-  if (ids.length === 0) { w.appendChild(el('div', {class: 'empty'}, el('div', {class: 'ico'}, ''), el('h3', {}, 'Библиотека пуста'))); return w; }
+  if (ids.length === 0) { w.appendChild(el('div', {class: 'empty'}, el('div', {class: 'ico'}, '📚'), el('h3', {}, 'Библиотека пуста'))); return w; }
 
   var loading = el('div', {class: 'spinner'});
   w.appendChild(loading);
@@ -925,7 +923,7 @@ function rLibrary() {
       else { c.appendChild(el('div', {class: 'order-ico', style: 'background:' + col(a.id)}, a.icon || '')); }
       c.appendChild(el('div', {class: 'order-info'}, el('h4', {style: 'cursor:pointer', onclick: function() { nav('app', {id: a.id}); }}, a.name), el('p', {}, 'v' + (a.ver || '1.0') + ' · ' + (a.devName || '') + ' · ' + new Date(lib[a.id].date).toLocaleDateString('ru-RU'))));
       var acts = el('div', {class: 'order-actions'});
-      if (a.fileName && a.fileUrl) { acts.appendChild(el('a', {class: 'btn btn-primary btn-sm', href: a.fileUrl, target: '_blank', download: a.fileName}, ' Скачать')); }
+      if (a.fileName && a.fileUrl) { acts.appendChild(el('a', {class: 'btn btn-primary btn-sm', href: a.fileUrl, target: '_blank', download: a.fileName}, '⬇ Скачать')); }
       else { acts.appendChild(el('button', {class: 'btn btn-primary btn-sm', onclick: function() { toast('Открыть', 'Демо', 'info'); }}, 'Открыть')); }
       c.appendChild(acts);
       w.appendChild(c);
@@ -956,11 +954,11 @@ function rProfile() {
 
   var menu = el('div', {class: 'profile-menu'});
   var tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
-  var menuItems = [{id:'info',i:'',l:'Аккаунт'},{id:'orders',i:'📋',l:'Заявки'},{id:'library',i:'📚',l:'Библиотека'},{id:'favorites',i:'♡',l:'Избранное'},{id:'settings',i:'⚙️',l:'Настройки'},{id:'support',i:'🆘',l:'Поддержка'}];
+  var menuItems = [{id:'info',i:'👤',l:'Аккаунт'},{id:'orders',i:'📋',l:'Заявки'},{id:'library',i:'📚',l:'Библиотека'},{id:'favorites',i:'♡',l:'Избранное'},{id:'settings',i:'⚙️',l:'Настройки'},{id:'support',i:'🆘',l:'Поддержка'}];
   menuItems.forEach(function(x) {
     menu.appendChild(el('button', {class: 'profile-menu-item' + (tab === x.id ? ' active' : ''), onclick: function() { nav('profile', {tab: x.id}); }}, el('span', {}, x.i), el('span', {}, x.l)));
   });
-  if (u.role === 'developer') { menu.appendChild(el('button', {class: 'profile-menu-item', onclick: function() { nav('developer'); }}, el('span', {}, ''), el('span', {}, 'Консоль'))); }
+  if (u.role === 'developer') { menu.appendChild(el('button', {class: 'profile-menu-item', onclick: function() { nav('developer'); }}, el('span', {}, '🛠'), el('span', {}, 'Консоль'))); }
   if (u.role === 'admin') { menu.appendChild(el('button', {class: 'profile-menu-item', onclick: function() { nav('admin'); }}, el('span', {}, '⚙️'), el('span', {}, 'Админ-панель'))); }
   card.appendChild(menu);
 
@@ -996,11 +994,11 @@ function rSettings() {
   w.appendChild(el('h1', {style: 'font-size:24px;font-weight:500;margin-bottom:8px'}, 'Настройки'));
   var list = el('div', {class: 'settings-list'});
   var items = [
-    {i: '🎨', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme'},
+    {i: '', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme'},
     {i: '🔔', t: 'Уведомления', d: S.settings.notif ? 'Включены' : 'Выключены', tg: true, k: 'notif'},
-    {i: '', t: 'Звуки', d: S.settings.sound ? 'Включены' : 'Выключены', tg: true, k: 'sound'},
-    {i: '🔄', t: 'Автообновление', d: S.settings.autoUpd ? 'Включено' : 'Выключено', tg: true, k: 'autoUpd'},
-    {i: '🌐', t: 'Язык', d: 'Русский', a: function() { nav('settingsSub', {sub: 'lang'}); }},
+    {i: '🔊', t: 'Звуки', d: S.settings.sound ? 'Включены' : 'Выключены', tg: true, k: 'sound'},
+    {i: '', t: 'Автообновление', d: S.settings.autoUpd ? 'Включено' : 'Выключено', tg: true, k: 'autoUpd'},
+    {i: '', t: 'Язык', d: 'Русский', a: function() { nav('settingsSub', {sub: 'lang'}); }},
     {i: 'ℹ️', t: 'О приложении', d: 'awer v1.0', a: function() { nav('settingsSub', {sub: 'about'}); }}
   ];
   items.forEach(function(it) {
@@ -1049,7 +1047,7 @@ function rSettingsSub() {
 function rSupport() {
   var w = el('div', {class: 'container'});
   w.appendChild(el('div', {class: 'back-btn', onclick: function() { nav('profile'); }}, '← Профиль'));
-  w.appendChild(el('h1', {style: 'font-size:24px;font-weight:500;margin-bottom:10px'}, ' Поддержка'));
+  w.appendChild(el('h1', {style: 'font-size:24px;font-weight:500;margin-bottom:10px'}, '🆘 Поддержка'));
   if (!S.cu) { w.appendChild(el('div', {class: 'empty'}, el('div', {class: 'ico'}, '🔐'), el('h3', {}, 'Войдите'))); return w; }
 
   var form = el('div', {class: 'about'});
@@ -1390,11 +1388,11 @@ function rAdmin() {
       snap.forEach(function(doc) {
         var a = {id: doc.id, ...doc.data()};
         var r = el('div', {class: 'order-card'});
-        var sm = {verified: ['status-verified', '🟢'], pending: ['status-pending', '🟡'], blocked: ['status-blocked', '🔴']};
+        var sm = {verified: ['status-verified', ''], pending: ['status-pending', ''], blocked: ['status-blocked', '']};
         var st = sm[a.status] || sm.pending;
         if (a.iconUrl) { r.appendChild(el('div', {class: 'order-ico'}, el('img', {src: a.iconUrl}))); }
-        else { r.appendChild(el('div', {class: 'order-ico', style: 'background:' + col(a.id)}, a.icon || '')); }
-        r.appendChild(el('div', {class: 'order-info'}, el('h4', {}, a.name), el('p', {}, (a.devName || '—') + (a.devVerified ? ' ✓' : '') + (a.official ? ' ' : '') + ' · ' + fp(a.price)), el('span', {class: 'status-badge ' + st[0]}, st[1])));
+        else { r.appendChild(el('div', {class: 'order-ico', style: 'background:' + col(a.id)}, a.icon || '📱')); }
+        r.appendChild(el('div', {class: 'order-info'}, el('h4', {}, a.name), el('p', {}, (a.devName || '—') + (a.devVerified ? ' ✓' : '') + (a.official ? ' ⭐' : '') + ' · ' + fp(a.price)), el('span', {class: 'status-badge ' + st[0]}, st[1])));
         var ac = el('div', {class: 'order-actions'});
         if (a.status !== 'verified') {
           var ab = el('button', {class: 'btn btn-primary btn-sm'});
@@ -1450,7 +1448,7 @@ function rAdmin() {
     });
   } else if (tab === 'site') {
     var siteSection = el('div', {class: 'about'});
-    siteSection.appendChild(el('h3', {style: 'margin-bottom:16px'}, '🛠️ Режим обслуживания'));
+    siteSection.appendChild(el('h3', {style: 'margin-bottom:16px'}, '️ Режим обслуживания'));
     siteSection.appendChild(el('p', {style: 'color:var(--text2);margin-bottom:20px'}, 'Закройте сайт для всех кроме админов и разработчиков.'));
     var statusDiv = el('div', {id: 'maintenanceStatus', style: 'padding:16px;background:var(--bg2);border-radius:12px;margin-bottom:20px'});
     statusDiv.textContent = 'Загрузка...';
@@ -1493,7 +1491,7 @@ function rAdmin() {
       var data = doc.data();
       if (data.enabled) {
         var endTime = data.endTime ? data.endTime.toDate().toLocaleString('ru-RU') : 'не указано';
-        statusDiv.innerHTML = '<div style="color:var(--danger);font-weight:600;margin-bottom:8px"> Сайт ЗАКРЫТ</div><div style="font-size:13px;color:var(--text2)">Сообщение: ' + (data.message || '—') + '</div><div style="font-size:13px;color:var(--text2);margin-top:4px">Откроется: ' + endTime + '</div>';
+        statusDiv.innerHTML = '<div style="color:var(--danger);font-weight:600;margin-bottom:8px">🔒 Сайт ЗАКРЫТ</div><div style="font-size:13px;color:var(--text2)">Сообщение: ' + (data.message || '—') + '</div><div style="font-size:13px;color:var(--text2);margin-top:4px">Откроется: ' + endTime + '</div>';
       } else {
         statusDiv.innerHTML = '<div style="color:var(--accent);font-weight:600">✅ Сайт открыт</div>';
       }
@@ -1584,7 +1582,7 @@ function openOrder(appId) {
   getAppById(appId, function(a) {
     if (!a) return;
     var m = el('div', {});
-    m.appendChild(el('div', {class: 'modal-head'}, el('h2', {}, 'Покупка'), el('button', {class: 'modal-close', onclick: closeModal}, '')));
+    m.appendChild(el('div', {class: 'modal-head'}, el('h2', {}, 'Покупка'), el('button', {class: 'modal-close', onclick: closeModal}, '✕')));
     var body = el('div', {});
     var info = el('div', {style: 'display:flex;gap:14px;align-items:center;padding:14px;background:var(--bg2);border-radius:12px;margin-bottom:18px'});
     if (a.iconUrl) { info.appendChild(el('div', {class: 'order-ico'}, el('img', {src: a.iconUrl}))); }
@@ -1709,7 +1707,7 @@ function showWelcome() {
   if (hasSeen) return;
   var overlay = document.createElement('div');
   overlay.className = 'welcome-overlay';
-  overlay.innerHTML = '<div class="welcome-modal"><div style="font-size:80px;margin-bottom:20px">🎉</div><h1>Добро пожаловать в awer!</h1><div class="subtitle">Команда awer наконец-то сделала это!</div><div class="description">Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, а пользователи — находить и покупать их напрямую у авторов.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;text-align:left"><div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg2);border-radius:12px"><span style="font-size:24px">📱</span><span style="font-size:14px">Тысячи приложений</span></div><div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg2);border-radius:12px"><span style="font-size:24px">🔒</span><span style="font-size:14px">Безопасные сделки</span></div><div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg2);border-radius:12px"><span style="font-size:24px">💬</span><span style="font-size:14px">Прямой чат с продавцом</span></div><div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg2);border-radius:12px"><span style="font-size:24px">⚡</span><span style="font-size:14px">Мгновенная загрузка</span></div></div><button class="welcome-btn" onclick="this.closest(\'.welcome-overlay\').remove();localStorage.setItem(\'awer_welcome_seen\',\'true\')">Начать исследование 🚀</button></div>';
+  overlay.innerHTML = '<div class="welcome-modal"><div style="font-size:80px;margin-bottom:20px"></div><h1>Добро пожаловать в awer!</h1><div class="subtitle">Команда awer наконец-то сделала это!</div><div class="description">Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, а пользователи — находить и покупать их напрямую у авторов.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;text-align:left"><div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg2);border-radius:12px"><span style="font-size:24px"></span><span style="font-size:14px">Тысячи приложений</span></div><div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg2);border-radius:12px"><span style="font-size:24px"></span><span style="font-size:14px">Безопасные сделки</span></div><div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg2);border-radius:12px"><span style="font-size:24px"></span><span style="font-size:14px">Прямой чат с продавцом</span></div><div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg2);border-radius:12px"><span style="font-size:24px">⚡</span><span style="font-size:14px">Мгновенная загрузка</span></div></div><button class="welcome-btn" onclick="this.closest(\'.welcome-overlay\').remove();localStorage.setItem(\'awer_welcome_seen\',\'true\')">Начать исследование </button></div>';
   document.body.appendChild(overlay);
 }
 
