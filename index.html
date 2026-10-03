@@ -7,226 +7,205 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#1e1f20;--bg2:#2d2e30;--bg3:#3c4043;--text:#e8eaed;--text2:#9aa0a6;
-  --border:#3c4043;--accent:#81c995;--accent2:#34a853;--danger:#f28b82;
-  --chip:#3c4043;--shadow:0 1px 3px rgba(0,0,0,.3);
-  --sidebar-width:280px;
-}
-html,body{background:var(--bg);color:var(--text);font-family:'Google Sans','Roboto',system-ui,sans-serif;min-height:100vh;font-size:14px;overflow-x:hidden}
+body{background:#202124;color:#e8eaed;font-family:'Google Sans','Roboto',system-ui,sans-serif;font-size:14px;min-height:100vh}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea,select{font-family:inherit}
+a{color:inherit;text-decoration:none}
 
-/* БОКОВОЕ МЕНЮ */
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-width);background:#202124;border-right:1px solid var(--border);z-index:100;display:flex;flex-direction:column;padding:16px 0;overflow-y:auto}
-.sidebar-logo{display:flex;align-items:center;gap:12px;padding:8px 24px 24px;font-size:22px;font-weight:700;color:var(--accent)}
-.sidebar-logo .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#4285f4,#34a853,#fbbc05,#ea4335);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;font-weight:700}
+/* LAYOUT */
+.app-layout{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:260px;background:#202124;border-right:1px solid #3c4043;position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;padding:16px 0;z-index:100;overflow-y:auto}
+.sidebar-logo{display:flex;align-items:center;gap:12px;padding:8px 24px 24px}
+.sidebar-logo svg{width:28px;height:28px}
+.sidebar-logo span{font-size:20px;font-weight:500;color:#e8eaed}
 .sidebar-nav{flex:1}
-.sidebar-item{display:flex;align-items:center;gap:16px;padding:12px 24px;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border-radius:0 24px 24px 0;margin-right:8px}
-.sidebar-item:hover{background:var(--bg2);color:var(--text)}
-.sidebar-item.active{background:rgba(129,201,149,.15);color:var(--accent)}
-.sidebar-item .si-icon{font-size:20px;width:24px;text-align:center}
-.sidebar-divider{height:1px;background:var(--border);margin:12px 24px}
-.sidebar-user{padding:16px 24px;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border)}
-.sidebar-user-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
-.sidebar-user-info{flex:1}
-.sidebar-user-name{font-size:14px;font-weight:500;color:var(--text)}
-.sidebar-user-role{font-size:11px;color:var(--text2)}
+.sidebar-item{display:flex;align-items:center;gap:20px;padding:12px 24px;color:#9aa0a6;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;margin-right:8px;border-radius:0 24px 24px 0}
+.sidebar-item:hover{background:#303134;color:#e8eaed}
+.sidebar-item.active{background:#2d3033;color:#81c995}
+.sidebar-item .si-icon{font-size:20px;width:24px;text-align:center;display:flex;align-items:center;justify-content:center}
+.sidebar-divider{height:1px;background:#3c4043;margin:12px 0}
 
-/* ОСНОВНОЙ КОНТЕНТ */
-.main{margin-left:var(--sidebar-width);min-height:100vh}
-
-/* ШАПКА */
-.topbar{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;gap:16px}
+/* TOPBAR */
+.main{margin-left:260px;flex:1;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:50;background:#202124;padding:12px 32px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #3c4043}
 .search-bar{flex:1;max-width:720px;position:relative}
-.search-bar input{width:100%;padding:12px 20px 12px 48px;border-radius:24px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:15px;outline:none}
-.search-bar input:focus{border-color:var(--accent);background:var(--bg3)}
-.search-bar::before{content:"";position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:18px;opacity:.6}
-.topbar-actions{display:flex;align-items:center;gap:12px}
-.theme-toggle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text2);cursor:pointer}
-.theme-toggle:hover{background:var(--bg2)}
-.auth-btn{padding:10px 24px;border-radius:20px;background:var(--accent);color:#1e1f20;font-weight:600;font-size:14px;cursor:pointer}
-.auth-btn:hover{background:var(--accent2)}
+.search-bar input{width:100%;padding:14px 20px 14px 48px;border-radius:24px;border:none;background:#303134;color:#e8eaed;font-size:15px;outline:none}
+.search-bar input:focus{background:#3c4043}
+.search-bar::before{content:"🔍";position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;opacity:.6}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:#9aa0a6;cursor:pointer}
+.icon-btn:hover{background:#303134}
+.avatar-btn{width:32px;height:32px;border-radius:50%;background:#81c995;color:#202124;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;cursor:pointer}
+.login-btn{padding:10px 24px;border-radius:20px;background:transparent;color:#81c995;font-weight:600;font-size:14px;cursor:pointer;border:1px solid #81c995}
+.login-btn:hover{background:rgba(129,201,149,.1)}
 
-/* ВКЛАДКИ */
-.page-tabs{display:flex;gap:8px;padding:16px 32px;border-bottom:1px solid var(--border)}
-.page-tab{padding:10px 20px;border-radius:20px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s}
-.page-tab:hover{background:var(--bg2);color:var(--text)}
-.page-tab.active{background:rgba(129,201,149,.15);color:var(--accent)}
-
-/* КОНТЕНТ */
+/* CONTENT */
 .content{padding:24px 32px 80px}
 
-/* БАННЕР */
-.hero-banner{background:linear-gradient(135deg,#1a4731,#2d5a3d,#1a4731);border-radius:16px;padding:48px;margin-bottom:32px;display:flex;align-items:center;gap:32px;position:relative;overflow:hidden}
-.hero-banner::before{content:"";position:absolute;top:-50%;right:-20%;width:400px;height:400px;background:radial-gradient(circle,rgba(129,201,149,.2),transparent);border-radius:50%}
-.hero-text{flex:1;position:relative;z-index:1}
-.hero-badge{display:inline-block;padding:4px 12px;background:rgba(129,201,149,.2);color:var(--accent);border-radius:12px;font-size:12px;font-weight:600;margin-bottom:16px;text-transform:uppercase;letter-spacing:.5px}
-.hero-text h1{font-size:36px;font-weight:700;margin-bottom:12px;line-height:1.2}
-.hero-text p{font-size:16px;color:var(--text2);margin-bottom:24px;line-height:1.5}
-.hero-btn{padding:12px 28px;background:var(--accent);color:#1e1f20;border-radius:24px;font-weight:600;font-size:15px;cursor:pointer;transition:all .2s}
-.hero-btn:hover{background:var(--accent2);transform:translateY(-2px)}
-.hero-emoji{font-size:120px;position:relative;z-index:1;opacity:.9}
+/* FILTER PILLS */
+.filter-row{display:flex;gap:12px;margin-bottom:24px}
+.filter-pill{padding:10px 20px;border-radius:20px;background:#303134;color:#e8eaed;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s}
+.filter-pill:hover{background:#3c4043}
+.filter-pill.active{background:#81c995;color:#202124}
 
-/* СЕКЦИИ */
+/* SECTION */
 .section{margin-bottom:32px}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.section-header h2{font-size:20px;font-weight:600}
-.section-header .more{color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;padding:8px 16px;border-radius:16px}
+.section-header h2{font-size:20px;font-weight:500}
+.section-header .more{color:#81c995;font-size:14px;font-weight:500;cursor:pointer;padding:8px 12px;border-radius:16px}
 .section-header .more:hover{background:rgba(129,201,149,.1)}
+.section-header .arrow{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#9aa0a6;cursor:pointer}
+.section-header .arrow:hover{background:#303134}
 
-/* КАРУСЕЛЬ */
-.carousel{display:flex;gap:16px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+/* APP CAROUSEL */
+.carousel{display:flex;gap:20px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
 .carousel::-webkit-scrollbar{display:none}
+.app-card{flex:0 0 140px;cursor:pointer;transition:transform .15s}
+.app-card:hover{transform:translateY(-2px)}
+.app-icon{width:140px;height:140px;border-radius:32px;display:flex;align-items:center;justify-content:center;font-size:64px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.app-icon img{width:100%;height:100%;object-fit:cover}
+.app-name{font-size:14px;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-dev{font-size:12px;color:#9aa0a6;display:flex;align-items:center;gap:4px}
+.app-rating{display:flex;align-items:center;gap:4px;font-size:12px;color:#9aa0a6;margin-top:2px}
+.app-rating .star{color:#fbbc04}
 
-/* КАРТОЧКА ПРИЛОЖЕНИЯ (карусель) */
-.app-card-h{flex:0 0 160px;cursor:pointer;transition:transform .2s}
-.app-card-h:hover{transform:translateY(-4px)}
-.app-card-h .app-icon{width:160px;height:160px;border-radius:32px;display:flex;align-items:center;justify-content:center;font-size:72px;margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden}
-.app-card-h .app-icon img{width:100%;height:100%;object-fit:cover}
-.app-card-h .app-name{font-size:14px;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.app-card-h .app-dev{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:4px}
+/* APP LIST (2 columns like Play Store ads) */
+.app-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.app-grid-item{display:flex;align-items:center;gap:12px;padding:8px;border-radius:8px;cursor:pointer;transition:background .15s}
+.app-grid-item:hover{background:#303134}
+.app-grid-item .app-icon{width:56px;height:56px;border-radius:12px;font-size:28px;margin:0;flex-shrink:0}
+.app-grid-item .info{flex:1;min-width:0}
+.app-grid-item .info .name{font-size:14px;font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-grid-item .info .cat{font-size:12px;color:#9aa0a6;margin-bottom:4px}
+.app-grid-item .info .meta{display:flex;align-items:center;gap:8px;font-size:12px;color:#9aa0a6}
 
-/* СПИСОК ПРИЛОЖЕНИЙ */
-.app-list{display:flex;flex-direction:column;gap:8px}
-.app-list-item{display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:12px;cursor:pointer;transition:background .2s}
-.app-list-item:hover{background:var(--bg2)}
-.app-list-item .app-icon{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;overflow:hidden;box-shadow:var(--shadow)}
-.app-list-item .app-icon img{width:100%;height:100%;object-fit:cover}
-.app-list-item .app-info{flex:1;min-width:0}
-.app-list-item .app-name{font-size:15px;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.app-list-item .app-meta{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.app-list-item .app-rating{display:flex;align-items:center;gap:4px}
-.app-list-item .app-rating span{color:var(--text2);font-size:12px}
-.app-list-item .app-size{color:var(--text2);font-size:12px}
-
-/* СТРАНИЦА ПРИЛОЖЕНИЯ */
+/* APP PAGE */
 .app-page{padding:0}
-.app-page-header{display:flex;gap:24px;padding:32px;align-items:flex-start}
-.app-page-icon{width:180px;height:180px;border-radius:36px;display:flex;align-items:center;justify-content:center;font-size:90px;box-shadow:var(--shadow);overflow:hidden;flex-shrink:0}
+.app-page-header{display:flex;gap:24px;padding:24px 0;align-items:flex-start}
+.app-page-icon{width:180px;height:180px;border-radius:36px;display:flex;align-items:center;justify-content:center;font-size:90px;box-shadow:0 2px 8px rgba(0,0,0,.4);overflow:hidden;flex-shrink:0}
 .app-page-icon img{width:100%;height:100%;object-fit:cover}
 .app-page-info{flex:1}
-.app-page-info h1{font-size:28px;font-weight:700;margin-bottom:8px}
-.app-page-dev{font-size:14px;color:var(--accent);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.official-badge{color:#ffd700;font-size:18px}
-.verified-badge{color:var(--accent);font-size:14px}
-.app-page-stats{display:flex;gap:32px;padding:16px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:16px 0}
-.app-stat{text-align:center}
-.app-stat .val{font-size:18px;font-weight:600}
-.app-stat .lbl{font-size:11px;color:var(--text2);margin-top:4px}
+.app-page-info h1{font-size:28px;font-weight:500;margin-bottom:8px}
+.app-page-dev{font-size:14px;color:#81c995;font-weight:500;margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.official-badge{color:#ffd700;font-size:16px}
+.app-page-stats{display:flex;gap:24px;padding:16px 0;border-bottom:1px solid #3c4043;margin-bottom:16px}
+.app-stat{text-align:center;padding-right:24px;border-right:1px solid #3c4043}
+.app-stat:last-child{border:none}
+.app-stat .val{font-size:16px;font-weight:500}
+.app-stat .lbl{font-size:11px;color:#9aa0a6;margin-top:4px}
 .app-page-actions{display:flex;gap:12px;margin:20px 0;flex-wrap:wrap}
-.btn-install{padding:12px 32px;background:var(--accent);color:#1e1f20;border-radius:24px;font-weight:600;font-size:15px;cursor:pointer}
-.btn-install:hover{background:var(--accent2)}
-.btn-outline{padding:12px 24px;border:1px solid var(--border);border-radius:24px;font-weight:500;font-size:14px;cursor:pointer}
-.btn-outline:hover{background:var(--bg2)}
-.btn-icon-sm{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
-.btn-icon-sm:hover{background:var(--bg2)}
+.btn-install{padding:12px 32px;background:#81c995;color:#202124;border-radius:24px;font-weight:600;font-size:15px;cursor:pointer}
+.btn-install:hover{background:#6fbf83}
+.btn-icon-sm{width:40px;height:40px;border-radius:50%;border:1px solid #3c4043;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:#9aa0a6}
+.btn-icon-sm:hover{background:#303134}
 
-/* СКРИНШОТЫ */
+/* SCREENSHOTS */
 .screenshots-row{display:flex;gap:12px;overflow-x:auto;padding:16px 0;scrollbar-width:none}
 .screenshots-row::-webkit-scrollbar{display:none}
-.screenshot-item{flex:0 0 140px;height:250px;border-radius:12px;background:var(--bg2);overflow:hidden;cursor:pointer}
+.screenshot-item{flex:0 0 140px;height:250px;border-radius:12px;background:#303134;overflow:hidden;cursor:pointer}
 .screenshot-item img{width:100%;height:100%;object-fit:cover}
 
-/* ОПИСАНИЕ */
-.app-description{padding:24px 32px;border-top:1px solid var(--border)}
-.app-description h3{font-size:18px;font-weight:600;margin-bottom:12px}
-.app-description p{color:var(--text2);line-height:1.6;font-size:14px;margin-bottom:12px}
+/* DESCRIPTION */
+.app-description{padding:24px 0;border-top:1px solid #3c4043}
+.app-description h3{font-size:18px;font-weight:500;margin-bottom:12px}
+.app-description p{color:#9aa0a6;line-height:1.6;font-size:14px;margin-bottom:12px}
 
-/* МОДАЛКИ */
+/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
 .modal-overlay.active{display:flex}
-.modal{background:var(--bg2);border-radius:28px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal{background:#2d2e30;border-radius:28px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .modal-lg{max-width:900px}
-.modal-head{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
-.modal-head h2{font-size:20px;font-weight:600}
-.modal-close{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text2);cursor:pointer}
-.modal-close:hover{background:var(--bg3)}
+.modal-head{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #3c4043}
+.modal-head h2{font-size:20px;font-weight:500}
+.modal-close{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:#9aa0a6;cursor:pointer}
+.modal-close:hover{background:#3c4043}
 .modal-body{padding:24px}
-.modal-foot{padding:16px 24px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border)}
+.modal-foot{padding:16px 24px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #3c4043}
 
-/* ФОРМЫ */
+/* FORMS */
 .form-group{margin-bottom:20px}
-.form-group label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:8px}
-.form-control{width:100%;padding:12px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none}
-.form-control:focus{border-color:var(--accent)}
-textarea.form-control{min-height:100px;resize:vertical}
-input[type="file"]{padding:10px;border:1px dashed var(--border);border-radius:8px;background:var(--bg);cursor:pointer;font-size:13px;width:100%}
+.form-group label{display:block;font-size:13px;font-weight:500;color:#9aa0a6;margin-bottom:8px}
+.form-control{width:100%;padding:12px 16px;border-radius:8px;border:1px solid #3c4043;background:#303134;color:#e8eaed;font-size:14px;outline:none}
+.form-control:focus{border-color:#81c995}
+textarea.form-control{min-height:100px;resize:vertical;font-family:inherit}
+input[type="file"]{padding:10px;border:1px dashed #3c4043;border-radius:8px;background:#303134;cursor:pointer;font-size:13px;width:100%;color:#e8eaed}
 
-/* КНОПКИ */
-.btn{padding:10px 24px;border-radius:20px;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
-.btn-primary{background:var(--accent);color:#1e1f20}
-.btn-primary:hover{background:var(--accent2)}
-.btn-danger{background:var(--danger);color:#1e1f20}
-.btn-outline{border:1px solid var(--border);color:var(--text)}
-.btn-outline:hover{background:var(--bg3)}
-.btn-text{color:var(--accent);padding:8px 16px}
+/* BUTTONS */
+.btn{padding:10px 24px;border-radius:20px;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+.btn-primary{background:#81c995;color:#202124}
+.btn-primary:hover{background:#6fbf83}
+.btn-danger{background:#f28b82;color:#202124}
+.btn-outline{border:1px solid #3c4043;color:#e8eaed}
+.btn-outline:hover{background:#303134}
+.btn-text{color:#81c995;padding:8px 16px}
 .btn-sm{padding:6px 16px;font-size:13px;border-radius:16px}
 .btn-full{width:100%}
 
-/* ЧАТ */
+/* CHAT */
 .chat-container{max-width:800px;margin:0 auto}
-.chat-header{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
-.chat-header h3{font-size:16px;font-weight:600;margin-bottom:6px}
-.chat-messages{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;min-height:400px;max-height:500px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.chat-header{background:#2d2e30;border:1px solid #3c4043;border-radius:12px;padding:16px;margin-bottom:16px}
+.chat-header h3{font-size:16px;font-weight:500;margin-bottom:6px}
+.chat-messages{background:#202124;border:1px solid #3c4043;border-radius:12px;padding:16px;min-height:400px;max-height:500px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
 .msg{max-width:75%;padding:10px 16px;border-radius:18px;font-size:14px;line-height:1.4}
-.msg.me{align-self:flex-end;background:var(--accent);color:#1e1f20;border-bottom-right-radius:4px}
-.msg.other{align-self:flex-start;background:var(--bg2);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.me{align-self:flex-end;background:#81c995;color:#202124;border-bottom-right-radius:4px}
+.msg.other{align-self:flex-start;background:#303134;border:1px solid #3c4043;border-bottom-left-radius:4px}
 .msg-time{font-size:10px;opacity:.7;margin-top:4px;display:block}
 .chat-input-row{display:flex;gap:8px;margin-top:12px}
-.chat-input-row input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px}
-.chat-input-row input:focus{outline:none;border-color:var(--accent)}
+.chat-input-row input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid #3c4043;background:#303134;color:#e8eaed;font-size:14px}
+.chat-input-row input:focus{outline:none;border-color:#81c995}
 
-/* ПРОФИЛЬ */
+/* PROFILE */
 .profile-layout{display:grid;grid-template-columns:300px 1fr;gap:24px;padding:24px 0}
-.profile-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center}
-.profile-avatar{width:80px;height:80px;border-radius:50%;background:var(--accent);color:#1e1f20;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 16px}
-.profile-card h3{font-size:18px;font-weight:600;margin-bottom:8px}
-.profile-card .role{font-size:12px;color:var(--text2);margin-bottom:16px}
+.profile-card{background:#2d2e30;border:1px solid #3c4043;border-radius:16px;padding:24px;text-align:center}
+.profile-avatar{width:80px;height:80px;border-radius:50%;background:#81c995;color:#202124;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 16px}
+.profile-card h3{font-size:18px;font-weight:500;margin-bottom:8px}
+.profile-card .role{font-size:12px;color:#9aa0a6;margin-bottom:16px}
 .profile-menu{display:flex;flex-direction:column;gap:4px}
-.profile-menu-item{padding:12px 16px;border-radius:8px;text-align:left;font-size:14px;color:var(--text);display:flex;align-items:center;gap:12px;cursor:pointer}
-.profile-menu-item:hover{background:var(--bg3)}
-.profile-menu-item.active{background:rgba(129,201,149,.15);color:var(--accent);font-weight:500}
+.profile-menu-item{padding:12px 16px;border-radius:8px;text-align:left;font-size:14px;color:#e8eaed;display:flex;align-items:center;gap:12px;cursor:pointer}
+.profile-menu-item:hover{background:#303134}
+.profile-menu-item.active{background:rgba(129,201,149,.15);color:#81c995;font-weight:500}
 
-/* НАСТРОЙКИ */
-.settings-list{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.settings-item{padding:16px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--border);cursor:pointer}
+/* SETTINGS */
+.settings-list{background:#2d2e30;border:1px solid #3c4043;border-radius:12px;overflow:hidden}
+.settings-item{padding:16px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #3c4043;cursor:pointer}
 .settings-item:last-child{border-bottom:none}
-.settings-item:hover{background:var(--bg3)}
+.settings-item:hover{background:#303134}
 .settings-item .si-icon{font-size:20px;width:24px;text-align:center}
 .settings-item .si-info{flex:1}
 .settings-item .si-info strong{display:block;font-size:14px;font-weight:500;margin-bottom:2px}
-.settings-item .si-info span{font-size:12px;color:var(--text2)}
-.toggle{position:relative;width:40px;height:22px;background:var(--bg3);border-radius:11px;cursor:pointer;transition:.2s;flex-shrink:0}
-.toggle.on{background:var(--accent)}
+.settings-item .si-info span{font-size:12px;color:#9aa0a6}
+.toggle{position:relative;width:40px;height:22px;background:#3c4043;border-radius:11px;cursor:pointer;transition:.2s;flex-shrink:0}
+.toggle.on{background:#81c995}
 .toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s}
 .toggle.on::after{left:20px}
 
-/* КАРТОЧКИ СТАТИСТИКИ */
+/* STATS */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
-.stat-card .stat-label{font-size:12px;color:var(--text2);margin-bottom:4px}
+.stat-card{background:#2d2e30;border:1px solid #3c4043;border-radius:12px;padding:16px}
+.stat-card .stat-label{font-size:12px;color:#9aa0a6;margin-bottom:4px}
 .stat-card .stat-value{font-size:24px;font-weight:700}
 
-/* КАРТОЧКА ЗАЯВКИ */
-.order-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:center}
+/* ORDER CARD */
+.order-card{background:#2d2e30;border:1px solid #3c4043;border-radius:12px;padding:16px;margin-bottom:12px;display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:center}
 .order-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden}
 .order-icon img{width:100%;height:100%;object-fit:cover}
-.order-info h4{font-size:14px;font-weight:600;margin-bottom:4px}
-.order-info p{font-size:12px;color:var(--text2);margin-bottom:2px}
+.order-info h4{font-size:14px;font-weight:500;margin-bottom:4px}
+.order-info p{font-size:12px;color:#9aa0a6;margin-bottom:2px}
 .order-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 
-/* ПУСТОЕ СОСТОЯНИЕ */
-.empty{text-align:center;padding:60px 20px;color:var(--text2)}
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:#9aa0a6}
 .empty-icon{font-size:64px;margin-bottom:16px;opacity:.4}
-.empty h3{font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty h3{font-size:18px;font-weight:500;color:#e8eaed;margin-bottom:8px}
 
-/* ЗАГРУЗКА */
-.loading-spinner{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--text2)}
-.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+/* LOADING */
+.loading-spinner{display:flex;align-items:center;justify-content:center;padding:60px;color:#9aa0a6}
+.spinner{width:40px;height:40px;border:3px solid #3c4043;border-top-color:#81c995;border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ТОСТЫ */
+/* TOASTS */
 .toasts{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{background:#323232;color:#fff;border-radius:8px;padding:12px 20px;display:flex;align-items:center;gap:10px;min-width:280px;box-shadow:0 4px 12px rgba(0,0,0,.3);animation:slideUp .3s;pointer-events:auto;font-size:14px}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -235,140 +214,125 @@ input[type="file"]{padding:10px;border:1px dashed var(--border);border-radius:8p
 .toast.error .toast-icon{color:#f28b82}
 .toast.info .toast-icon{color:#8ab4f8}
 
-/* ПРЕВЬЮ СКРИНШОТОВ */
+/* SCREENSHOTS PREVIEW */
 .screenshots-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:10px}
-.screenshot-thumb{position:relative;aspect-ratio:9/16;border-radius:8px;overflow:hidden;background:var(--bg);border:1px solid var(--border)}
+.screenshot-thumb{position:relative;aspect-ratio:9/16;border-radius:8px;overflow:hidden;background:#303134;border:1px solid #3c4043}
 .screenshot-thumb img{width:100%;height:100%;object-fit:cover}
 .screenshot-thumb .remove{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
 
-/* РАДИО */
+/* RADIO */
 .radio-group{display:grid;gap:8px}
-.radio-item{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:8px;cursor:pointer}
-.radio-item:hover{background:var(--bg3)}
-.radio-item.selected{border-color:var(--accent);background:rgba(129,201,149,.1)}
-.radio-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--text2);position:relative;flex-shrink:0}
-.radio-item.selected .radio-dot{border-color:var(--accent)}
-.radio-item.selected .radio-dot::after{content:"";position:absolute;inset:3px;background:var(--accent);border-radius:50%}
+.radio-item{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #3c4043;border-radius:8px;cursor:pointer}
+.radio-item:hover{background:#303134}
+.radio-item.selected{border-color:#81c995;background:rgba(129,201,149,.1)}
+.radio-dot{width:20px;height:20px;border-radius:50%;border:2px solid #9aa0a6;position:relative;flex-shrink:0}
+.radio-item.selected .radio-dot{border-color:#81c995}
+.radio-item.selected .radio-dot::after{content:"";position:absolute;inset:3px;background:#81c995;border-radius:50%}
 
-/* МОБИЛЬНАЯ НАВИГАЦИЯ */
-.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:8px 0;z-index:100}
+/* MOBILE NAV */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#2d2e30;border-top:1px solid #3c4043;padding:8px 0;z-index:100}
 .mobile-nav-inner{display:flex;justify-content:space-around}
-.mobile-nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;color:var(--text2);font-size:10px}
-.mobile-nav-btn.active{color:var(--accent)}
+.mobile-nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;color:#9aa0a6;font-size:10px}
+.mobile-nav-btn.active{color:#81c995}
 .mobile-nav-btn .ico{font-size:20px}
 
-/* АДАПТИВ */
+/* WARNING */
+.chat-warning{background:rgba(249,171,0,.1);border:1px solid rgba(249,171,0,.3);border-radius:8px;padding:10px;font-size:12px;color:#f9ab00;margin-top:10px;line-height:1.5}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#202124}
+::-webkit-scrollbar-thumb{background:#3c4043;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#5f6368}
+
+/* RESPONSIVE */
 @media(max-width:1024px){
   .sidebar{transform:translateX(-100%);transition:transform .3s}
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0}
   .mobile-nav{display:block}
   .content{padding-bottom:80px}
-  .hero-banner{flex-direction:column;text-align:center;padding:32px}
-  .hero-emoji{font-size:80px}
-  .profile-layout{grid-template-columns:1fr}
   .app-page-header{flex-direction:column;align-items:center;text-align:center}
+  .profile-layout{grid-template-columns:1fr}
 }
 @media(max-width:720px){
   .topbar{padding:12px 16px}
   .content{padding:16px 16px 80px}
-  .page-tabs{padding:12px 16px}
-  .app-card-h{flex:0 0 130px}
-  .app-card-h .app-icon{width:130px;height:130px;border-radius:24px;font-size:56px}
-  .hero-text h1{font-size:24px}
+  .app-card{flex:0 0 120px}
+  .app-icon{width:120px;height:120px;border-radius:24px;font-size:56px}
+  .app-grid{grid-template-columns:1fr}
   .app-page-icon{width:120px;height:120px;border-radius:24px;font-size:60px}
 }
-
-/* СКРОЛЛБАР */
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:var(--text2)}
 </style>
 </head>
 <body>
 
-<!-- БОКОВОЕ МЕНЮ -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-icon">a</div>
-    <span>awer</span>
-  </div>
-  <nav class="sidebar-nav" id="sidebarNav">
-    <div class="sidebar-item active" data-page="home" onclick="nav('home')">
-      <span class="si-icon">🏠</span><span>Главная</span>
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.6 3 21.09 3 20.5Z" fill="#4285f4"/><path d="M16.81 15.12L6.05 21.34L14.54 12.85L16.81 15.12Z" fill="#34a853"/><path d="M20.16 10.81C20.5 11.08 20.75 11.5 20.75 12C20.75 12.5 20.53 12.9 20.18 13.18L17.89 14.5L15.39 12L17.89 9.5L20.16 10.81Z" fill="#fbbc05"/><path d="M6.05 2.66L16.81 8.88L14.54 11.15L6.05 2.66Z" fill="#ea4335"/></svg>
+      <span>awer</span>
     </div>
-    <div class="sidebar-item" data-page="catalog" onclick="nav('catalog')">
-      <span class="si-icon">🔍</span><span>Каталог</span>
-    </div>
-    <div class="sidebar-item" data-page="games" onclick="nav('catalog',{cat:'games'})">
-      <span class="si-icon">🎮</span><span>Игры</span>
-    </div>
-    <div class="sidebar-item" data-page="apps" onclick="nav('catalog')">
-      <span class="si-icon">📱</span><span>Приложения</span>
-    </div>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-item" data-page="library" onclick="nav('library')">
-      <span class="si-icon">📚</span><span>Библиотека</span>
-    </div>
-    <div class="sidebar-item" data-page="favorites" onclick="nav('favorites')">
-      <span class="si-icon">♡</span><span>Избранное</span>
-    </div>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-item" data-page="profile" onclick="nav('profile')">
-      <span class="si-icon"></span><span>Профиль</span>
-    </div>
-    <div class="sidebar-item" data-page="settings" onclick="nav('settings')">
-      <span class="si-icon">⚙️</span><span>Настройки</span>
-    </div>
-  </nav>
-  <div class="sidebar-user" id="sidebarUser" style="display:none">
-    <div class="sidebar-user-avatar" id="sidebarAvatar">👤</div>
-    <div class="sidebar-user-info">
-      <div class="sidebar-user-name" id="sidebarName">Гость</div>
-      <div class="sidebar-user-role" id="sidebarRole">Не авторизован</div>
-    </div>
-  </div>
-</aside>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <div class="sidebar-item active" data-page="home" onclick="nav('home')">
+        <span class="si-icon">🏠</span><span>Главная</span>
+      </div>
+      <div class="sidebar-item" data-page="catalog" onclick="nav('catalog')">
+        <span class="si-icon"></span><span>Каталог</span>
+      </div>
+      <div class="sidebar-item" data-page="games" onclick="nav('catalog',{cat:'games'})">
+        <span class="si-icon">🎮</span><span>Игры</span>
+      </div>
+      <div class="sidebar-item" data-page="apps" onclick="nav('catalog')">
+        <span class="si-icon">📱</span><span>Приложения</span>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-item" data-page="library" onclick="nav('library')">
+        <span class="si-icon">📚</span><span>Библиотека</span>
+      </div>
+      <div class="sidebar-item" data-page="favorites" onclick="nav('favorites')">
+        <span class="si-icon">♡</span><span>Избранное</span>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-item" data-page="profile" onclick="nav('profile')">
+        <span class="si-icon">👤</span><span>Профиль</span>
+      </div>
+      <div class="sidebar-item" data-page="settings" onclick="nav('settings')">
+        <span class="si-icon">⚙️</span><span>Настройки</span>
+      </div>
+    </nav>
+  </aside>
 
-<!-- ОСНОВНОЙ КОНТЕНТ -->
-<div class="main">
-  <!-- ШАПКА -->
-  <div class="topbar">
-    <div class="search-bar">
-      <input type="text" placeholder="Поиск приложений и игр" id="searchInput">
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="search-bar">
+        <input type="text" placeholder="Поиск приложений и игр" id="searchInput">
+      </div>
+      <div class="topbar-actions">
+        <div class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</div>
+        <button class="login-btn" id="authBtn" onclick="showAuth()">Войти</button>
+      </div>
     </div>
-    <div class="topbar-actions">
-      <div class="theme-toggle" onclick="toggleTheme()" id="themeBtn"></div>
-      <button class="auth-btn" id="authBtn" onclick="showAuth()">Войти</button>
+
+    <div class="content" id="content">
+      <div class="loading-spinner"><div class="spinner"></div></div>
     </div>
-  </div>
-
-  <!-- ВКЛАДКИ -->
-  <div class="page-tabs" id="pageTabs">
-    <div class="page-tab active" onclick="nav('home')">Для тебя</div>
-    <div class="page-tab" onclick="nav('catalog',{top:true})">Топ-чарт</div>
-    <div class="page-tab" onclick="nav('catalog')">Категории</div>
-    <div class="page-tab" onclick="nav('catalog',{editors:true})">Выбор редакции</div>
-  </div>
-
-  <!-- КОНТЕНТ -->
-  <div class="content" id="content">
-    <div class="loading-spinner"><div class="spinner"></div></div>
   </div>
 </div>
 
-<!-- МОБИЛЬНАЯ НАВИГАЦИЯ -->
+<!-- MOBILE NAV -->
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
-    <div class="mobile-nav-btn active" data-page="home" onclick="nav('home')"><span class="ico"></span><span>Главная</span></div>
+    <div class="mobile-nav-btn active" data-page="home" onclick="nav('home')"><span class="ico">🏠</span><span>Главная</span></div>
     <div class="mobile-nav-btn" data-page="catalog" onclick="nav('catalog')"><span class="ico">🔍</span><span>Каталог</span></div>
     <div class="mobile-nav-btn" data-page="library" onclick="nav('library')"><span class="ico">📚</span><span>Библиотека</span></div>
     <div class="mobile-nav-btn" data-page="profile" onclick="nav('profile')"><span class="ico">👤</span><span>Профиль</span></div>
   </div>
 </nav>
 
-<!-- МОДАЛКИ -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modal"><div class="modal" id="modalContent"></div></div>
 <div class="toasts" id="toasts"></div>
 
@@ -388,7 +352,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const IMGBB_KEY = "c2a5f5a7794a778caac28687e2257fac";
 
-// ================= РЕЖИМ ОБСЛУЖИВАНИЯ =================
 const maintenanceRef = db.collection('siteSettings').doc('maintenance');
 function checkMaintenance() {
   maintenanceRef.onSnapshot(function(doc) {
@@ -425,7 +388,7 @@ function checkMaintenance() {
 }
 
 let S = { cu: null, theme: localStorage.getItem('awer_theme') || 'dark', route: { p: 'home' }, settings: JSON.parse(localStorage.getItem('awer_settings') || '{"notif":true}') };
-const CATS = [{id:'ai',n:'AI',i:''},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},{id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},{id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},{id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},{id:'security',n:'Безопасность',i:''},{id:'docs',n:'Документы',i:'📄'},{id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}];
+const CATS = [{id:'ai',n:'AI',i:'🤖'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},{id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},{id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},{id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},{id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:''},{id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}];
 const COLS = ['#1a4731','#1a3a5c','#5c1a3a','#5c4a1a','#3a1a5c','#1a5c4a','#5c521a','#2a2a5c','#5c2a1a','#1a525c'];
 
 function $(s,c){return(c||document).querySelector(s)}
@@ -455,9 +418,8 @@ function openM(c,l){$('#modalContent').className='modal'+(l?' modal-lg':'');$('#
 function closeM(){$('#modal').classList.remove('active')}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeM()})
 function nav(p,params){S.route={p:p,params:params||{}};window.scrollTo(0,0);render();updateSidebar()}
-function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';saveSettings();document.documentElement.setAttribute('data-theme',S.theme);$('#themeBtn').textContent=S.theme==='dark'?'🌙':'☀️'}
+function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';saveSettings();document.documentElement.setAttribute('data-theme',S.theme);$('#themeBtn').textContent=S.theme==='dark'?'🌙':'️'}
 
-// ================= РЕГИСТРАЦИЯ =================
 function registerWithNick(nick, role) {
   return new Promise((resolve, reject) => {
     if (nick === 'awer_studio') {
@@ -508,14 +470,9 @@ function updateSidebar() {
   if (mActive) mActive.classList.add('active');
   
   if (S.cu) {
-    $('#sidebarUser').style.display = 'flex';
-    $('#sidebarAvatar').textContent = S.cu.avatar || '👤';
-    $('#sidebarName').textContent = S.cu.name;
-    $('#sidebarRole').textContent = S.cu.role === 'buyer' ? 'Покупатель' : S.cu.role === 'developer' ? 'Разработчик' : 'Администратор';
     $('#authBtn').textContent = S.cu.name;
     $('#authBtn').onclick = () => nav('profile');
   } else {
-    $('#sidebarUser').style.display = 'none';
     $('#authBtn').textContent = 'Войти';
     $('#authBtn').onclick = showAuth;
   }
@@ -532,7 +489,7 @@ function getAppById(id,cb) {
 
 function render() {
   document.documentElement.setAttribute('data-theme', S.theme);
-  $('#themeBtn').textContent = S.theme === 'dark' ? '🌙' : '☀️';
+  $('#themeBtn').textContent = S.theme === 'dark' ? '' : '☀️';
   const c = $('#content'); c.innerHTML = '';
   const p = S.route.p;
   if (p==='home') c.append(rHome());
@@ -553,16 +510,17 @@ function render() {
 
 function rHome() {
   const w = el('div',{});
-  const hero = el('div',{class:'hero-banner'});
-  hero.append(el('div',{class:'hero-text'},el('div',{class:'hero-badge'},'Рекомендуем'),el('h1',{},'Найдите идеальное приложение'),el('p',{},'Приложения и игры от независимых разработчиков'),el('button',{class:'hero-btn',onclick:()=>nav('catalog')},'Смотреть каталог')));
-  hero.append(el('div',{class:'hero-emoji'},'📱'));
-  w.append(hero);
+  
+  const filterRow = el('div',{class:'filter-row'});
+  filterRow.append(el('div',{class:'filter-pill active',onclick:()=>nav('catalog')},'📊 Лучшее'));
+  filterRow.append(el('div',{class:'filter-pill',onclick:()=>nav('catalog')},'🔖 Категории'));
+  w.append(filterRow);
 
   const cs = el('div',{class:'section'});
-  cs.append(el('div',{class:'section-header'},el('h2',{},'Категории')));
+  cs.append(el('div',{class:'section-header'},el('h2',{},'Категории'),el('div',{class:'arrow',onclick:()=>nav('catalog')},'→')));
   const ch = el('div',{class:'carousel'});
   CATS.forEach(c=>{
-    const card = el('div',{class:'app-card-h',onclick:()=>nav('catalog',{cat:c.id})});
+    const card = el('div',{class:'app-card',onclick:()=>nav('catalog',{cat:c.id})});
     card.append(el('div',{class:'app-icon',style:'background:'+col(c.id)},c.i));
     card.append(el('div',{class:'app-name'},c.n));
     ch.append(card);
@@ -578,7 +536,7 @@ function rHome() {
       w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'📦'),el('h3',{},'Каталог пока пуст'),el('p',{},'Станьте первым разработчиком')));
     } else {
       const rec = el('div',{class:'section'});
-      rec.append(el('div',{class:'section-header'},el('h2',{},'Популярные приложения'),el('span',{class:'more',onclick:()=>nav('catalog')},'Ещё →')));
+      rec.append(el('div',{class:'section-header'},el('h2',{},'Популярные приложения'),el('div',{class:'arrow',onclick:()=>nav('catalog')},'→')));
       const car = el('div',{class:'carousel'});
       apps.slice(0,10).forEach(a=>{car.append(rAppCardH(a))});
       rec.append(car); w.append(rec);
@@ -586,7 +544,7 @@ function rHome() {
       const free = apps.filter(a=>a.price===0);
       if (free.length) {
         const tf = el('div',{class:'section'});
-        tf.append(el('div',{class:'section-header'},el('h2',{},'Топ бесплатных')));
+        tf.append(el('div',{class:'section-header'},el('h2',{},'Топ бесплатных'),el('div',{class:'arrow',onclick:()=>nav('catalog')},'→')));
         const c2 = el('div',{class:'carousel'});
         free.forEach(a=>{c2.append(rAppCardH(a))});
         tf.append(c2); w.append(tf);
@@ -594,7 +552,7 @@ function rHome() {
       const paid = apps.filter(a=>a.price>0);
       if (paid.length) {
         const tp = el('div',{class:'section'});
-        tp.append(el('div',{class:'section-header'},el('h2',{},'Топ платных')));
+        tp.append(el('div',{class:'section-header'},el('h2',{},'Топ платных'),el('div',{class:'arrow',onclick:()=>nav('catalog')},'→')));
         const c3 = el('div',{class:'carousel'});
         paid.forEach(a=>{c3.append(rAppCardH(a))});
         tp.append(c3); w.append(tp);
@@ -605,25 +563,25 @@ function rHome() {
 }
 
 function rAppCardH(a) {
-  const card = el('div',{class:'app-card-h',onclick:()=>nav('app',{id:a.id})});
+  const card = el('div',{class:'app-card',onclick:()=>nav('app',{id:a.id})});
   if (a.iconUrl) { card.append(el('div',{class:'app-icon'},el('img',{src:a.iconUrl,alt:a.name}))); }
-  else { card.append(el('div',{class:'app-icon',style:'background:'+col(a.id)},a.icon||'')); }
+  else { card.append(el('div',{class:'app-icon',style:'background:'+col(a.id)},a.icon||'📱')); }
   card.append(el('div',{class:'app-name'},a.name));
-  card.append(el('div',{class:'app-dev'},a.devName||'—',a.official?el('span',{class:'official-badge'},' 🏆'):null));
+  card.append(el('div',{class:'app-rating'},el('span',{},(a.rating?a.rating.toFixed(1):'—')),el('span',{class:'star'},'★')));
   return card;
 }
 
 function rAppListItem(a) {
-  const item = el('div',{class:'app-list-item',onclick:()=>nav('app',{id:a.id})});
+  const item = el('div',{class:'app-grid-item',onclick:()=>nav('app',{id:a.id})});
   if (a.iconUrl) { item.append(el('div',{class:'app-icon'},el('img',{src:a.iconUrl}))); }
   else { item.append(el('div',{class:'app-icon',style:'background:'+col(a.id)},a.icon||'📱')); }
-  const info = el('div',{class:'app-info'});
-  info.append(el('div',{class:'app-name'},a.name,a.official?el('span',{class:'official-badge'},' '):null));
-  const meta = el('div',{class:'app-meta'});
-  meta.append(el('span',{},a.devName||'—'));
-  if (a.rating) meta.append(el('span',{class:'app-rating'},a.rating.toFixed(1)+' ★'));
-  if (a.price===0) meta.append(el('span',{class:'app-size'},'Бесплатно'));
-  else if (a.price) meta.append(el('span',{class:'app-size'},fp(a.price)));
+  const info = el('div',{class:'info'});
+  info.append(el('div',{class:'name'},a.name,a.official?el('span',{class:'official-badge'},' 🏆'):null));
+  info.append(el('div',{class:'cat'},a.devName||'—'));
+  const meta = el('div',{class:'meta'});
+  if (a.rating) meta.append(el('span',{},a.rating.toFixed(1)+' ★'));
+  if (a.price===0) meta.append(el('span',{},'Бесплатно'));
+  else if (a.price) meta.append(el('span',{},fp(a.price)));
   info.append(meta);
   item.append(info);
   return item;
@@ -633,12 +591,12 @@ function rCatalog() {
   const w = el('div',{});
   const q = (S.route.params && S.route.params.search) ? S.route.params.search.toLowerCase().trim() : '';
   const cat = S.route.params && S.route.params.cat;
-  w.append(el('h1',{style:'font-size:24px;font-weight:700;margin-bottom:20px'},q?'Результаты: "'+q+'"':'Каталог'));
+  w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},q?'Результаты: "'+q+'"':'Каталог'));
   
   const ch = el('div',{class:'carousel',style:'margin-bottom:24px'});
-  ch.append(el('div',{class:'app-card-h',onclick:()=>nav('catalog')},el('div',{class:'app-icon',style:'background:var(--accent);color:#1e1f20'},'Все'),el('div',{class:'app-name'},'Все')));
+  ch.append(el('div',{class:'app-card',onclick:()=>nav('catalog')},el('div',{class:'app-icon',style:'background:#81c995;color:#202124'},'Все'),el('div',{class:'app-name'},'Все')));
   CATS.forEach(c=>{
-    const card = el('div',{class:'app-card-h',onclick:()=>nav('catalog',{cat:c.id})});
+    const card = el('div',{class:'app-card',onclick:()=>nav('catalog',{cat:c.id})});
     card.append(el('div',{class:'app-icon',style:'background:'+col(c.id)},c.i));
     card.append(el('div',{class:'app-name'},c.n));
     ch.append(card);
@@ -652,12 +610,12 @@ function rCatalog() {
     loading.remove();
     if (q) apps = apps.filter(a=>a.name.toLowerCase().indexOf(q)>=0||(a.desc||'').toLowerCase().indexOf(q)>=0);
     if (cat) apps = apps.filter(a=>a.cat===cat);
-    w.append(el('p',{style:'color:var(--text2);margin-bottom:16px'},'Найдено: '+apps.length));
-    if (apps.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'🔍'),el('h3',{},'Ничего не найдено'))); }
+    w.append(el('p',{style:'color:#9aa0a6;margin-bottom:16px'},'Найдено: '+apps.length));
+    if (apps.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},''),el('h3',{},'Ничего не найдено'))); }
     else {
-      const list = el('div',{class:'app-list'});
-      apps.forEach(a=>{list.append(rAppListItem(a))});
-      w.append(list);
+      const grid = el('div',{class:'app-grid'});
+      apps.forEach(a=>{grid.append(rAppListItem(a))});
+      w.append(grid);
     }
   });
   return w;
@@ -683,7 +641,7 @@ function rAppPage() {
     info.append(el('h1',{},a.name));
     const devLine = el('div',{class:'app-page-dev'},a.devName||'Неизвестный');
     if (a.official) devLine.append(el('span',{class:'official-badge'},' 🏆 Официальный'));
-    else if (a.devVerified) devLine.append(el('span',{class:'verified-badge'},' ✓'));
+    else if (a.devVerified) devLine.append(el('span',{style:'color:#81c995'},' ✓'));
     info.append(devLine);
     
     const stats = el('div',{class:'app-page-stats'});
@@ -703,8 +661,8 @@ function rAppPage() {
     w.append(header);
 
     if (a.screenshots && a.screenshots.length > 0) {
-      const ss = el('div',{class:'section',style:'padding:0 32px'});
-      ss.append(el('h3',{style:'font-size:18px;font-weight:600;margin-bottom:12px'},'Скриншоты'));
+      const ss = el('div',{class:'section'});
+      ss.append(el('h3',{style:'font-size:18px;font-weight:500;margin-bottom:12px'},'Скриншоты'));
       const row = el('div',{class:'screenshots-row'});
       a.screenshots.forEach(sh=>{
         const item = el('div',{class:'screenshot-item',onclick:()=>openScreenshotViewer(a.screenshots,sh)});
@@ -724,7 +682,7 @@ function rAppPage() {
     if (a.sys) { desc.append(el('h3',{style:'margin-top:20px'},'Системные требования')); desc.append(el('p',{},a.sys)); }
     w.append(desc);
 
-    w.append(el('div',{style:'padding:24px 32px;border-top:1px solid var(--border)'},el('div',{class:'chat-warning',style:'background:rgba(249,171,0,.1);border:1px solid rgba(249,171,0,.3);border-radius:8px;padding:12px;font-size:13px;color:#f9ab00'},el('strong',{},'️ '),'awer не принимает платежи. Оплата в чате с продавцом.')));
+    w.append(el('div',{style:'padding:24px 0;border-top:1px solid #3c4043'},el('div',{class:'chat-warning'},el('strong',{},'️ '),'awer не принимает платежи. Оплата в чате с продавцом.')));
   });
   return w;
 }
@@ -740,7 +698,7 @@ function toggleFav(appId) {
 
 function rFavorites() {
   const w = el('div',{});
-  w.append(el('h1',{style:'font-size:24px;font-weight:700;margin-bottom:20px'},'Избранное'));
+  w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Избранное'));
   if (!S.cu) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'🔐'),el('h3',{},'Войдите'))); return w; }
   const cuId = S.cu.uid;
   const favs = JSON.parse(localStorage.getItem('awer_favs_'+cuId)||'{}');
@@ -753,17 +711,17 @@ function rFavorites() {
     const apps = [];
     docs.forEach(doc=>{if(doc.exists)apps.push({id:doc.id,...doc.data()})});
     if (apps.length===0) { w.append(el('div',{class:'empty'},el('h3',{},'Удалены'))); return; }
-    const list = el('div',{class:'app-list'});
-    apps.forEach(a=>{list.append(rAppListItem(a))});
-    w.append(list);
+    const grid = el('div',{class:'app-grid'});
+    apps.forEach(a=>{grid.append(rAppListItem(a))});
+    w.append(grid);
   }).catch(()=>{loading.remove();w.append(el('div',{class:'empty'},el('h3',{},'Ошибка')))});
   return w;
 }
 
 function rOrders() {
   const w = el('div',{});
-  w.append(el('h1',{style:'font-size:24px;font-weight:700;margin-bottom:20px'},'Мои заявки'));
-  if (!S.cu) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},''),el('h3',{},'Войдите'))); return w; }
+  w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Мои заявки'));
+  if (!S.cu) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'🔐'),el('h3',{},'Войдите'))); return w; }
   const loading = el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));
   w.append(loading);
   db.collection('orders').where('buyerUid','==',S.cu.uid).get().then(s1=>{
@@ -773,7 +731,7 @@ function rOrders() {
       s1.forEach(d=>{orders.push({id:d.id,...d.data()})});
       s2.forEach(d=>{const o={id:d.id,...d.data()};if(!orders.find(x=>x.id===o.id))orders.push(o)});
       orders.sort((a,b)=>(b.createdAt?b.createdAt.seconds:0)-(a.createdAt?a.createdAt.seconds:0));
-      if (orders.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},''),el('h3',{},'Заявок нет'))); return; }
+      if (orders.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'📋'),el('h3',{},'Заявок нет'))); return; }
       orders.forEach(o=>{
         getAppById(o.appId,function(a) {
           if (!a) return;
@@ -808,13 +766,13 @@ function rChat() {
     const isB = o.buyerUid===S.cu.uid;
     const hd = el('div',{class:'chat-header'});
     hd.append(el('h3',{},'💬 Чат сделки'));
-    hd.append(el('p',{style:'font-size:13px;color:var(--text2);margin:6px 0'},'Приложение: ',el('strong',{},o.appName||'—'),' · ',el('strong',{},isB?o.devName:o.buyerName||'—')));
-    hd.append(el('div',{style:'background:rgba(249,171,0,.1);border:1px solid rgba(249,171,0,.3);border-radius:8px;padding:10px;font-size:12px;color:#f9ab00;margin-top:10px'},el('strong',{},'⚠️ '),'awer не участвует в оплате.'));
+    hd.append(el('p',{style:'font-size:13px;color:#9aa0a6;margin:6px 0'},'Приложение: ',el('strong',{},o.appName||'—'),' · ',el('strong',{},isB?o.devName:o.buyerName||'—')));
+    hd.append(el('div',{class:'chat-warning'},el('strong',{},'⚠️ '),'awer не участвует в оплате.'));
     w.append(hd);
     const ms = el('div',{class:'chat-messages'});
     db.collection('orders').doc(orderId).collection('messages').orderBy('createdAt','asc').onSnapshot(snap=>{
       ms.innerHTML='';
-      if (snap.empty) { ms.append(el('div',{style:'text-align:center;color:var(--text2);padding:40px'},'Начните общение')); }
+      if (snap.empty) { ms.append(el('div',{style:'text-align:center;color:#9aa0a6;padding:40px'},'Начните общение')); }
       snap.forEach(doc=>{const m=doc.data();const me=m.senderUid===S.cu.uid;ms.append(el('div',{class:'msg '+(me?'me':'other')},!me?el('div',{style:'font-size:11px;font-weight:600;margin-bottom:4px;opacity:.8'},m.senderName):null,el('div',{},m.text),el('span',{class:'msg-time'},ft(m.createdAt))))});
       ms.scrollTop=ms.scrollHeight;
     });
@@ -831,24 +789,24 @@ function rChat() {
       else if (!isB && !o.devConfirmed) { const btn=el('button',{class:'btn btn-primary btn-sm'});btn.textContent='✓ Подтвердить';btn.addEventListener('click',()=>{db.collection('orders').doc(orderId).update({devConfirmed:true});db.collection('orders').doc(orderId).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Продавец подтвердил.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});if(o.buyerConfirmed){db.collection('orders').doc(orderId).update({status:'completed'});const lib=JSON.parse(localStorage.getItem('awer_lib_'+o.buyerUid)||'{}');lib[o.appId]={date:Date.now()};localStorage.setItem('awer_lib_'+o.buyerUid,JSON.stringify(lib))}toast('Подтверждено','','success')});ac.append(btn); }
       const cancelBtn=el('button',{class:'btn btn-danger btn-sm'});cancelBtn.textContent='Отменить';cancelBtn.addEventListener('click',()=>{if(!confirm('Отменить?'))return;db.collection('orders').doc(orderId).update({status:'cancelled'});db.collection('orders').doc(orderId).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Сделка отменена.',createdAt:firebase.firestore.FieldValue.serverTimestamp()})});ac.append(cancelBtn);
       w.append(ac);
-    } else { w.append(el('div',{style:'text-align:center;padding:20px;color:var(--text2)'},o.status==='completed'?'✓ Завершена':'✕ Отменена')); }
+    } else { w.append(el('div',{style:'text-align:center;padding:20px;color:#9aa0a6'},o.status==='completed'?'✓ Завершена':'✕ Отменена')); }
   }).catch(()=>{loading.remove();w.append(el('div',{class:'empty'},el('h3',{},'Ошибка')))});
   return w;
 }
 
 function rLibrary() {
   const w = el('div',{});
-  w.append(el('h1',{style:'font-size:24px;font-weight:700;margin-bottom:20px'},'Моя библиотека'));
+  w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Моя библиотека'));
   if (!S.cu) { w.append(el('div',{class:'empty'},el('h3',{},'Войдите'))); return w; }
   const cuId = S.cu.uid;
   const lib = JSON.parse(localStorage.getItem('awer_lib_'+cuId)||'{}');
   const ids = Object.keys(lib);
-  if (ids.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},''),el('h3',{},'Пусто'))); return w; }
+  if (ids.length===0) { w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'📚'),el('h3',{},'Пусто'))); return w; }
   const loading = el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));
   w.append(loading);
   Promise.all(ids.map(id=>db.collection('apps').doc(id).get())).then(docs=>{
     loading.remove();
-    const list = el('div',{class:'app-list'});
+    const grid = el('div',{class:'app-grid'});
     docs.forEach(doc=>{
       if (!doc.exists) return;
       const a = {id:doc.id,...doc.data()};
@@ -856,9 +814,9 @@ function rLibrary() {
       if (a.fileName && a.fileUrl) {
         item.append(el('a',{class:'btn btn-primary btn-sm',href:a.fileUrl,target:'_blank',download:a.fileName,style:'margin-left:12px'},'⬇'));
       }
-      list.append(item);
+      grid.append(item);
     });
-    w.append(list);
+    w.append(grid);
   }).catch(()=>{loading.remove();w.append(el('div',{class:'empty'},el('h3',{},'Ошибка')))});
   return w;
 }
@@ -870,7 +828,7 @@ function rProfile() {
   const layout = el('div',{class:'profile-layout'});
   const card = el('div',{class:'profile-card'});
   card.append(el('div',{class:'profile-avatar'},u.avatar||'👤'));
-  card.append(el('h3',{},u.name,u.official?el('span',{class:'official-badge'},' 🏆'):null));
+  card.append(el('h3',{},u.name,u.official?el('span',{class:'official-badge'},' '):null));
   card.append(el('div',{class:'role'},'@'+u.nick+' · '+(u.role==='buyer'?'Покупатель':u.role==='developer'?'Разработчик':'Администратор')));
   const logoutBtn = el('button',{class:'btn btn-outline btn-full',style:'margin-top:12px'});
   logoutBtn.textContent='Выйти';
@@ -881,7 +839,7 @@ function rProfile() {
   const content = el('div',{});
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
   const menu = el('div',{class:'profile-menu',style:'margin-bottom:20px'});
-  [['info','👤','Аккаунт'],['orders','📋','Заявки'],['library','📚','Библиотека'],['favorites','♡','Избранное'],['settings','⚙️','Настройки']].forEach(x=>{
+  [['info','👤','Аккаунт'],['orders','📋','Заявки'],['library','📚','Библиотека'],['favorites','♡','Избранное'],['settings','️','Настройки']].forEach(x=>{
     menu.append(el('div',{class:'profile-menu-item'+(tab===x[0]?' active':''),onclick:()=>nav('profile',{tab:x[0]})},el('span',{},x[1]),el('span',{},x[2])));
   });
   if (u.role==='developer') { const b=el('div',{class:'profile-menu-item',onclick:()=>nav('developer')});b.append(el('span',{},''));b.append(el('span',{},'Консоль'));menu.append(b); }
@@ -889,7 +847,7 @@ function rProfile() {
   content.append(menu);
 
   if (tab==='info') {
-    content.append(el('div',{class:'section'},el('h3',{style:'font-size:18px;font-weight:600;margin-bottom:16px'},'Личные данные'),el('div',{class:'form-group'},el('label',{},'Ник'),el('input',{class:'form-control',id:'pN',value:u.name})),el('button',{class:'btn btn-primary',onclick:()=>{const n=$('#pN').value.trim();if(!n){toast('Введите ник','','error');return}db.collection('users').doc(S.cu.uid).update({name:n,avatar:n[0]});S.cu.name=n;S.cu.avatar=n[0];render();updateSidebar();toast('Сохранено','','success')}},'Сохранить'))));
+    content.append(el('div',{class:'section'},el('h3',{style:'font-size:18px;font-weight:500;margin-bottom:16px'},'Личные данные'),el('div',{class:'form-group'},el('label',{},'Ник'),el('input',{class:'form-control',id:'pN',value:u.name})),el('button',{class:'btn btn-primary',onclick:()=>{const n=$('#pN').value.trim();if(!n){toast('Введите ник','','error');return}db.collection('users').doc(S.cu.uid).update({name:n,avatar:n[0]});S.cu.name=n;S.cu.avatar=n[0];render();updateSidebar();toast('Сохранено','','success')}},'Сохранить'))));
   } else if (tab==='orders') { content.append(rOrders()); }
   else if (tab==='library') { content.append(rLibrary()); }
   else if (tab==='favorites') { content.append(rFavorites()); }
@@ -900,7 +858,7 @@ function rProfile() {
 
 function rSettings() {
   const w = el('div',{});
-  w.append(el('h1',{style:'font-size:24px;font-weight:700;margin-bottom:20px'},'Настройки'));
+  w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Настройки'));
   const list = el('div',{class:'settings-list'});
   [{i:'🎨',t:'Тема',d:S.theme==='dark'?'Тёмная':'Светлая',tg:true,k:'theme'},{i:'🔔',t:'Уведомления',d:S.settings.notif?'Вкл':'Выкл',tg:true,k:'notif'}].forEach(it=>{
     const row=el('div',{class:'settings-item'});
@@ -913,10 +871,10 @@ function rSettings() {
 
 function rSupport() {
   const w = el('div',{});
-  w.append(el('h1',{style:'font-size:24px;font-weight:700;margin-bottom:20px'},'🆘 Поддержка'));
+  w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'🆘 Поддержка'));
   if (!S.cu) { w.append(el('div',{class:'empty'},el('h3',{},'Войдите'))); return w; }
   const form = el('div',{class:'section'});
-  form.append(el('h3',{style:'font-size:18px;font-weight:600;margin-bottom:16px'},'Новое обращение'));
+  form.append(el('h3',{style:'font-size:18px;font-weight:500;margin-bottom:16px'},'Новое обращение'));
   form.append(el('div',{class:'form-group'},el('label',{},'Тема'),el('input',{class:'form-control',id:'sT',placeholder:'Проблема'})));
   form.append(el('div',{class:'form-group'},el('label',{},'Описание'),el('textarea',{class:'form-control',id:'sX',placeholder:'Опишите...'})));
   const sb = el('button',{class:'btn btn-primary'}); sb.textContent='Отправить';
@@ -929,24 +887,24 @@ function rDeveloper() {
   const w = el('div',{});
   if (!S.cu||S.cu.role!=='developer') { w.append(el('div',{class:'empty'},el('h3',{},'Нужен аккаунт разработчика'))); return w; }
   const u = S.cu;
-  w.append(el('h1',{style:'font-size:24px;font-weight:700;margin-bottom:20px'},'Консоль разработчика'));
-  if (!u.verified && !u.official) w.append(el('div',{style:'background:rgba(249,171,0,.1);border:1px solid rgba(249,171,0,.3);border-radius:8px;padding:12px;font-size:13px;color:#f9ab00;margin-bottom:20px'},el('strong',{},'⚠️ '),'Аккаунт не верифицирован.'));
+  w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Консоль разработчика'));
+  if (!u.verified && !u.official) w.append(el('div',{class:'chat-warning',style:'margin-bottom:20px'},el('strong',{},'⚠️ '),'Аккаунт не верифицирован.'));
   const stats = el('div',{class:'stats-grid'});
   db.collection('apps').where('devUid','==',u.uid).get().then(snap=>{stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Приложения'),el('div',{class:'stat-value'},String(snap.size))))});
   db.collection('orders').where('devUid','==',u.uid).get().then(snap=>{stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Заявки'),el('div',{class:'stat-value'},String(snap.size))))});
   w.append(stats);
-  const tabs = el('div',{class:'page-tabs',style:'padding:0 0 16px 0'});
+  const tabs = el('div',{class:'filter-row'});
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-  [['apps','Мои приложения'],['orders','Заявки'],['add','Добавить']].forEach(x=>{tabs.append(el('div',{class:'page-tab'+(tab===x[0]?' active':''),onclick:()=>nav('developer',{tab:x[0]})},x[1]))});
+  [['apps','Мои приложения'],['orders','Заявки'],['add','Добавить']].forEach(x=>{tabs.append(el('div',{class:'filter-pill'+(tab===x[0]?' active':''),onclick:()=>nav('developer',{tab:x[0]})},x[1]))});
   w.append(tabs);
   if (tab==='apps') {
     const loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));w.append(loading);
     db.collection('apps').where('devUid','==',u.uid).get().then(snap=>{
       loading.remove();
       if(snap.empty){w.append(el('div',{class:'empty'},el('p',{},'Нет приложений.')));return}
-      const list=el('div',{class:'app-list'});
-      snap.forEach(doc=>{const a={id:doc.id,...doc.data()};const item=rAppListItem(a);if(a.status==='blocked')item.append(el('span',{style:'color:var(--danger);font-size:12px'},' Заблокировано'));list.append(item)});
-      w.append(list);
+      const grid=el('div',{class:'app-grid'});
+      snap.forEach(doc=>{const a={id:doc.id,...doc.data()};const item=rAppListItem(a);if(a.status==='blocked')item.append(el('span',{style:'color:#f28b82;font-size:12px'},' Заблокировано'));grid.append(item)});
+      w.append(grid);
     });
   } else if (tab==='orders') {
     const loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));w.append(loading);
@@ -969,7 +927,7 @@ function rDeveloper() {
 
 function rAddApp() {
   const f = el('div',{class:'section'});
-  f.append(el('h3',{style:'font-size:18px;font-weight:600;margin-bottom:16px'},'Новое приложение'));
+  f.append(el('h3',{style:'font-size:18px;font-weight:500;margin-bottom:16px'},'Новое приложение'));
   f.append(el('div',{class:'form-group'},el('label',{},'Название *'),el('input',{class:'form-control',id:'f_name',placeholder:'Название'})));
   f.append(el('div',{class:'form-group'},el('label',{},'Описание *'),el('textarea',{class:'form-control',id:'f_desc',placeholder:'Описание...'})));
   const g3=el('div',{class:'form-group'});g3.append(el('label',{},'Категория *'));
@@ -983,7 +941,7 @@ function rAddApp() {
   const gs=el('div',{class:'form-group'});gs.append(el('label',{},'Скриншоты (до 10)'));
   const ssWrap=el('div',{});
   const ssInput=el('input',{type:'file',id:'f_screenshots',accept:'image/*',multiple:'multiple'});ssWrap.append(ssInput);
-  const ssProgress=el('div',{style:'display:none;margin-top:8px'});ssProgress.append(el('div',{class:'progress-bar'},el('div',{class:'progress-fill',id:'ssProgFill'})));ssProgress.append(el('div',{class:'progress-text',id:'ssProgText',style:'font-size:11px;color:var(--text2);margin-top:4px'},'Обработка...'));ssWrap.append(ssProgress);
+  const ssProgress=el('div',{style:'display:none;margin-top:8px'});ssProgress.append(el('div',{style:'height:6px;background:#3c4043;border-radius:3px;overflow:hidden'},el('div',{style:'height:100%;background:#81c995;width:0',id:'ssProgFill'})));ssProgress.append(el('div',{style:'font-size:11px;color:#9aa0a6;margin-top:4px',id:'ssProgText'},'Обработка...'));ssWrap.append(ssProgress);
   const ssPreview=el('div',{class:'screenshots-preview',id:'ssPreview'});ssWrap.append(ssPreview);
   gs.append(ssWrap); f.append(gs);
   let pendingScreenshots=[];
@@ -998,22 +956,22 @@ function rAddApp() {
 function rAdmin() {
   const w = el('div',{});
   if (!S.cu||S.cu.role!=='admin') { w.append(el('div',{class:'empty'},el('h3',{},'Доступ запрещён'))); return w; }
-  w.append(el('h1',{style:'font-size:24px;font-weight:700;margin-bottom:20px'},'Админ-панель'));
+  w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Админ-панель'));
   const stats = el('div',{class:'stats-grid'});
   db.collection('users').get().then(s=>{stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Пользователи'),el('div',{class:'stat-value'},String(s.size))))});
   db.collection('apps').get().then(s=>{stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Приложения'),el('div',{class:'stat-value'},String(s.size))))});
   db.collection('orders').get().then(s=>{stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Заявки'),el('div',{class:'stat-value'},String(s.size))))});
   w.append(stats);
-  const tabs = el('div',{class:'page-tabs',style:'padding:0 0 16px 0'});
+  const tabs = el('div',{class:'filter-row'});
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-  [['apps','Приложения'],['users','Пользователи'],['site','️ Сайт']].forEach(x=>{tabs.append(el('div',{class:'page-tab'+(tab===x[0]?' active':''),onclick:()=>nav('admin',{tab:x[0]})},x[1]))});
+  [['apps','Приложения'],['users','Пользователи'],['site','🛠️ Сайт']].forEach(x=>{tabs.append(el('div',{class:'filter-pill'+(tab===x[0]?' active':''),onclick:()=>nav('admin',{tab:x[0]})},x[1]))});
   w.append(tabs);
   if (tab==='apps') {
     const loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));w.append(loading);
     db.collection('apps').orderBy('createdAt','desc').get().then(snap=>{
       loading.remove();
       if(snap.empty){w.append(el('div',{class:'empty'},el('p',{},'Нет приложений')));return}
-      const list=el('div',{class:'app-list'});
+      const list=el('div',{class:'app-grid'});
       snap.forEach(doc=>{const a={id:doc.id,...doc.data()};const item=rAppListItem(a);const ac=el('div',{class:'order-actions',style:'margin-top:8px'});
         if(a.status!=='verified'){const ab=el('button',{class:'btn btn-primary btn-sm'});ab.textContent='Одобрить';ab.addEventListener('click',()=>{db.collection('apps').doc(a.id).update({status:'verified'});toast('Одобрено','','success')});ac.append(ab)}
         if(a.status!=='blocked'){const bb=el('button',{class:'btn btn-danger btn-sm'});bb.textContent='Блок';bb.addEventListener('click',()=>{db.collection('apps').doc(a.id).update({status:'blocked'});toast('Заблокировано','','error')});ac.append(bb)}
@@ -1024,12 +982,12 @@ function rAdmin() {
     const loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));w.append(loading);
     db.collection('users').get().then(snap=>{
       loading.remove();
-      const list=el('div',{class:'app-list'});
-      snap.forEach(doc=>{const u={uid:doc.id,...doc.data()};const item=el('div',{class:'app-list-item'});
+      const list=el('div',{class:'app-grid'});
+      snap.forEach(doc=>{const u={uid:doc.id,...doc.data()};const item=el('div',{class:'app-grid-item'});
         item.append(el('div',{class:'app-icon',style:'background:'+col(u.name||'x')},u.avatar||u.name[0]));
-        const info=el('div',{class:'app-info'});
-        info.append(el('div',{class:'app-name'},u.name,u.official?el('span',{class:'official-badge'},' 🏆'):null,u.verified?el('span',{class:'verified-badge'},' ✓'):null));
-        info.append(el('div',{class:'app-meta'},el('span',{},'@'+(u.nick||u.name)),el('span',{},u.role)));
+        const info=el('div',{class:'info'});
+        info.append(el('div',{class:'name'},u.name,u.official?el('span',{class:'official-badge'},' '):null,u.verified?el('span',{style:'color:#81c995'},' ✓'):null));
+        info.append(el('div',{class:'cat'},'@'+(u.nick||u.name)+' · '+u.role));
         item.append(info);
         const ac=el('div',{class:'order-actions'});
         if(u.role==='developer'){const vb=el('button',{class:'btn '+(u.verified?'btn-outline':'btn-primary')+' btn-sm'});vb.textContent=u.verified?'Снять ✓':'Дать ✓';vb.addEventListener('click',()=>{db.collection('users').doc(u.uid).update({verified:!u.verified});toast(u.verified?'Снято':'Верифицирован','','info')});ac.append(vb)}
@@ -1039,9 +997,9 @@ function rAdmin() {
     });
   } else if (tab==='site') {
     const siteSection = el('div',{class:'section'});
-    siteSection.append(el('h3',{style:'font-size:18px;font-weight:600;margin-bottom:16px'},'🛠️ Режим обслуживания'));
-    siteSection.append(el('p',{style:'color:var(--text2);margin-bottom:20px'},'Закройте сайт для всех кроме админов и разработчиков.'));
-    const statusDiv = el('div',{style:'padding:16px;background:var(--bg2);border-radius:12px;margin-bottom:20px'});
+    siteSection.append(el('h3',{style:'font-size:18px;font-weight:500;margin-bottom:16px'},'️ Режим обслуживания'));
+    siteSection.append(el('p',{style:'color:#9aa0a6;margin-bottom:20px'},'Закройте сайт для всех кроме админов и разработчиков.'));
+    const statusDiv = el('div',{style:'padding:16px;background:#2d2e30;border-radius:12px;margin-bottom:20px'});
     statusDiv.textContent='Загрузка...';
     siteSection.append(statusDiv);
     const formDiv = el('div',{});
@@ -1056,17 +1014,17 @@ function rAdmin() {
     btns.append(disableBtn);
     formDiv.append(btns); siteSection.append(formDiv);
     maintenanceRef.onSnapshot(function(doc){
-      if (!doc.exists) { statusDiv.innerHTML='<div style="color:var(--accent);font-weight:600">✅ Сайт открыт</div>'; return; }
+      if (!doc.exists) { statusDiv.innerHTML='<div style="color:#81c995;font-weight:600">✅ Сайт открыт</div>'; return; }
       const data = doc.data();
-      if (data.enabled) { const endTime=data.endTime?data.endTime.toDate().toLocaleString('ru-RU'):'не указано';statusDiv.innerHTML='<div style="color:var(--danger);font-weight:600;margin-bottom:8px">🔒 Сайт ЗАКРЫТ</div><div style="font-size:13px;color:var(--text2)">Сообщение: '+(data.message||'—')+'</div><div style="font-size:13px;color:var(--text2);margin-top:4px">Откроется: '+endTime+'</div>'; }
-      else { statusDiv.innerHTML='<div style="color:var(--accent);font-weight:600">✅ Сайт открыт</div>'; }
+      if (data.enabled) { const endTime=data.endTime?data.endTime.toDate().toLocaleString('ru-RU'):'не указано';statusDiv.innerHTML='<div style="color:#f28b82;font-weight:600;margin-bottom:8px">🔒 Сайт ЗАКРЫТ</div><div style="font-size:13px;color:#9aa0a6">Сообщение: '+(data.message||'—')+'</div><div style="font-size:13px;color:#9aa0a6;margin-top:4px">Откроется: '+endTime+'</div>'; }
+      else { statusDiv.innerHTML='<div style="color:#81c995;font-weight:600">✅ Сайт открыт</div>'; }
     });
     w.append(siteSection);
   }
   return w;
 }
 
-function rAbout() { const w=el('div',{});w.append(el('h1',{style:'font-size:24px;font-weight:700;margin-bottom:20px'},'О awer'));w.append(el('div',{class:'section'},el('p',{},'awer — магазин приложений и игр.'),el('p',{},'Оплата НЕ в awer — она в чате с продавцом.'),el('p',{style:'color:var(--danger);font-weight:500;margin-top:14px'},'🚫 ЗАПРЕЩЕНО выкладывать приложения с вирусами.')));return w; }
+function rAbout() { const w=el('div',{});w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'О awer'));w.append(el('div',{class:'section'},el('p',{},'awer — магазин приложений и игр.'),el('p',{},'Оплата НЕ в awer — она в чате с продавцом.'),el('p',{style:'color:#f28b82;font-weight:500;margin-top:14px'},'🚫 ЗАПРЕЩЕНО выкладывать приложения с вирусами.')));return w; }
 
 function showAuth() {
   const m = el('div',{});
@@ -1081,7 +1039,7 @@ function showAuth() {
       loginBtn.textContent='Войти';
       loginBtn.addEventListener('click',()=>{const nick=$('#aNick').value.trim();if(!nick){toast('Введите ник','','error');return}loginWithNick(nick).then(result=>{S.cu=result;localStorage.setItem('awer_nick',nick);saveSettings();closeM();render();updateSidebar();toast('Добро пожаловать!',nick,'success')}).catch(err=>{toast('Ошибка',err.message,'error')})});
       body.append(loginBtn);
-      body.append(el('p',{style:'text-align:center;font-size:13px;color:var(--text2);margin-top:16px'},'Нет аккаунта? ',el('span',{style:'color:var(--accent);cursor:pointer;font-weight:500',onclick:()=>{mode='register';rf()}},'Зарегистрироваться')));
+      body.append(el('p',{style:'text-align:center;font-size:13px;color:#9aa0a6;margin-top:16px'},'Нет аккаунта? ',el('span',{style:'color:#81c995;cursor:pointer;font-weight:500',onclick:()=>{mode='register';rf()}},'Зарегистрироваться')));
     } else {
       body.append(el('div',{class:'form-group'},el('label',{},'Ник'),el('input',{class:'form-control',id:'rNick',placeholder:'Придумайте ник'})));
       body.append(el('div',{class:'form-group'},el('label',{},'Тип аккаунта')));
@@ -1092,7 +1050,7 @@ function showAuth() {
       regBtn.textContent='Зарегистрироваться';
       regBtn.addEventListener('click',()=>{const nick=$('#rNick').value.trim();const roleEl=$('.radio-item.selected',rg);const role=roleEl?roleEl.getAttribute('data-val'):'buyer';if(!nick){toast('Введите ник','','error');return}if(nick.length<3){toast('Ник минимум 3 символа','','error');return}registerWithNick(nick,role).then(result=>{S.cu=result;localStorage.setItem('awer_nick',nick);saveSettings();closeM();render();updateSidebar();toast('Аккаунт создан!',nick,'success')}).catch(err=>{toast('Ошибка',err.message,'error')})});
       body.append(regBtn);
-      body.append(el('p',{style:'text-align:center;font-size:13px;color:var(--text2);margin-top:16px'},'Есть аккаунт? ',el('span',{style:'color:var(--accent);cursor:pointer;font-weight:500',onclick:()=>{mode='login';rf()}},'Войти')));
+      body.append(el('p',{style:'text-align:center;font-size:13px;color:#9aa0a6;margin-top:16px'},'Есть аккаунт? ',el('span',{style:'color:#81c995;cursor:pointer;font-weight:500',onclick:()=>{mode='login';rf()}},'Войти')));
     }
   }
   rf(); m.append(head,body); openM(m);
@@ -1105,12 +1063,12 @@ function openOrder(appId) {
     const m = el('div',{});
     m.append(el('div',{class:'modal-head'},el('h2',{},'Заявка'),el('div',{class:'modal-close',onclick:closeM},'✕')));
     const body = el('div',{class:'modal-body'});
-    body.append(el('div',{style:'display:flex;gap:14px;align-items:center;padding:16px;background:var(--bg);border-radius:12px;margin-bottom:20px'},a.iconUrl?el('div',{class:'order-icon',style:'width:64px;height:64px;border-radius:16px'},el('img',{src:a.iconUrl})):el('div',{class:'order-icon',style:'width:64px;height:64px;border-radius:16px;background:'+col(a.id)},a.icon||'📱'),el('div',{style:'flex:1'},el('strong',{style:'font-size:16px'},a.name),el('div',{style:'font-size:12px;color:var(--text2);margin-top:4px'},'Продавец: '+(a.devName||'—'),a.official?el('span',{class:'official-badge'},' 🏆'):null),el('div',{style:'font-weight:600;margin-top:4px;color:var(--accent)'},fp(a.price||0)))));
-    body.append(el('h3',{style:'font-size:15px;font-weight:600;margin-bottom:12px'},'Способ оплаты'));
+    body.append(el('div',{style:'display:flex;gap:14px;align-items:center;padding:16px;background:#303134;border-radius:12px;margin-bottom:20px'},a.iconUrl?el('div',{class:'order-icon',style:'width:64px;height:64px;border-radius:16px'},el('img',{src:a.iconUrl})):el('div',{class:'order-icon',style:'width:64px;height:64px;border-radius:16px;background:'+col(a.id)},a.icon||'📱'),el('div',{style:'flex:1'},el('strong',{style:'font-size:16px'},a.name),el('div',{style:'font-size:12px;color:#9aa0a6;margin-top:4px'},'Продавец: '+(a.devName||'—'),a.official?el('span',{class:'official-badge'},' 🏆'):null),el('div',{style:'font-weight:600;margin-top:4px;color:#81c995'},fp(a.price||0)))));
+    body.append(el('h3',{style:'font-size:15px;font-weight:500;margin-bottom:12px'},'Способ оплаты'));
     const rg = el('div',{class:'radio-group'});
     [['bank','Банковский перевод'],['other','Другой способ'],['discuss','Обсудить в чате']].forEach((x,idx)=>{const it=el('div',{class:'radio-item'+(idx===0?' selected':''),'data-val':x[0]});it.addEventListener('click',()=>{$$('.radio-item',rg).forEach(y=>{y.classList.remove('selected')});it.classList.add('selected')});it.append(el('div',{class:'radio-dot'}),el('div',{style:'flex:1'},el('strong',{},x[1])));rg.append(it)});
     body.append(rg);
-    body.append(el('div',{style:'background:rgba(249,171,0,.1);border:1px solid rgba(249,171,0,.3);border-radius:8px;padding:12px;font-size:13px;color:#f9ab00;margin-top:16px'},el('strong',{},'⚠️ '),'awer не принимает платежи. Оплата в чате с продавцом.'));
+    body.append(el('div',{class:'chat-warning',style:'margin-top:16px'},el('strong',{},'⚠️ '),'awer не принимает платежи. Оплата в чате с продавцом.'));
     const foot = el('div',{class:'modal-foot'});
     foot.append(el('button',{class:'btn btn-outline',onclick:closeM},'Отмена'));
     const submitBtn = el('button',{class:'btn btn-primary'});submitBtn.textContent='Отправить';
@@ -1147,7 +1105,7 @@ function openScreenshotViewer(screenshots,currentSh) {
   const m = el('div',{});
   m.append(el('div',{class:'modal-head'},el('h2',{},'Скриншот '+(idx+1)+' из '+screenshots.length),el('div',{class:'modal-close',onclick:closeM},'✕')));
   const body = el('div',{class:'modal-body'});
-  const imgWrap = el('div',{style:'text-align:center;min-height:400px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:12px;overflow:hidden'});
+  const imgWrap = el('div',{style:'text-align:center;min-height:400px;display:flex;align-items:center;justify-content:center;background:#202124;border-radius:12px;overflow:hidden'});
   body.append(imgWrap);
   const nav = el('div',{style:'display:flex;gap:8px;justify-content:center;margin-top:12px'});
   const prevBtn = el('button',{class:'btn btn-outline btn-sm'});prevBtn.textContent='← Назад';prevBtn.addEventListener('click',()=>{idx=(idx-1+screenshots.length)%screenshots.length;show()});nav.append(prevBtn);
@@ -1178,8 +1136,7 @@ saveSettings();
 render();
 updateSidebar();
 
-// Поиск
-$('#searchInput').addEventListener('input',e=>{const v=e.target.value.trim();if(v.length>=2){S.route={p:'catalog',params:{search:v}};render()}else if(v.length===0&&S.route.p==='catalog'){S.route={p:'home'};render()}});
+$('#searchInput').addEventListener('input',e=>{const v=e.target.value.trim();if(v.length>=2){S.route={p:'catalog',params:{search:v}};render();updateSidebar()}else if(v.length===0&&S.route.p==='catalog'){S.route={p:'home'};render();updateSidebar()}});
 </script>
 </body>
 </html>
