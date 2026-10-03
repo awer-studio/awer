@@ -227,7 +227,6 @@ textarea.form-control{min-height:100px;resize:vertical}
 <div class="toasts" id="toasts"></div>
 <div class="modal-overlay" id="modal"><div class="modal" id="modalContent"></div></div>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -275,11 +274,11 @@ try {
 
     var CATS = [
       {id:'ai',n:'AI',i:'🧠'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},
-      {id:'video',n:'Видео',i:''},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:''},
+      {id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
       {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},
       {id:'utils',n:'Утилиты',i:''},{id:'dev',n:'Разработка',i:'💻'},
-      {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:'📄'},
-      {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}
+      {id:'security',n:'Безопасность',i:''},{id:'docs',n:'Документы',i:'📄'},
+      {id:'games',n:'Игры',i:''},{id:'other',n:'Другое',i:'📦'}
     ];
     var COLS = ['#e8f5e9','#e3f2fd','#fce4ec','#fff3e0','#f3e5f5','#e0f2f1','#fff8e1','#e8eaf6','#fbe9e7','#e0f7fa'];
 
@@ -287,8 +286,8 @@ try {
     function $$(s,c){return Array.from((c||document).querySelectorAll(s))}
 
     function el(t,a){
-      var e=document.createElement(t);a=a||{};
-      var ch=Array.prototype.slice.call(arguments,2);
+      var e=document.createElement(t);
+      a=a||{};
       for(var k in a){
         if(k==='class')e.className=a[k];
         else if(k==='style')e.style.cssText=a[k];
@@ -296,8 +295,8 @@ try {
         else if(k==='html')e.innerHTML=a[k];
         else e.setAttribute(k,a[k]);
       }
-      for(var i=0; i<ch.length; i++){
-        var c = ch[i];
+      for(var i=2; i<arguments.length; i++){
+        var c = arguments[i];
         if(c != null){
           if(Array.isArray(c)){
             for(var j=0; j<c.length; j++){
@@ -491,7 +490,7 @@ try {
       inp.addEventListener('input',function(e){S.route={p:'catalog',params:{search:e.target.value}};render()});
       s.append(inp);
       var acts=el('div',{class:'header-actions'});
-      acts.append(el('button',{class:'icon-btn',onclick:function(){S.theme=S.theme==='light'?'dark':'light';saveSettings();render()}},S.theme==='light'?'🌙':'☀️'));
+      acts.append(el('button',{class:'icon-btn',onclick:function(){S.theme=S.theme==='light'?'dark':'light';saveSettings();render()}},S.theme==='light'?'🌙':'️'));
       if(S.cu){acts.append(el('div',{class:'avatar-btn',onclick:function(){nav('profile')}},S.cu.avatar||S.cu.name[0]))}
       else{acts.append(el('button',{class:'btn btn-outline btn-sm',onclick:showAuth},'Войти'))}
       i.append(logo,s,acts);h.append(i);return h;
@@ -500,24 +499,29 @@ try {
     function rTabs(){
       var bar=el('div',{class:'tabs-bar'});
       var inner=el('div',{class:'tabs-inner'});
-      [['home','Для тебя'],['catalog','Топ-чарт'],['catalog','Категории'],['catalog','Выбор редакции']].forEach(function(t,idx){
-        var b=el('div',{class:'tab-btn'+(S.route.p===t[0]&&idx===0?' active':''),onclick:function(){nav(t[0],idx===1?{top:true}:idx===3?{editors:true}:{})}},t[1]);
+      var tabs=[['home','Для тебя'],['catalog','Топ-чарт'],['catalog','Категории'],['catalog','Выбор редакции']];
+      for(var idx=0;idx<tabs.length;idx++){
+        var t=tabs[idx];
+        var b=el('div',{class:'tab-btn'+(S.route.p===t[0]&&idx===0?' active':''),onclick:(function(tt,ii){return function(){nav(tt[0],ii===1?{top:true}:ii===3?{editors:true}:{})}})(t,idx)},t[1]);
         inner.append(b);
-      });
+      }
       bar.append(inner);return bar;
     }
 
     function rMobileNav(){
       var n=el('nav',{class:'mobile-nav'});
       var i=el('div',{class:'mobile-nav-inner'});
-      [{id:'home',i:'',l:'Главная'},{id:'catalog',i:'🔍',l:'Каталог'},{id:'orders',i:'',l:'Заявки'},{id:'library',i:'📚',l:'Библиотека'},{id:'profile',i:'👤',l:'Профиль'}].forEach(function(it){
-        i.append(el('button',{class:'mobile-nav-btn'+(S.route.p===it.id?' active':''),onclick:function(){nav(it.id)}},el('span',{class:'ico'},it.i),el('span',{},it.l)));
-      });
+      var items=[{id:'home',i:'🏠',l:'Главная'},{id:'catalog',i:'🔍',l:'Каталог'},{id:'orders',i:'📋',l:'Заявки'},{id:'library',i:'📚',l:'Библиотека'},{id:'profile',i:'👤',l:'Профиль'}];
+      for(var k=0;k<items.length;k++){
+        var it=items[k];
+        i.append(el('button',{class:'mobile-nav-btn'+(S.route.p===it.id?' active':''),onclick:(function(it2){return function(){nav(it2.id)}})(it)},el('span',{class:'ico'},it.i),el('span',{},it.l)));
+      }
       n.append(i);return n;
     }
 
     function rFooter(){
-      var f=el('footer',{class:'footer'});var c=el('div',{class:'container'});
+      var f=el('footer',{class:'footer'});
+      var c=el('div',{class:'container'});
       c.append(el('div',{class:'footer-warning'},el('strong',{},'⚠️ '),'awer не является платёжным посредником. Оплата в чате с продавцом. Если обманули — напишите в поддержку.'));
       var g=el('div',{class:'footer-grid'});
       g.append(el('div',{},el('div',{class:'logo',style:'margin-bottom:12px'},el('div',{class:'logo-mark'},'a'),el('span',{},'awer')),el('p',{style:'font-size:13px;color:var(--text2)'},'Магазин приложений и игр.')));
@@ -543,7 +547,8 @@ try {
     }
 
     function rHome(){
-      var w=el('div',{class:'container'});w.append(rTabs());
+      var w=el('div',{class:'container'});
+      w.append(rTabs());
       var hero=el('section',{class:'hero-banner'});
       hero.append(el('div',{class:'hero-text'},el('div',{class:'tag'},'Рекомендуем'),el('h1',{},'Найдите идеальное приложение'),el('p',{},'Приложения и игры от независимых разработчиков'),el('button',{class:'btn btn-primary',onclick:function(){nav('catalog')}},'Смотреть каталог')));
       hero.append(el('div',{class:'hero-icon'},'📱'));
@@ -551,7 +556,9 @@ try {
       var cs=el('section',{class:'section'});
       cs.append(el('div',{class:'section-head'},el('h2',{},'Категории')));
       var ch=el('div',{class:'chips'});
-      CATS.forEach(function(c){ch.append(el('div',{class:'chip',onclick:function(){nav('category',{id:c.id})}},c.i+' '+c.n))});
+      for(var i=0;i<CATS.length;i++){
+        (function(c){ch.append(el('div',{class:'chip',onclick:function(){nav('category',{id:c.id})}},c.i+' '+c.n))})(CATS[i]);
+      }
       cs.append(ch);w.append(cs);
       var loading=el('section',{class:'section'});
       loading.append(el('div',{class:'section-head'},el('h2',{},'Приложения')));
@@ -567,18 +574,33 @@ try {
         }else{
           var rec=el('section',{class:'section'});
           rec.append(el('div',{class:'section-head'},el('h2',{},'Рекомендуем'),el('span',{class:'more',onclick:function(){nav('catalog')}},'Ещё →')));
-          var car=el('div',{class:'carousel'});apps.slice(0,10).forEach(function(a){car.append(rAppItem(a))});rec.append(car);w.append(rec);
+          var car=el('div',{class:'carousel'});
+          for(var i=0;i<Math.min(10,apps.length);i++){car.append(rAppItem(apps[i]))}
+          rec.append(car);w.append(rec);
           var free=apps.filter(function(a){return a.price===0});
-          if(free.length){var tf=el('section',{class:'section'});tf.append(el('div',{class:'section-head'},el('h2',{},'Топ бесплатных')));var c2=el('div',{class:'carousel'});free.forEach(function(a){c2.append(rAppItem(a))});tf.append(c2);w.append(tf)}
+          if(free.length){
+            var tf=el('section',{class:'section'});
+            tf.append(el('div',{class:'section-head'},el('h2',{},'Топ бесплатных')));
+            var c2=el('div',{class:'carousel'});
+            for(var i=0;i<free.length;i++){c2.append(rAppItem(free[i]))}
+            tf.append(c2);w.append(tf);
+          }
           var paid=apps.filter(function(a){return a.price>0});
-          if(paid.length){var tp=el('section',{class:'section'});tp.append(el('div',{class:'section-head'},el('h2',{},'Топ платных')));var c3=el('div',{class:'carousel'});paid.forEach(function(a){c3.append(rAppItem(a))});tp.append(c3);w.append(tp)}
+          if(paid.length){
+            var tp=el('section',{class:'section'});
+            tp.append(el('div',{class:'section-head'},el('h2',{},'Топ платных')));
+            var c3=el('div',{class:'carousel'});
+            for(var i=0;i<paid.length;i++){c3.append(rAppItem(paid[i]))}
+            tp.append(c3);w.append(tp);
+          }
         }
       });
       return w;
     }
 
     function rCatalog(){
-      var w=el('div',{class:'container'});w.append(rTabs());
+      var w=el('div',{class:'container'});
+      w.append(rTabs());
       var q=(S.route.params && S.route.params.search) ? S.route.params.search.toLowerCase().trim() : '';
       var cat=S.route.params && S.route.params.cat;
       w.append(backBtn('Главная','home'));
@@ -594,10 +616,12 @@ try {
         w.append(el('p',{style:'color:var(--text2);margin-bottom:16px'},'Найдено: '+apps.length));
         var ch=el('div',{class:'chips'});
         ch.append(el('div',{class:'chip'+(cat?'':' active'),onclick:function(){nav('catalog',{search:q})}},'Все'));
-        CATS.forEach(function(c){ch.append(el('div',{class:'chip'+(cat===c.id?' active':''),onclick:function(){nav('catalog',{search:q,cat:c.id})}},c.i+' '+c.n))});
+        for(var i=0;i<CATS.length;i++){
+          (function(c){ch.append(el('div',{class:'chip'+(cat===c.id?' active':''),onclick:function(){nav('catalog',{search:q,cat:c.id})}},c.i+' '+c.n))})(CATS[i]);
+        }
         w.append(ch);
         if(apps.length===0){w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'🔍'),el('h3',{},'Ничего не найдено')))}
-        else{var g=el('div',{class:'app-list'});apps.forEach(function(a){g.append(rAppItem(a))});w.append(g)}
+        else{var g=el('div',{class:'app-list'});for(var i=0;i<apps.length;i++){g.append(rAppItem(apps[i]))}w.append(g)}
       });
       return w;
     }
@@ -619,7 +643,8 @@ try {
         var favs=JSON.parse(localStorage.getItem('awer_favs_'+cuId)||'{}');
         var isFav=!!favs[a.id];
         var d = (a.oldPrice && a.price && a.oldPrice > a.price && a.price > 0) ? Math.round((1-a.price/a.oldPrice)*100) : 0;
-        var catObj=CATS.find(function(c){return c.id===a.cat});
+        var catObj=null;
+        for(var i=0;i<CATS.length;i++){if(CATS[i].id===a.cat){catObj=CATS[i];break}}
         var top=el('div',{class:'app-page-top'});
         var iconDiv;
         if(a.iconUrl){iconDiv=el('div',{class:'app-page-icon'},el('img',{src:a.iconUrl,alt:a.name}))}
@@ -650,7 +675,7 @@ try {
             el('div',{style:'display:flex;align-items:center;gap:12px;margin-bottom:8px'},
               el('span',{style:'font-size:28px'},'📦'),
               el('div',{style:'flex:1'},el('div',{style:'font-weight:500;font-size:14px'},a.fileName),el('div',{style:'font-size:12px;color:var(--text2);margin-top:2px'},fsize(a.fileSize)))),
-            el('a',{class:'btn btn-primary',style:'width:100%',href:a.fileUrl||'#',target:'_blank',download:a.fileName||'file'},'⬇ Скачать файл')));
+            el('a',{class:'btn btn-primary',style:'width:100%',href:a.fileUrl||'#',target:'_blank',download:a.fileName||'file'},' Скачать файл')));
         }else if(a.fileName){
           info.append(el('div',{style:'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)'},el('span',{},'📦 '),'Файл: ',el('strong',{},a.fileName),' (',fsize(a.fileSize),') — доступен после покупки'));
         }
@@ -663,23 +688,30 @@ try {
         var ss=el('section',{class:'about-section'});ss.append(el('h3',{},'Скриншоты'));
         var sc=el('div',{class:'screenshots'});
         if(a.screenshots&&a.screenshots.length>0){
-          a.screenshots.forEach(function(sh){
-            var thumb=el('div',{class:'screenshot',onclick:function(){openScreenshotViewer(a.screenshots,sh)}});
-            thumb.append(el('img',{src:sh.url,alt:'Скриншот'}));
-            sc.append(thumb);
-          });
+          for(var i=0;i<a.screenshots.length;i++){
+            (function(sh){
+              var thumb=el('div',{class:'screenshot',onclick:function(){openScreenshotViewer(a.screenshots,sh)}});
+              thumb.append(el('img',{src:sh.url,alt:'Скриншот'}));
+              sc.append(thumb);
+            })(a.screenshots[i]);
+          }
         }else{
           sc.append(el('div',{class:'screenshot',style:'color:var(--text2);font-size:13px'},'Скриншоты не добавлены'));
         }
         ss.append(sc);w.append(ss);
         var ab=el('section',{class:'about-section'});ab.append(el('h3',{},'Об этом приложении'));ab.append(el('p',{},a.desc||''));
-        if(a.features&&a.features.length){ab.append(el('h3',{style:'margin-top:16px'},'Возможности'));var fl=el('ul',{class:'features-list'});a.features.forEach(function(f){fl.append(el('li',{},f))});ab.append(fl)}
+        if(a.features&&a.features.length){ab.append(el('h3',{style:'margin-top:16px'},'Возможности'));var fl=el('ul',{class:'features-list'});for(var i=0;i<a.features.length;i++){fl.append(el('li',{},a.features[i]))}ab.append(fl)}
         ab.append(el('h3',{style:'margin-top:16px'},'Системные требования'));ab.append(el('p',{},a.sys||'—'));w.append(ab);
         w.append(el('section',{class:'about-section'},el('div',{class:'chat-warning'},el('strong',{},'⚠️ '),'awer не принимает платежи. Оплата в чате с продавцом. Если обманули — напишите в поддержку.')));
         var rs=el('section',{class:'about-section'});rs.append(el('h3',{},'Оценки и отзывы'));
         db.collection('apps').doc(a.id).collection('reviews').orderBy('createdAt','desc').get().then(function(snapshot){
           if(snapshot.empty){rs.append(el('p',{style:'color:var(--text2)'},'Пока нет отзывов'))}
-          else{snapshot.forEach(function(doc){var r=doc.data();rs.append(el('div',{class:'review'},el('div',{class:'review-head'},el('div',{class:'review-avatar'},(r.authorName||'?')[0]),el('div',{style:'flex:1'},el('div',{class:'review-author'},r.authorName||'Аноним'),el('div',{class:'review-date'},stars(r.rating)+' · '+fd(r.createdAt)))),el('div',{class:'review-text'},r.text)))})}
+          else{
+            snapshot.forEach(function(doc){
+              var r=doc.data();
+              rs.append(el('div',{class:'review'},el('div',{class:'review-head'},el('div',{class:'review-avatar'},(r.authorName||'?')[0]),el('div',{style:'flex:1'},el('div',{class:'review-author'},r.authorName||'Аноним'),el('div',{class:'review-date'},stars(r.rating)+' · '+fd(r.createdAt)))),el('div',{class:'review-text'},r.text)));
+            });
+          }
           w.append(rs);
         }).catch(function(){w.append(rs)});
       });
@@ -705,13 +737,16 @@ try {
       if(ids.length===0){w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'♡'),el('h3',{},'Пока пусто')));return w}
       var loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));
       w.append(loading);
-      var promises=ids.map(function(id){return db.collection('apps').doc(id).get()});
+      var promises=[];
+      for(var i=0;i<ids.length;i++){promises.push(db.collection('apps').doc(ids[i]).get())}
       Promise.all(promises).then(function(docs){
         loading.remove();
         var apps=[];
-        docs.forEach(function(doc){if(doc.exists)apps.push({id:doc.id,...doc.data()})});
+        for(var i=0;i<docs.length;i++){if(docs[i].exists)apps.push({id:docs[i].id,...docs[i].data()})}
         if(apps.length===0){w.append(el('div',{class:'empty'},el('h3',{},'Приложения удалены')));return}
-        var g=el('div',{class:'app-list'});apps.forEach(function(a){g.append(rAppItem(a))});w.append(g);
+        var g=el('div',{class:'app-list'});
+        for(var i=0;i<apps.length;i++){g.append(rAppItem(apps[i]))}
+        w.append(g);
       }).catch(function(){loading.remove();w.append(el('div',{class:'empty'},el('h3',{},'Ошибка загрузки')))});
       return w;
     }
@@ -731,25 +766,29 @@ try {
           snap1.forEach(function(doc){orders.push({id:doc.id,...doc.data()})});
           snap2.forEach(function(doc){
             var o={id:doc.id,...doc.data()};
-            if(!orders.find(function(x){return x.id===o.id})) orders.push(o);
+            var found=false;
+            for(var i=0;i<orders.length;i++){if(orders[i].id===o.id){found=true;break}}
+            if(!found) orders.push(o);
           });
           orders.sort(function(a,b){return(b.createdAt?b.createdAt.seconds:0)-(a.createdAt?a.createdAt.seconds:0)});
           if(orders.length===0){w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'📋'),el('h3',{},'Заявок пока нет')));return}
-          orders.forEach(function(o){
-            getAppById(o.appId,function(a){
-              if(!a)return;
-              var sm={new:['status-pending','Новая'],accepted:['status-pending','Принята'],discussion:['status-verified','Обсуждение'],completed:['status-verified','Завершена'],cancelled:['status-blocked','Отменена']};
-              var st=sm[o.status]||sm.new;
-              var isB=o.buyerUid===S.cu.uid;
-              var c=el('div',{class:'order-card'});
-              if(a.iconUrl){c.append(el('div',{class:'order-icon'},el('img',{src:a.iconUrl})))}
-              else{c.append(el('div',{class:'order-icon',style:'background:'+col(a.id)},a.icon||''))}
-              c.append(el('div',{class:'order-info'},el('h4',{},a.name),el('p',{},isB?'Продавец: '+(o.devName||''):'Покупатель: '+(o.buyerName||'')),el('p',{},fd(o.createdAt)),el('span',{class:'status-badge '+st[0]},st[1])));
-              var ac=el('div',{class:'order-actions'});
-              if(o.status!=='cancelled'&&o.status!=='completed')ac.append(el('button',{class:'btn btn-primary btn-sm',onclick:function(){nav('chat',{orderId:o.id})}},'Открыть чат'));
-              c.append(ac);w.append(c);
-            });
-          });
+          for(var i=0;i<orders.length;i++){
+            (function(o){
+              getAppById(o.appId,function(a){
+                if(!a)return;
+                var sm={new:['status-pending','Новая'],accepted:['status-pending','Принята'],discussion:['status-verified','Обсуждение'],completed:['status-verified','Завершена'],cancelled:['status-blocked','Отменена']};
+                var st=sm[o.status]||sm.new;
+                var isB=o.buyerUid===S.cu.uid;
+                var c=el('div',{class:'order-card'});
+                if(a.iconUrl){c.append(el('div',{class:'order-icon'},el('img',{src:a.iconUrl})))}
+                else{c.append(el('div',{class:'order-icon',style:'background:'+col(a.id)},a.icon||''))}
+                c.append(el('div',{class:'order-info'},el('h4',{},a.name),el('p',{},isB?'Продавец: '+(o.devName||''):'Покупатель: '+(o.buyerName||'')),el('p',{},fd(o.createdAt)),el('span',{class:'status-badge '+st[0]},st[1])));
+                var ac=el('div',{class:'order-actions'});
+                if(o.status!=='cancelled'&&o.status!=='completed')ac.append(el('button',{class:'btn btn-primary btn-sm',onclick:function(){nav('chat',{orderId:o.id})}},'Открыть чат'));
+                c.append(ac);w.append(c);
+              });
+            })(orders[i]);
+          }
         });
       }).catch(function(){loading.remove();w.append(el('div',{class:'empty'},el('h3',{},'Ошибка загрузки')))});
       return w;
@@ -794,7 +833,9 @@ try {
         if(o.status!=='cancelled'&&o.status!=='completed'){
           var inp=el('div',{class:'chat-input'});
           var input=el('input',{placeholder:'Написать сообщение...'});
-          var send=el('button',{class:'btn btn-primary',onclick:function(){
+          var sendBtn=el('button',{class:'btn btn-primary'});
+          sendBtn.textContent='Отправить';
+          sendBtn.addEventListener('click',function(){
             var t=input.value.trim();if(!t)return;
             db.collection('orders').doc(orderId).collection('messages').add({
               senderUid:S.cu.uid,senderName:S.cu.name,text:t,createdAt:firebase.firestore.FieldValue.serverTimestamp()
@@ -803,46 +844,62 @@ try {
             if(o.status==='new'||o.status==='accepted'){
               db.collection('orders').doc(orderId).update({status:'discussion'});
             }
-          }});
-          send.textContent='Отправить';
-          input.addEventListener('keydown',function(e){if(e.key==='Enter')send.click()});
-          inp.append(input,send);cw.append(inp);
+          });
+          input.addEventListener('keydown',function(e){if(e.key==='Enter')sendBtn.click()});
+          inp.append(input,sendBtn);cw.append(inp);
           var ac=el('div',{style:'display:flex;gap:8px;flex-wrap:wrap;margin-top:12px'});
           if(isB){
-            if(!o.buyerConfirmed)ac.append(el('button',{class:'btn btn-primary btn-sm',onclick:function(){
-              db.collection('orders').doc(orderId).update({buyerConfirmed:true});
-              db.collection('orders').doc(orderId).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Покупатель подтвердил.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-              if(o.devConfirmed){
-                db.collection('orders').doc(orderId).update({status:'completed'});
-                var lib=JSON.parse(localStorage.getItem('awer_lib_'+S.cu.uid)||'{}');
-                lib[o.appId]={date:Date.now()};
-                localStorage.setItem('awer_lib_'+S.cu.uid,JSON.stringify(lib));
-                toast('Готово','Приложение в библиотеке','success');
-              }
-              toast('Подтверждено','','success');
-            }}},'✓ Я завершил сделку'));
-            else ac.append(el('span',{class:'status-badge status-verified'},'✓ Вы подтвердили'));
+            if(!o.buyerConfirmed){
+              var confirmBtn=el('button',{class:'btn btn-primary btn-sm'});
+              confirmBtn.textContent='✓ Я завершил сделку';
+              confirmBtn.addEventListener('click',function(){
+                db.collection('orders').doc(orderId).update({buyerConfirmed:true});
+                db.collection('orders').doc(orderId).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Покупатель подтвердил.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+                if(o.devConfirmed){
+                  db.collection('orders').doc(orderId).update({status:'completed'});
+                  var lib=JSON.parse(localStorage.getItem('awer_lib_'+S.cu.uid)||'{}');
+                  lib[o.appId]={date:Date.now()};
+                  localStorage.setItem('awer_lib_'+S.cu.uid,JSON.stringify(lib));
+                  toast('Готово','Приложение в библиотеке','success');
+                }
+                toast('Подтверждено','','success');
+              });
+              ac.append(confirmBtn);
+            }else{
+              ac.append(el('span',{class:'status-badge status-verified'},'✓ Вы подтвердили'));
+            }
           }else{
-            if(!o.devConfirmed)ac.append(el('button',{class:'btn btn-primary btn-sm',onclick:function(){
-              db.collection('orders').doc(orderId).update({devConfirmed:true});
-              db.collection('orders').doc(orderId).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Продавец подтвердил.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-              if(o.buyerConfirmed){
-                db.collection('orders').doc(orderId).update({status:'completed'});
-                var lib=JSON.parse(localStorage.getItem('awer_lib_'+o.buyerUid)||'{}');
-                lib[o.appId]={date:Date.now()};
-                localStorage.setItem('awer_lib_'+o.buyerUid,JSON.stringify(lib));
-              }
-              toast('Подтверждено','','success');
-            }}},'✓ Подтвердить сделку'));
-            else ac.append(el('span',{class:'status-badge status-verified'},'✓ Вы подтвердили'));
+            if(!o.devConfirmed){
+              var confirmBtn2=el('button',{class:'btn btn-primary btn-sm'});
+              confirmBtn2.textContent='✓ Подтвердить сделку';
+              confirmBtn2.addEventListener('click',function(){
+                db.collection('orders').doc(orderId).update({devConfirmed:true});
+                db.collection('orders').doc(orderId).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Продавец подтвердил.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+                if(o.buyerConfirmed){
+                  db.collection('orders').doc(orderId).update({status:'completed'});
+                  var lib=JSON.parse(localStorage.getItem('awer_lib_'+o.buyerUid)||'{}');
+                  lib[o.appId]={date:Date.now()};
+                  localStorage.setItem('awer_lib_'+o.buyerUid,JSON.stringify(lib));
+                }
+                toast('Подтверждено','','success');
+              });
+              ac.append(confirmBtn2);
+            }else{
+              ac.append(el('span',{class:'status-badge status-verified'},'✓ Вы подтвердили'));
+            }
           }
-          // ИСПРАВЛЕНО: убрана лишняя скобка
-          ac.append(el('button',{class:'btn btn-danger btn-sm',onclick:function(){
+          var cancelBtn=el('button',{class:'btn btn-danger btn-sm'});
+          cancelBtn.textContent='Отменить';
+          cancelBtn.addEventListener('click',function(){
             if(!confirm('Отменить?'))return;
             db.collection('orders').doc(orderId).update({status:'cancelled'});
             db.collection('orders').doc(orderId).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Сделка отменена.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-          }},'Отменить'));
-          ac.append(el('button',{class:'btn btn-text btn-sm',onclick:function(){openSupModal(orderId)}},'🆘 В поддержку'));
+          });
+          ac.append(cancelBtn);
+          var supBtn=el('button',{class:'btn btn-text btn-sm'});
+          supBtn.textContent='🆘 В поддержку';
+          supBtn.addEventListener('click',function(){openSupModal(orderId)});
+          ac.append(supBtn);
           cw.append(ac);
         }else{
           cw.append(el('div',{style:'text-align:center;padding:20px;color:var(--text2)'},o.status==='completed'?'✓ Сделка завершена':'✕ Сделка отменена'));
@@ -859,24 +916,25 @@ try {
       var cuId = S.cu.uid;
       var lib=JSON.parse(localStorage.getItem('awer_lib_'+cuId)||'{}');
       var ids=Object.keys(lib);
-      if(ids.length===0){w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},'📚'),el('h3',{},'Библиотека пуста')));return w}
+      if(ids.length===0){w.append(el('div',{class:'empty'},el('div',{class:'empty-icon'},''),el('h3',{},'Библиотека пуста')));return w}
       var loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));
       w.append(loading);
-      var promises=ids.map(function(id){return db.collection('apps').doc(id).get()});
+      var promises=[];
+      for(var i=0;i<ids.length;i++){promises.push(db.collection('apps').doc(ids[i]).get())}
       Promise.all(promises).then(function(docs){
         loading.remove();
-        docs.forEach(function(doc){
-          if(!doc.exists)return;
-          var a={id:doc.id,...doc.data()};
+        for(var i=0;i<docs.length;i++){
+          if(!docs[i].exists)continue;
+          var a={id:docs[i].id,...docs[i].data()};
           var c=el('div',{class:'order-card'});
           if(a.iconUrl){c.append(el('div',{class:'order-icon'},el('img',{src:a.iconUrl})))}
           else{c.append(el('div',{class:'order-icon',style:'background:'+col(a.id)},a.icon||''))}
           c.append(el('div',{class:'order-info'},el('h4',{style:'cursor:pointer',onclick:function(){nav('app',{id:a.id})}},a.name),el('p',{},'v'+(a.ver||'1.0')+' · '+(a.devName||'')+' · '+new Date(lib[a.id].date).toLocaleDateString('ru-RU'))));
           var acts=el('div',{class:'order-actions'});
-          if(a.fileName&&a.fileUrl){acts.append(el('a',{class:'btn btn-primary btn-sm',href:a.fileUrl,target:'_blank',download:a.fileName},'⬇ Скачать'))}
+          if(a.fileName&&a.fileUrl){acts.append(el('a',{class:'btn btn-primary btn-sm',href:a.fileUrl,target:'_blank',download:a.fileName},' Скачать'))}
           else{acts.append(el('button',{class:'btn btn-primary btn-sm',onclick:function(){toast('Открыть','Демо-версия','info')}},'Открыть'))}
           c.append(acts);w.append(c);
-        });
+        }
       }).catch(function(){loading.remove();w.append(el('div',{class:'empty'},el('h3',{},'Ошибка загрузки')))});
       return w;
     }
@@ -890,14 +948,28 @@ try {
       card.append(el('h3',{},u.name,u.verified?el('span',{class:'verified',style:'margin-left:6px'},'✓'):null));
       card.append(el('p',{},u.email));
       card.append(el('p',{style:'font-size:11px;color:var(--text2);margin-bottom:14px'},u.role==='buyer'?'Покупатель':u.role==='developer'?'Разработчик':'Администратор'));
-      card.append(el('button',{class:'btn btn-text btn-sm',style:'width:100%',onclick:function(){logoutUser().then(function(){render();toast('Вы вышли','','info')})}}},'Выйти'));
+      var logoutBtn=el('button',{class:'btn btn-text btn-sm',style:'width:100%'});
+      logoutBtn.textContent='Выйти';
+      logoutBtn.addEventListener('click',function(){logoutUser().then(function(){render();toast('Вы вышли','','info')})});
+      card.append(logoutBtn);
       var menu=el('div',{class:'profile-menu'});
       var tab=(S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
-      [['info','','Аккаунт'],['orders','','Заявки'],['library','📚','Библиотека'],['favorites','♡','Избранное'],['settings','⚙️','Настройки'],['support','','Поддержка']].forEach(function(x){
-        menu.append(el('button',{class:'profile-menu-item'+(tab===x[0]?' active':''),onclick:function(){nav('profile',{tab:x[0]})}},el('span',{},x[1]),el('span',{},x[2])));
-      });
-      if(u.role==='developer')menu.append(el('button',{class:'profile-menu-item',onclick:function(){nav('developer')}},el('span',{},'🛠'),el('span',{},'Консоль')));
-      if(u.role==='admin')menu.append(el('button',{class:'profile-menu-item',onclick:function(){nav('admin')}},el('span',{},'⚙️'),el('span',{},'Админ-панель')));
+      var menuItems=[['info','','Аккаунт'],['orders','','Заявки'],['library','','Библиотека'],['favorites','♡','Избранное'],['settings','⚙️','Настройки'],['support','🆘','Поддержка']];
+      for(var i=0;i<menuItems.length;i++){
+        (function(x){
+          menu.append(el('button',{class:'profile-menu-item'+(tab===x[0]?' active':''),onclick:function(){nav('profile',{tab:x[0]})}},el('span',{},x[1]),el('span',{},x[2])));
+        })(menuItems[i]);
+      }
+      if(u.role==='developer'){
+        var devBtn=el('button',{class:'profile-menu-item',onclick:function(){nav('developer')}});
+        devBtn.append(el('span',{},''));devBtn.append(el('span',{},'Консоль'));
+        menu.append(devBtn);
+      }
+      if(u.role==='admin'){
+        var adminBtn=el('button',{class:'profile-menu-item',onclick:function(){nav('admin')}});
+        adminBtn.append(el('span',{},'⚙️'));adminBtn.append(el('span',{},'Админ-панель'));
+        menu.append(adminBtn);
+      }
       card.append(menu);
       var content=el('div',{});
       if(tab==='info'){
@@ -928,31 +1000,43 @@ try {
       var list=el('div',{class:'settings-list'});
       var items=[
         {i:'👤',t:'Аккаунт и вход',d:S.cu?S.cu.email:'Не входили',a:function(){nav('settingsSub',{sub:'account'})}},
-        {i:'🔔',t:'Уведомления',d:S.settings.notif?'Включены':'Выключены',tg:true,k:'notif'},
-        {i:'🎨',t:'Тема',d:S.theme==='light'?'Светлая':'Тёмная',tg:true,k:'theme'},
-        {i:'🔊',t:'Звуки',d:S.settings.sound?'Включены':'Выключены',tg:true,k:'sound'},
-        {i:'🔄',t:'Автообновление',d:S.settings.autoUpd?'Включено':'Выключено',tg:true,k:'autoUpd'},
-        {i:'',t:'Язык',d:'Русский',a:function(){nav('settingsSub',{sub:'lang'})}},
-        {i:'🔒',t:'Конфиденциальность',d:'Настройки приватности',a:function(){nav('settingsSub',{sub:'privacy'})}},
-        {i:'‍👩‍👧',t:'Родительский контроль',d:S.settings.parental?'Включён':'Выключен',tg:true,k:'parental'},
-        {i:'️',t:'О приложении',d:'awer v1.0',a:function(){nav('settingsSub',{sub:'about'})}},
+        {i:'',t:'Уведомления',d:S.settings.notif?'Включены':'Выключены',tg:true,k:'notif'},
+        {i:'',t:'Тема',d:S.theme==='light'?'Светлая':'Тёмная',tg:true,k:'theme'},
+        {i:'',t:'Звуки',d:S.settings.sound?'Включены':'Выключены',tg:true,k:'sound'},
+        {i:'',t:'Автообновление',d:S.settings.autoUpd?'Включено':'Выключено',tg:true,k:'autoUpd'},
+        {i:'🌐',t:'Язык',d:'Русский',a:function(){nav('settingsSub',{sub:'lang'})}},
+        {i:'',t:'Конфиденциальность',d:'Настройки приватности',a:function(){nav('settingsSub',{sub:'privacy'})}},
+        {i:'👨‍👩👧',t:'Родительский контроль',d:S.settings.parental?'Включён':'Выключен',tg:true,k:'parental'},
+        {i:'ℹ️',t:'О приложении',d:'awer v1.0',a:function(){nav('settingsSub',{sub:'about'})}},
         {i:'❓',t:'Помощь',d:'FAQ',a:function(){nav('settingsSub',{sub:'help'})}},
         {i:'📄',t:'Условия использования',d:'Правила',a:function(){nav('settingsSub',{sub:'terms'})}}];
-      items.forEach(function(it){
-        var row=el('div',{class:'settings-item'});
-        row.append(el('div',{class:'settings-ico'},it.i),el('div',{class:'settings-info'},el('strong',{},it.t),el('span',{},it.d)));
-        if(it.tg){
-          var isOn=it.k==='theme'?S.theme==='dark':S.settings[it.k];
-          var tg=el('div',{class:'toggle'+(isOn?' on':''),onclick:function(e){e.stopPropagation();if(it.k==='theme'){S.theme=S.theme==='light'?'dark':'light'}else{S.settings[it.k]=!S.settings[it.k]}saveSettings();render()}});
-          row.append(tg);
-        }else{row.append(el('div',{class:'settings-arrow'},'›'));row.addEventListener('click',it.a)}
-        list.append(row);
-      });
+      for(var i=0;i<items.length;i++){
+        (function(it){
+          var row=el('div',{class:'settings-item'});
+          row.append(el('div',{class:'settings-ico'},it.i),el('div',{class:'settings-info'},el('strong',{},it.t),el('span',{},it.d)));
+          if(it.tg){
+            var isOn=it.k==='theme'?S.theme==='dark':S.settings[it.k];
+            var tg=el('div',{class:'toggle'+(isOn?' on':'')});
+            tg.addEventListener('click',function(e){
+              e.stopPropagation();
+              if(it.k==='theme'){S.theme=S.theme==='light'?'dark':'light'}
+              else{S.settings[it.k]=!S.settings[it.k]}
+              saveSettings();render();
+            });
+            row.append(tg);
+          }else{
+            row.append(el('div',{class:'settings-arrow'},'›'));
+            row.addEventListener('click',it.a);
+          }
+          list.append(row);
+        })(items[i]);
+      }
       w.append(list);return w;
     }
 
     function rSettingsSub(){
-      var w=el('div',{class:'container'});var sub=(S.route.params && S.route.params.sub) ? S.route.params.sub : '';
+      var w=el('div',{class:'container'});
+      var sub=(S.route.params && S.route.params.sub) ? S.route.params.sub : '';
       w.append(backBtn('Настройки','settings'));
       if(sub==='account'){
         w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Аккаунт'));
@@ -970,11 +1054,44 @@ try {
             Promise.all(promises).then(function(){render();toast('Сохранено','','success')}).catch(function(e){toast('Ошибка',e.message,'error')});
           }},'Сохранить')));
       }
-      else if(sub==='lang'){w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Язык'));var l=el('div',{class:'settings-list'});[['ru','Русский','✓'],['en','English','']].forEach(function(x){l.append(el('div',{class:'settings-item',onclick:function(){toast('Язык',x[1],'info');nav('settings')}},el('div',{class:'settings-info'},el('strong',{},x[1])),el('div',{class:'settings-arrow'},x[2])))});w.append(l)}
-      else if(sub==='privacy'){w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Конфиденциальность'));var l=el('div',{class:'settings-list'});['Показывать профиль','Показывать активность','Скрывать email'].forEach(function(n){var row=el('div',{class:'settings-item'});row.append(el('div',{class:'settings-info'},el('strong',{},n)));var tg=el('div',{class:'toggle on',onclick:function(){tg.classList.toggle('on')}});row.append(tg);l.append(row)});w.append(l)}
-      else if(sub==='about'){w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'О приложении'));w.append(el('div',{class:'about-section'},el('p',{},el('strong',{},'awer'),' — магазин приложений'),el('p',{},'Версия: 1.0.0'),el('p',{},'© 2024 awer team')))}
-      else if(sub==='help'){w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Помощь'));w.append(el('div',{class:'about-section'},el('h3',{},'Как оставить заявку?'),el('p',{},'Откройте приложение и нажмите «Оставить заявку».'),el('h3',{style:'margin-top:14px'},'Что если продавец обманул?'),el('p',{},'Напишите в поддержку.'),el('p',{style:'margin-top:14px'},'support@awer.com')))}
-      else if(sub==='terms'){w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Условия'));w.append(el('div',{class:'about-section'},el('p',{},'1. awer — платформа-посредник.'),el('p',{},'2. Оплата в чате между сторонами.'),el('p',{},'3. Запрещено размещать приложения с вирусами.'),el('p',{},'4. При обмане — обращайтесь в поддержку.')))}
+      else if(sub==='lang'){
+        w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Язык'));
+        var l=el('div',{class:'settings-list'});
+        var langs=[['ru','Русский','✓'],['en','English','']];
+        for(var i=0;i<langs.length;i++){
+          (function(x){
+            l.append(el('div',{class:'settings-item',onclick:function(){toast('Язык',x[1],'info');nav('settings')}},el('div',{class:'settings-info'},el('strong',{},x[1])),el('div',{class:'settings-arrow'},x[2])));
+          })(langs[i]);
+        }
+        w.append(l);
+      }
+      else if(sub==='privacy'){
+        w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Конфиденциальность'));
+        var l=el('div',{class:'settings-list'});
+        var items=['Показывать профиль','Показывать активность','Скрывать email'];
+        for(var i=0;i<items.length;i++){
+          (function(n){
+            var row=el('div',{class:'settings-item'});
+            row.append(el('div',{class:'settings-info'},el('strong',{},n)));
+            var tg=el('div',{class:'toggle on'});
+            tg.addEventListener('click',function(){tg.classList.toggle('on')});
+            row.append(tg);l.append(row);
+          })(items[i]);
+        }
+        w.append(l);
+      }
+      else if(sub==='about'){
+        w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'О приложении'));
+        w.append(el('div',{class:'about-section'},el('p',{},el('strong',{},'awer'),' — магазин приложений'),el('p',{},'Версия: 1.0.0'),el('p',{},'© 2024 awer team')));
+      }
+      else if(sub==='help'){
+        w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Помощь'));
+        w.append(el('div',{class:'about-section'},el('h3',{},'Как оставить заявку?'),el('p',{},'Откройте приложение и нажмите «Оставить заявку».'),el('h3',{style:'margin-top:14px'},'Что если продавец обманул?'),el('p',{},'Напишите в поддержку.'),el('p',{style:'margin-top:14px'},'support@awer.com')));
+      }
+      else if(sub==='terms'){
+        w.append(el('h1',{style:'font-size:24px;font-weight:500;margin-bottom:20px'},'Условия'));
+        w.append(el('div',{class:'about-section'},el('p',{},'1. awer — платформа-посредник.'),el('p',{},'2. Оплата в чате между сторонами.'),el('p',{},'3. Запрещено размещать приложения с вирусами.'),el('p',{},'4. При обмане — обращайтесь в поддержку.')));
+      }
       return w;
     }
 
@@ -986,12 +1103,15 @@ try {
       var form=el('div',{class:'about-section'});form.append(el('h3',{},'Новое обращение'));
       form.append(el('div',{class:'form-group'},el('label',{},'Тема'),el('input',{class:'form-control',id:'sT',placeholder:'Продавец не дал приложение'})));
       form.append(el('div',{class:'form-group'},el('label',{},'Описание'),el('textarea',{class:'form-control',id:'sX',placeholder:'Расскажите что произошло...'})));
-      form.append(el('button',{class:'btn btn-primary',onclick:function(){
+      var submitBtn=el('button',{class:'btn btn-primary'});
+      submitBtn.textContent='Отправить';
+      submitBtn.addEventListener('click',function(){
         var th=$('#sT').value.trim(),tx=$('#sX').value.trim();
         if(!th||!tx){toast('Ошибка','Заполните поля','error');return}
         db.collection('supports').add({userId:S.cu.uid,userName:S.cu.name,theme:th,text:tx,status:'new',createdAt:firebase.firestore.FieldValue.serverTimestamp()})
           .then(function(){toast('Отправлено','','success');render()});
-      }},'Отправить'));
+      });
+      form.append(submitBtn);
       w.append(form);
       db.collection('supports').where('userId','==',S.cu.uid).orderBy('createdAt','desc').get().then(function(snapshot){
         if(snapshot.empty)return;
@@ -1000,7 +1120,10 @@ try {
           var s=doc.data();
           var c=el('div',{class:'order-card'});
           c.append(el('div',{class:'order-icon'},'🆘'),el('div',{class:'order-info'},el('h4',{},s.theme),el('p',{},fd(s.createdAt)),el('span',{class:'status-badge '+(s.status==='new'?'status-pending':'status-verified')},s.status==='new'?'Новое':'Ответ')));
-          c.append(el('div',{class:'order-actions'},el('button',{class:'btn btn-primary btn-sm',onclick:function(){openSupChat(doc.id)}},'Открыть')));
+          var openBtn=el('button',{class:'btn btn-primary btn-sm'});
+          openBtn.textContent='Открыть';
+          openBtn.addEventListener('click',function(){openSupChat(doc.id)});
+          c.append(el('div',{class:'order-actions'},openBtn));
           w.append(c);
         });
       });
@@ -1021,27 +1144,35 @@ try {
           snapshot.forEach(function(d){var x=d.data();ms.append(el('div',{class:'msg '+(x.from==='user'?'me':'other')},el('div',{},x.text),el('span',{class:'msg-time'},ft(x.createdAt))))});
           body.append(ms);
           var inp=el('div',{class:'chat-input'});var input=el('input',{placeholder:'Написать...'});
-          var send=el('button',{class:'btn btn-primary',onclick:function(){var t=input.value.trim();if(!t)return;db.collection('supports').doc(id).collection('messages').add({from:'user',text:t,createdAt:firebase.firestore.FieldValue.serverTimestamp()});db.collection('supports').doc(id).update({status:'answered'});closeM();render();toast('Отправлено','','success')}});send.textContent='Отправить';
-          input.addEventListener('keydown',function(e){if(e.key==='Enter')send.click()});
-          inp.append(input,send);body.append(inp);m.append(body);openM(m);
+          var sendBtn=el('button',{class:'btn btn-primary'});sendBtn.textContent='Отправить';
+          sendBtn.addEventListener('click',function(){
+            var t=input.value.trim();if(!t)return;
+            db.collection('supports').doc(id).collection('messages').add({from:'user',text:t,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+            db.collection('supports').doc(id).update({status:'answered'});
+            closeM();render();toast('Отправлено','','success');
+          });
+          input.addEventListener('keydown',function(e){if(e.key==='Enter')sendBtn.click()});
+          inp.append(input,sendBtn);body.append(inp);m.append(body);openM(m);
         });
       });
     }
 
     function openSupModal(orderId){
       var m=el('div',{});
-      m.append(el('div',{class:'modal-head'},el('h2',{},'🆘 В поддержку'),el('button',{class:'modal-close',onclick:closeM},'')));
+      m.append(el('div',{class:'modal-head'},el('h2',{},'🆘 В поддержку'),el('button',{class:'modal-close',onclick:closeM},'✕')));
       var body=el('div',{class:'modal-body'});
       body.append(el('p',{style:'margin-bottom:10px'},'Сделка: ',el('strong',{},orderId)));
       body.append(el('p',{style:'color:var(--text2);font-size:13px;margin-bottom:14px'},'Мы рассмотрим переписку.'));
       body.append(el('div',{class:'form-group'},el('label',{},'Описание'),el('textarea',{class:'form-control',id:'sD',placeholder:'Что произошло?'})));
       var foot=el('div',{class:'modal-foot'});
       foot.append(el('button',{class:'btn btn-text',onclick:closeM},'Отмена'));
-      foot.append(el('button',{class:'btn btn-primary',onclick:function(){
+      var submitBtn=el('button',{class:'btn btn-primary'});submitBtn.textContent='Отправить';
+      submitBtn.addEventListener('click',function(){
         var t=$('#sD').value.trim();if(!t){toast('Ошибка','Опишите проблему','error');return}
         db.collection('supports').add({userId:S.cu.uid,userName:S.cu.name,theme:'Проблема со сделкой',text:t,orderId:orderId,status:'new',createdAt:firebase.firestore.FieldValue.serverTimestamp()})
           .then(function(){closeM();toast('Отправлено','','success')});
-      }},'Отправить'));
+      });
+      foot.append(submitBtn);
       m.append(body,foot);openM(m);
     }
 
@@ -1059,8 +1190,12 @@ try {
         stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Доход'),el('div',{class:'stat-value'},fp(rev))));
       });
       w.append(stats);
-      var tabs=el('div',{class:'chips'});var tab=(S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-      [['apps','Мои приложения'],['orders','Заявки'],['add','Добавить']].forEach(function(x){tabs.append(el('div',{class:'chip'+(tab===x[0]?' active':''),onclick:function(){nav('developer',{tab:x[0]})}},x[1]))});
+      var tabs=el('div',{class:'chips'});
+      var tab=(S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
+      var tabItems=[['apps','Мои приложения'],['orders','Заявки'],['add','Добавить']];
+      for(var i=0;i<tabItems.length;i++){
+        (function(x){tabs.append(el('div',{class:'chip'+(tab===x[0]?' active':''),onclick:function(){nav('developer',{tab:x[0]})}},x[1]))})(tabItems[i]);
+      }
       w.append(tabs);
       if(tab==='apps'){
         var loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));
@@ -1072,7 +1207,7 @@ try {
           snap.forEach(function(doc){
             var a={id:doc.id,...doc.data()};
             var item=rAppItem(a);
-            if(a.status==='blocked')item.append(el('div',{style:'margin-top:6px;font-size:11px;color:var(--danger);background:rgba(217,48,37,.1);padding:2px 8px;border-radius:10px;display:inline-block'},'🔴 Заблокировано'));
+            if(a.status==='blocked')item.append(el('div',{style:'margin-top:6px;font-size:11px;color:var(--danger);background:rgba(217,48,37,.1);padding:2px 8px;border-radius:10px;display:inline-block'},' Заблокировано'));
             g.append(item);
           });
           w.append(g);
@@ -1094,10 +1229,16 @@ try {
             c.append(el('div',{class:'order-info'},el('h4',{},o.appName),el('p',{},'Покупатель: '+(o.buyerName||'—')),el('p',{},o.paymentMethod)));
             var ac=el('div',{class:'order-actions'});
             if(o.status==='new'){
-              ac.append(el('button',{class:'btn btn-primary btn-sm',onclick:function(){db.collection('orders').doc(o.id).update({status:'accepted'});db.collection('orders').doc(o.id).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Продавец принял заявку.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});toast('Принято','','success')}},'Принять'));
-              ac.append(el('button',{class:'btn btn-danger btn-sm',onclick:function(){if(!confirm('Отклонить?'))return;db.collection('orders').doc(o.id).update({status:'cancelled'});render()}},'Отклонить'));
+              var acceptBtn=el('button',{class:'btn btn-primary btn-sm'});acceptBtn.textContent='Принять';
+              acceptBtn.addEventListener('click',function(){db.collection('orders').doc(o.id).update({status:'accepted'});db.collection('orders').doc(o.id).collection('messages').add({senderUid:'sys',senderName:'Система',text:'Продавец принял заявку.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});toast('Принято','','success')});
+              ac.append(acceptBtn);
+              var rejectBtn=el('button',{class:'btn btn-danger btn-sm'});rejectBtn.textContent='Отклонить';
+              rejectBtn.addEventListener('click',function(){if(!confirm('Отклонить?'))return;db.collection('orders').doc(o.id).update({status:'cancelled'});render()});
+              ac.append(rejectBtn);
             }
-            ac.append(el('button',{class:'btn btn-outline btn-sm',onclick:function(){nav('chat',{orderId:o.id})}},'Чат'));
+            var chatBtn=el('button',{class:'btn btn-outline btn-sm'});chatBtn.textContent='Чат';
+            chatBtn.addEventListener('click',function(){nav('chat',{orderId:o.id})});
+            ac.append(chatBtn);
             c.append(ac);w.append(c);
           });
           if(!hasOrders) w.append(el('div',{class:'empty'},el('p',{},'Нет заявок')));
@@ -1115,12 +1256,12 @@ try {
       f.append(el('div',{class:'form-group'},el('label',{},'Описание *'),el('textarea',{class:'form-control',id:'f_desc',placeholder:'Расскажите о приложении...'})));
       var g3=el('div',{class:'form-group'});g3.append(el('label',{},'Категория *'));
       var sel=el('select',{class:'form-control',id:'f_cat'});
-      CATS.forEach(function(c){sel.append(el('option',{value:c.id},c.i+' '+c.n))});
+      for(var i=0;i<CATS.length;i++){sel.append(el('option',{value:CATS[i].id},CATS[i].i+' '+CATS[i].n))}
       g3.append(sel);f.append(g3);
       f.append(el('div',{class:'form-group'},el('label',{},'Цена (0 = бесплатно)'),el('input',{class:'form-control',id:'f_price',type:'number',value:'0',min:'0'})));
       f.append(el('div',{class:'form-group'},el('label',{},'Старая цена'),el('input',{class:'form-control',id:'f_oldPrice',type:'number',value:'0',min:'0'})));
       f.append(el('div',{class:'form-group'},el('label',{},'Версия'),el('input',{class:'form-control',id:'f_ver',value:'1.0.0'})));
-      f.append(el('div',{class:'form-group'},el('label',{},'Иконка (эмодзи)'),el('input',{class:'form-control',id:'f_icon',value:'🚀',maxlength:'2'})));
+      f.append(el('div',{class:'form-group'},el('label',{},'Иконка (эмодзи)'),el('input',{class:'form-control',id:'f_icon',value:'',maxlength:'2'})));
       f.append(el('div',{class:'form-group'},el('label',{},'Иконка (изображение, необязательно)'),el('input',{type:'file',id:'f_iconFile',accept:'image/*'})));
       f.append(el('div',{class:'form-group'},el('label',{},'Возможности (через запятую)'),el('input',{class:'form-control',id:'f_features'})));
       f.append(el('div',{class:'form-group'},el('label',{},'Системные требования'),el('input',{class:'form-control',id:'f_sys'})));
@@ -1162,18 +1303,25 @@ try {
       });
       function renderSSPreview(){
         ssPreview.innerHTML='';
-        pendingScreenshots.forEach(function(sh,idx){
-          var thumb=el('div',{class:'screenshot-thumb'});
-          thumb.append(el('img',{src:sh.url,alt:sh.name}));
-          thumb.append(el('div',{class:'remove',onclick:function(){pendingScreenshots.splice(idx,1);renderSSPreview()}},'✕'));
-          ssPreview.append(thumb);
-        });
+        for(var i=0;i<pendingScreenshots.length;i++){
+          (function(idx){
+            var sh=pendingScreenshots[idx];
+            var thumb=el('div',{class:'screenshot-thumb'});
+            thumb.append(el('img',{src:sh.url,alt:sh.name}));
+            var rm=el('div',{class:'remove'});rm.textContent='';
+            rm.addEventListener('click',function(){pendingScreenshots.splice(idx,1);renderSSPreview()});
+            thumb.append(rm);
+            ssPreview.append(thumb);
+          })(i);
+        }
       }
-      f.append(el('button',{class:'btn btn-primary',style:'margin-top:10px',onclick:function(){
+      var pubBtn=el('button',{class:'btn btn-primary',style:'margin-top:10px'});
+      pubBtn.textContent='Опубликовать';
+      pubBtn.addEventListener('click',function(){
         var name=$('#f_name').value.trim();var desc=$('#f_desc').value.trim();
         if(!name){toast('Ошибка','Введите название','','error');return}
         if(!desc){toast('Ошибка','Введите описание','','error');return}
-        var btn=this;btn.disabled=true;btn.textContent='Публикация...';
+        pubBtn.disabled=true;pubBtn.textContent='Публикация...';
         var iconFileEl=$('#f_iconFile');
         var iconFile=iconFileEl && iconFileEl.files ? iconFileEl.files[0] : null;
         var iconPromise=Promise.resolve(null);
@@ -1196,13 +1344,14 @@ try {
             createdAt:firebase.firestore.FieldValue.serverTimestamp()
           };
           db.collection('apps').add(appData).then(function(docRef){
-            btn.disabled=false;btn.textContent='Опубликовать';
+            pubBtn.disabled=false;pubBtn.textContent='Опубликовать';
             pendingScreenshots=[];
             toast('✓ Опубликовано','Приложение появилось в каталоге','success');
             nav('developer',{tab:'apps'});
-          }).catch(function(e){btn.disabled=false;btn.textContent='Опубликовать';toast('Ошибка',e.message,'error')});
-        }).catch(function(e){btn.disabled=false;btn.textContent='Опубликовать';toast('Ошибка загрузки иконки',e.message,'error')});
-      }},'Опубликовать'));
+          }).catch(function(e){pubBtn.disabled=false;pubBtn.textContent='Опубликовать';toast('Ошибка',e.message,'error')});
+        }).catch(function(e){pubBtn.disabled=false;pubBtn.textContent='Опубликовать';toast('Ошибка загрузки иконки',e.message,'error')});
+      });
+      f.append(pubBtn);
       f.append(el('p',{style:'margin-top:12px;font-size:12px;color:var(--text2)'},'* — обязательные поля.'));
       return f;
     }
@@ -1218,8 +1367,12 @@ try {
       db.collection('orders').get().then(function(s){stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Заявки'),el('div',{class:'stat-value'},String(s.size))))});
       db.collection('supports').get().then(function(s){stats.append(el('div',{class:'stat-card'},el('div',{class:'stat-label'},'Обращения'),el('div',{class:'stat-value'},String(s.size))))});
       w.append(stats);
-      var tabs=el('div',{class:'chips'});var tab=(S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-      [['apps','Приложения'],['users','Пользователи'],['supports','Обращения'],['reports','Жалобы']].forEach(function(x){tabs.append(el('div',{class:'chip'+(tab===x[0]?' active':''),onclick:function(){nav('admin',{tab:x[0]})}},x[1]))});
+      var tabs=el('div',{class:'chips'});
+      var tab=(S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
+      var tabItems=[['apps','Приложения'],['users','Пользователи'],['supports','Обращения'],['reports','Жалобы']];
+      for(var i=0;i<tabItems.length;i++){
+        (function(x){tabs.append(el('div',{class:'chip'+(tab===x[0]?' active':''),onclick:function(){nav('admin',{tab:x[0]})}},x[1]))})(tabItems[i]);
+      }
       w.append(tabs);
       if(tab==='apps'){
         var loading=el('div',{class:'loading-spinner'},el('div',{class:'spinner'}));
@@ -1236,9 +1389,19 @@ try {
             else{r.append(el('div',{class:'order-icon',style:'background:'+col(a.id)},a.icon||'📱'))}
             r.append(el('div',{class:'order-info'},el('h4',{},a.name),el('p',{},(a.devName||'—')+(a.devVerified?' ✓':'')+' · '+fp(a.price)+(a.fileName?' · 📎':'')+(a.screenshots&&a.screenshots.length?' · 🖼 '+a.screenshots.length:'')),el('span',{class:'status-badge '+st[0]},st[1])));
             var ac=el('div',{class:'order-actions'});
-            if(a.status!=='verified')ac.append(el('button',{class:'btn btn-primary btn-sm',onclick:function(){db.collection('apps').doc(a.id).update({status:'verified'});toast('Одобрено','','success')}},'Одобрить'));
-            if(a.status!=='blocked')ac.append(el('button',{class:'btn btn-danger btn-sm',onclick:function(){db.collection('apps').doc(a.id).update({status:'blocked'});toast('Заблокировано','','error')}},'Блок'));
-            ac.append(el('button',{class:'btn btn-text btn-sm',onclick:function(){if(confirm('Удалить?')){db.collection('apps').doc(a.id).delete();render()}}},'Удалить'));
+            if(a.status!=='verified'){
+              var approveBtn=el('button',{class:'btn btn-primary btn-sm'});approveBtn.textContent='Одобрить';
+              approveBtn.addEventListener('click',function(){db.collection('apps').doc(a.id).update({status:'verified'});toast('Одобрено','','success')});
+              ac.append(approveBtn);
+            }
+            if(a.status!=='blocked'){
+              var blockBtn=el('button',{class:'btn btn-danger btn-sm'});blockBtn.textContent='Блок';
+              blockBtn.addEventListener('click',function(){db.collection('apps').doc(a.id).update({status:'blocked'});toast('Заблокировано','','error')});
+              ac.append(blockBtn);
+            }
+            var delBtn=el('button',{class:'btn btn-text btn-sm'});delBtn.textContent='Удалить';
+            delBtn.addEventListener('click',function(){if(confirm('Удалить?')){db.collection('apps').doc(a.id).delete();render()}});
+            ac.append(delBtn);
             r.append(ac);w.append(r);
           });
         });
@@ -1253,8 +1416,22 @@ try {
             var r=el('div',{class:'order-card'});
             r.append(el('div',{class:'order-icon'},u.avatar||u.name[0]),el('div',{class:'order-info'},el('h4',{},u.name,u.verified?el('span',{class:'verified',style:'margin-left:6px'},'✓'):null),el('p',{},u.email+' · '+u.role)));
             var ac=el('div',{class:'order-actions'});
-            if(u.role==='developer'){ac.append(el('button',{class:'btn '+(u.verified?'btn-outline':'btn-primary')+' btn-sm',onclick:function(){db.collection('users').doc(u.uid).update({verified:!u.verified});toast(u.verified?'Снято':'Верифицирован','','info')}},u.verified?'Снять ✓':'Дать ✓'))}
-            if(u.uid!==S.cu.uid){ac.append(el('button',{class:'btn btn-danger btn-sm',onclick:function(){db.collection('users').doc(u.uid).update({blocked:!u.blocked});if(S.cu&&S.cu.uid===u.uid){logoutUser();render();toast('Аккаунт заблокирован','','error')}else{toast(u.blocked?'Разблокирован':'Заблокирован','','info')}}},u.blocked?'Разблок':'Блок'))}
+            if(u.role==='developer'){
+              var verifyBtn=el('button',{class:'btn '+(u.verified?'btn-outline':'btn-primary')+' btn-sm'});
+              verifyBtn.textContent=u.verified?'Снять ✓':'Дать ✓';
+              verifyBtn.addEventListener('click',function(){db.collection('users').doc(u.uid).update({verified:!u.verified});toast(u.verified?'Снято':'Верифицирован','','info')});
+              ac.append(verifyBtn);
+            }
+            if(u.uid!==S.cu.uid){
+              var blockBtn=el('button',{class:'btn btn-danger btn-sm'});
+              blockBtn.textContent=u.blocked?'Разблок':'Блок';
+              blockBtn.addEventListener('click',function(){
+                db.collection('users').doc(u.uid).update({blocked:!u.blocked});
+                if(S.cu&&S.cu.uid===u.uid){logoutUser();render();toast('Аккаунт заблокирован','','error')}
+                else{toast(u.blocked?'Разблокирован':'Заблокирован','','info')}
+              });
+              ac.append(blockBtn);
+            }
             r.append(ac);w.append(r);
           });
         });
@@ -1269,7 +1446,9 @@ try {
             var s=doc.data();
             var r=el('div',{class:'order-card'});
             r.append(el('div',{class:'order-icon'},'🆘'),el('div',{class:'order-info'},el('h4',{},s.theme),el('p',{},'От: '+(s.userName||'—')+' · '+fd(s.createdAt)),el('p',{},(s.text||'').slice(0,80))));
-            r.append(el('div',{class:'order-actions'},el('button',{class:'btn btn-primary btn-sm',onclick:function(){openAdminSup(doc.id)}},'Открыть')));
+            var openBtn=el('button',{class:'btn btn-primary btn-sm'});openBtn.textContent='Открыть';
+            openBtn.addEventListener('click',function(){openAdminSup(doc.id)});
+            r.append(el('div',{class:'order-actions'},openBtn));
             w.append(r);
           });
         });
@@ -1285,7 +1464,14 @@ try {
             var row=el('div',{class:'order-card'});
             row.append(el('div',{class:'order-icon'},rp.appIcon||'?'),el('div',{class:'order-info'},el('h4',{},rp.appName||'—'),el('p',{},'Причина: '+rp.reason)));
             var ac=el('div',{class:'order-actions'});
-            if(!rp.resolved){ac.append(el('button',{class:'btn btn-danger btn-sm',onclick:function(){db.collection('apps').doc(rp.appId).update({status:'blocked'});db.collection('reports').doc(doc.id).update({resolved:'blocked'});toast('Заблокировано','','error')}},'Блок'));ac.append(el('button',{class:'btn btn-text btn-sm',onclick:function(){db.collection('reports').doc(doc.id).update({resolved:'rejected'});toast('Отклонено','','info')}},'Отклонить'))}
+            if(!rp.resolved){
+              var blockBtn=el('button',{class:'btn btn-danger btn-sm'});blockBtn.textContent='Блок';
+              blockBtn.addEventListener('click',function(){db.collection('apps').doc(rp.appId).update({status:'blocked'});db.collection('reports').doc(doc.id).update({resolved:'blocked'});toast('Заблокировано','','error')});
+              ac.append(blockBtn);
+              var rejectBtn=el('button',{class:'btn btn-text btn-sm'});rejectBtn.textContent='Отклонить';
+              rejectBtn.addEventListener('click',function(){db.collection('reports').doc(doc.id).update({resolved:'rejected'});toast('Отклонено','','info')});
+              ac.append(rejectBtn);
+            }
             row.append(ac);w.append(row);
           });
         });
@@ -1307,12 +1493,14 @@ try {
           snapshot.forEach(function(d){var x=d.data();ms.append(el('div',{class:'msg '+(x.from==='support'?'me':'other')},el('div',{},x.text),el('span',{class:'msg-time'},ft(x.createdAt))))});
           body.append(ms);
           var inp=el('div',{class:'chat-input'});var input=el('input',{placeholder:'Ответить...'});
-          var send=el('button',{class:'btn btn-primary',onclick:function(){var t=input.value.trim();if(!t)return;db.collection('supports').doc(id).collection('messages').add({from:'support',text:t,createdAt:firebase.firestore.FieldValue.serverTimestamp()});db.collection('supports').doc(id).update({status:'answered'});closeM();render()}});send.textContent='Ответить';
-          input.addEventListener('keydown',function(e){if(e.key==='Enter')send.click()});
-          inp.append(input,send);body.append(inp);
+          var sendBtn=el('button',{class:'btn btn-primary'});sendBtn.textContent='Ответить';
+          sendBtn.addEventListener('click',function(){var t=input.value.trim();if(!t)return;db.collection('supports').doc(id).collection('messages').add({from:'support',text:t,createdAt:firebase.firestore.FieldValue.serverTimestamp()});db.collection('supports').doc(id).update({status:'answered'});closeM();render()});
+          input.addEventListener('keydown',function(e){if(e.key==='Enter')sendBtn.click()});
+          inp.append(input,sendBtn);body.append(inp);
           if(s.orderId){
             var acts=el('div',{style:'display:flex;gap:8px;margin-top:14px;flex-wrap:wrap'});
-            acts.append(el('button',{class:'btn btn-primary btn-sm',onclick:function(){
+            var returnBtn=el('button',{class:'btn btn-primary btn-sm'});returnBtn.textContent='✓ Вернуть';
+            returnBtn.addEventListener('click',function(){
               db.collection('orders').doc(s.orderId).get().then(function(od){
                 if(!od.exists)return;
                 var o=od.data();
@@ -1322,8 +1510,11 @@ try {
                 db.collection('supports').doc(id).collection('messages').add({from:'support',text:'Приложение возвращено.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
                 closeM();render();toast('Возвращено','','success');
               });
-            }}},'✓ Вернуть'));
-            acts.append(el('button',{class:'btn btn-danger btn-sm',onclick:function(){db.collection('orders').doc(s.orderId).update({status:'cancelled'});db.collection('supports').doc(id).collection('messages').add({from:'support',text:'Сделка отменена.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});closeM();render()}}},'✕ Отменить'));
+            });
+            acts.append(returnBtn);
+            var cancelBtn=el('button',{class:'btn btn-danger btn-sm'});cancelBtn.textContent='✕ Отменить';
+            cancelBtn.addEventListener('click',function(){db.collection('orders').doc(s.orderId).update({status:'cancelled'});db.collection('supports').doc(id).collection('messages').add({from:'support',text:'Сделка отменена.',createdAt:firebase.firestore.FieldValue.serverTimestamp()});closeM();render()});
+            acts.append(cancelBtn);
             body.append(acts);
           }
           m.append(body);openM(m);
@@ -1331,23 +1522,30 @@ try {
       });
     }
 
-    function rAbout(){var w=el('div',{class:'container'});w.append(backBtn('Главная','home'));
+    function rAbout(){
+      var w=el('div',{class:'container'});
+      w.append(backBtn('Главная','home'));
       w.append(el('h1',{style:'font-size:28px;font-weight:500;margin-bottom:16px'},'О awer'));
       w.append(el('div',{class:'about-section'},el('p',{},'awer — магазин приложений и игр.'),el('p',{},'Оплата НЕ в awer — она в чате с продавцом.'),el('p',{},'Если обманули — напишите в поддержку.'),el('p',{style:'color:var(--danger);font-weight:500;margin-top:14px'},'🚫 ЗАПРЕЩЕНО выкладывать приложения с вирусами.')));
       return w;
     }
 
     function showAuth(){
-      var m=el('div',{});var head=el('div',{class:'modal-head'},el('h2',{},'Войти в awer'),el('button',{class:'modal-close',onclick:closeM},'✕'));
-      var body=el('div',{class:'modal-body'});var mode='login';
+      var m=el('div',{});
+      var head=el('div',{class:'modal-head'},el('h2',{},'Войти в awer'),el('button',{class:'modal-close',onclick:closeM},'✕'));
+      var body=el('div',{class:'modal-body'});
+      var mode='login';
       var rf=function(){body.innerHTML='';
         if(mode==='login'){
           body.append(el('div',{class:'form-group'},el('label',{},'Email'),el('input',{class:'form-control',id:'aE',placeholder:'Введите email'})));
           body.append(el('div',{class:'form-group'},el('label',{},'Пароль'),el('input',{class:'form-control',id:'aP',type:'password',placeholder:'Введите пароль'})));
-          body.append(el('button',{class:'btn btn-primary',style:'width:100%;margin-bottom:10px',onclick:function(){
+          var loginBtn=el('button',{class:'btn btn-primary',style:'width:100%;margin-bottom:10px'});
+          loginBtn.textContent='Войти';
+          loginBtn.addEventListener('click',function(){
             var e=$('#aE').value.trim(),p=$('#aP').value;
             login(e,p).catch(function(err){toast('Ошибка',err.message,'error')});
-          }},'Войти'));
+          });
+          body.append(loginBtn);
           body.append(el('p',{style:'text-align:center;font-size:13px;color:var(--text2);margin-top:10px'},'Нет аккаунта? ',el('span',{style:'color:var(--accent);cursor:pointer;font-weight:500',onclick:function(){mode='register';rf()}},'Зарегистрироваться')));
         }else{
           body.append(el('div',{class:'form-group'},el('label',{},'Имя'),el('input',{class:'form-control',id:'rN'})));
@@ -1355,18 +1553,30 @@ try {
           body.append(el('div',{class:'form-group'},el('label',{},'Пароль'),el('input',{class:'form-control',id:'rP',type:'password'})));
           body.append(el('div',{class:'form-group'},el('label',{},'Тип аккаунта')));
           var rg=el('div',{class:'radio-group'});
-          [['buyer','Покупатель'],['developer','Разработчик']].forEach(function(x,i){
-            var it=el('div',{class:'radio-item'+(i===0?' selected':''),'data-val':x[0],onclick:function(){$$('.radio-item',rg).forEach(function(y){y.classList.remove('selected')});it.classList.add('selected')}},el('div',{class:'radio-dot'}),el('div',{class:'radio-label'},el('strong',{},x[1])));
-            rg.append(it);
-          });
+          var roles=[['buyer','Покупатель'],['developer','Разработчик']];
+          for(var i=0;i<roles.length;i++){
+            (function(x,idx){
+              var it=el('div',{class:'radio-item'+(idx===0?' selected':''),'data-val':x[0]});
+              it.addEventListener('click',function(){
+                var items=$$('.radio-item',rg);
+                for(var j=0;j<items.length;j++){items[j].classList.remove('selected')}
+                it.classList.add('selected');
+              });
+              it.append(el('div',{class:'radio-dot'}),el('div',{class:'radio-label'},el('strong',{},x[1])));
+              rg.append(it);
+            })(roles[i],i);
+          }
           body.append(rg);
-          body.append(el('button',{class:'btn btn-primary',style:'width:100%;margin-top:10px',onclick:function(){
+          var regBtn=el('button',{class:'btn btn-primary',style:'width:100%;margin-top:10px'});
+          regBtn.textContent='Зарегистрироваться';
+          regBtn.addEventListener('click',function(){
             var n=$('#rN').value.trim(),e=$('#rE').value.trim(),p=$('#rP').value;
             var roleEl=$('.radio-item.selected',rg);
             var role=roleEl?roleEl.getAttribute('data-val'):'buyer';
             if(!n||!e||!p){toast('Ошибка','Заполните все поля','error');return}
             register(n,e,p,role).catch(function(err){toast('Ошибка',err.message,'error')});
-          }},'Зарегистрироваться'));
+          });
+          body.append(regBtn);
           body.append(el('p',{style:'text-align:center;font-size:13px;color:var(--text2);margin-top:10px'},'Есть аккаунт? ',el('span',{style:'color:var(--accent);cursor:pointer;font-weight:500',onclick:function(){mode='login';rf()}},'Войти')));
         }
       };
@@ -1377,22 +1587,33 @@ try {
       if(!S.cu){showAuth();return}
       getAppById(appId,function(a){
         if(!a)return;
-        var m=el('div',{});m.append(el('div',{class:'modal-head'},el('h2',{},'Покупка'),el('button',{class:'modal-close',onclick:closeM},'✕')));
+        var m=el('div',{});
+        m.append(el('div',{class:'modal-head'},el('h2',{},'Покупка'),el('button',{class:'modal-close',onclick:closeM},'✕')));
         var body=el('div',{class:'modal-body'});
         body.append(el('div',{style:'display:flex;gap:14px;align-items:center;padding:14px;background:var(--bg2);border-radius:12px;margin-bottom:18px'},
           a.iconUrl?el('div',{class:'order-icon'},el('img',{src:a.iconUrl})):el('div',{class:'order-icon',style:'background:'+col(a.id)},a.icon||'📱'),
           el('div',{style:'flex:1'},el('strong',{},a.name),el('div',{style:'font-size:12px;color:var(--text2)'},'Продавец: '+(a.devName||'—'),a.devVerified?el('span',{class:'verified'},' ✓'):null),el('div',{style:'font-weight:500;margin-top:4px'},fp(a.price||0)))));
         body.append(el('h3',{style:'font-size:15px;margin-bottom:10px;font-weight:500'},'Способ оплаты'));
         var rg=el('div',{class:'radio-group'});
-        [['bank','Банковский перевод'],['other','Другой способ'],['discuss','Обсудить в чате']].forEach(function(x,i){
-          var it=el('div',{class:'radio-item'+(i===0?' selected':''),'data-val':x[0],onclick:function(){$$('.radio-item',rg).forEach(function(y){y.classList.remove('selected')});it.classList.add('selected')}},el('div',{class:'radio-dot'}),el('div',{class:'radio-label'},el('strong',{},x[1])));
-          rg.append(it);
-        });
+        var methods=[['bank','Банковский перевод'],['other','Другой способ'],['discuss','Обсудить в чате']];
+        for(var i=0;i<methods.length;i++){
+          (function(x,idx){
+            var it=el('div',{class:'radio-item'+(idx===0?' selected':''),'data-val':x[0]});
+            it.addEventListener('click',function(){
+              var items=$$('.radio-item',rg);
+              for(var j=0;j<items.length;j++){items[j].classList.remove('selected')}
+              it.classList.add('selected');
+            });
+            it.append(el('div',{class:'radio-dot'}),el('div',{class:'radio-label'},el('strong',{},x[1])));
+            rg.append(it);
+          })(methods[i],i);
+        }
         body.append(rg);
         body.append(el('div',{class:'chat-warning',style:'margin-top:14px'},el('strong',{},'⚠️ '),'awer не принимает платежи. Оплата в чате с продавцом.'));
         var foot=el('div',{class:'modal-foot'});
         foot.append(el('button',{class:'btn btn-text',onclick:closeM},'Отмена'));
-        foot.append(el('button',{class:'btn btn-primary',onclick:function(){
+        var submitBtn=el('button',{class:'btn btn-primary'});submitBtn.textContent='Отправить';
+        submitBtn.addEventListener('click',function(){
           var methodEl=$('.radio-item.selected',rg);
           var method=methodEl?methodEl.getAttribute('data-val'):'';
           if(!method){toast('Ошибка','Выберите способ','error');return}
@@ -1404,7 +1625,8 @@ try {
             paymentMethod:names[method],status:'new',price:a.price||0,
             createdAt:firebase.firestore.FieldValue.serverTimestamp()
           }).then(function(){closeM();toast('Отправлено','','success');nav('orders')});
-        }},'Отправить'));
+        });
+        foot.append(submitBtn);
         m.append(body,foot);openM(m);
       });
     }
@@ -1413,29 +1635,43 @@ try {
       if(!S.cu){showAuth();return}
       getAppById(appId,function(a){
         if(!a)return;
-        var m=el('div',{});m.append(el('div',{class:'modal-head'},el('h2',{},'Пожаловаться'),el('button',{class:'modal-close',onclick:closeM},'✕')));
-        var body=el('div',{class:'modal-body'});body.append(el('p',{style:'margin-bottom:14px'},'Приложение: ',el('strong',{},a.name)));
+        var m=el('div',{});
+        m.append(el('div',{class:'modal-head'},el('h2',{},'Пожаловаться'),el('button',{class:'modal-close',onclick:closeM},'✕')));
+        var body=el('div',{class:'modal-body'});
+        body.append(el('p',{style:'margin-bottom:14px'},'Приложение: ',el('strong',{},a.name)));
         var rg=el('div',{class:'radio-group'});
-        ['Вирусы','Обман','Подделка','Нарушение правил','Другое'].forEach(function(r,i){
-          var it=el('div',{class:'radio-item'+(i===0?' selected':''),'data-val':r,onclick:function(){$$('.radio-item',rg).forEach(function(y){y.classList.remove('selected')});it.classList.add('selected')}},el('div',{class:'radio-dot'}),el('div',{class:'radio-label'},el('strong',{},r)));
-          rg.append(it);
-        });
+        var reasons=['Вирусы','Обман','Подделка','Нарушение правил','Другое'];
+        for(var i=0;i<reasons.length;i++){
+          (function(r,idx){
+            var it=el('div',{class:'radio-item'+(idx===0?' selected':''),'data-val':r});
+            it.addEventListener('click',function(){
+              var items=$$('.radio-item',rg);
+              for(var j=0;j<items.length;j++){items[j].classList.remove('selected')}
+              it.classList.add('selected');
+            });
+            it.append(el('div',{class:'radio-dot'}),el('div',{class:'radio-label'},el('strong',{},r)));
+            rg.append(it);
+          })(reasons[i],i);
+        }
         body.append(rg);
         var foot=el('div',{class:'modal-foot'});
         foot.append(el('button',{class:'btn btn-text',onclick:closeM},'Отмена'));
-        foot.append(el('button',{class:'btn btn-danger',onclick:function(){
+        var submitBtn=el('button',{class:'btn btn-danger'});submitBtn.textContent='Отправить';
+        submitBtn.addEventListener('click',function(){
           var reasonEl=$('.radio-item.selected',rg);
           var reason=reasonEl?reasonEl.getAttribute('data-val'):'';
           if(!reason){toast('Ошибка','Выберите причину','error');return}
           db.collection('reports').add({appId:a.id,appName:a.name,appIcon:a.icon,userId:S.cu.uid,reason:reason,resolved:null,createdAt:firebase.firestore.FieldValue.serverTimestamp()})
             .then(function(){closeM();toast('Отправлено','','success')});
-        }},'Отправить'));
+        });
+        foot.append(submitBtn);
         m.append(body,foot);openM(m);
       });
     }
 
     function openScreenshotViewer(screenshots,currentSh){
-      var idx=screenshots.findIndex(function(s){return s.url===currentSh.url});
+      var idx=-1;
+      for(var i=0;i<screenshots.length;i++){if(screenshots[i].url===currentSh.url){idx=i;break}}
       if(idx<0)idx=0;
       var m=el('div',{});
       m.append(el('div',{class:'modal-head'},el('h2',{},'Скриншот '+(idx+1)+' из '+screenshots.length),el('button',{class:'modal-close',onclick:closeM},'✕')));
@@ -1443,8 +1679,12 @@ try {
       var imgWrap=el('div',{style:'text-align:center;min-height:400px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border-radius:12px;overflow:hidden'});
       body.append(imgWrap);
       var nav=el('div',{style:'display:flex;gap:8px;justify-content:center;margin-top:12px'});
-      nav.append(el('button',{class:'btn btn-outline btn-sm',onclick:function(){idx=(idx-1+screenshots.length)%screenshots.length;show()}},'← Назад'));
-      nav.append(el('button',{class:'btn btn-outline btn-sm',onclick:function(){idx=(idx+1)%screenshots.length;show()}},'Далее →'));
+      var prevBtn=el('button',{class:'btn btn-outline btn-sm'});prevBtn.textContent='← Назад';
+      prevBtn.addEventListener('click',function(){idx=(idx-1+screenshots.length)%screenshots.length;show()});
+      nav.append(prevBtn);
+      var nextBtn=el('button',{class:'btn btn-outline btn-sm'});nextBtn.textContent='Далее →';
+      nextBtn.addEventListener('click',function(){idx=(idx+1)%screenshots.length;show()});
+      nav.append(nextBtn);
       body.append(nav);
       function show(){
         var sh=screenshots[idx];
