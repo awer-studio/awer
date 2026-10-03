@@ -19,7 +19,7 @@ input,textarea,select{font-family:inherit}
 .search{flex:1;max-width:720px;position:relative}
 .search input{width:100%;padding:10px 16px 10px 44px;border-radius:24px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:14px}
 .search input:focus{outline:none;border-color:var(--accent);background:var(--bg)}
-.search::before{content:"⌕";position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--text2)}
+.search::before{content:"";position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--text2)}
 .header-actions{display:flex;align-items:center;gap:8px}
 .icon-btn{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text2)}
 .icon-btn:hover{background:var(--bg2)}
@@ -203,8 +203,26 @@ textarea.form-control{min-height:100px;resize:vertical}
 .loading-spinner{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--text2)}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:900px){.app-page-top{grid-template-columns:auto 1fr;gap:16px}.app-page-icon{width:120px;height:120px;font-size:60px;border-radius:24px}.hero-banner{flex-direction:column;padding:24px;text-align:center}.hero-icon{font-size:80px}.profile-grid{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:720px){.tabs-bar{display:none}.mobile-nav{display:block}body{padding-bottom:70px}.header-inner{padding:8px 16px}.search{max-width:none}.container{padding:0 16px}.hero-text h1{font-size:24px}.app-item{flex:0 0 110px}.app-item-ico{width:110px;height:110px;font-size:50px;border-radius:22px}.order-card{grid-template-columns:48px 1fr;gap:12px}.order-actions{grid-column:1/-1;justify-content:flex-start}.footer-grid{grid-template-columns:1fr}}
+
+/* Стили для приветственного окна */
+.welcome-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .5s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.welcome-modal{background:var(--bg);border-radius:24px;max-width:600px;width:100%;padding:40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:scaleIn .5s}
+@keyframes scaleIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.welcome-icon{font-size:80px;margin-bottom:20px;animation:bounce 1s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.welcome-modal h1{font-size:32px;font-weight:700;color:var(--accent);margin-bottom:16px}
+.welcome-modal .subtitle{font-size:18px;color:var(--text);margin-bottom:20px;font-weight:500}
+.welcome-modal .description{font-size:15px;color:var(--text2);line-height:1.6;margin-bottom:30px}
+.welcome-modal .features{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:30px;text-align:left}
+.welcome-modal .feature{display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg2);border-radius:12px}
+.welcome-modal .feature-icon{font-size:24px}
+.welcome-modal .feature-text{font-size:14px;color:var(--text)}
+.welcome-btn{background:var(--accent);color:#fff;border:none;padding:16px 40px;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;transition:all .3s}
+.welcome-btn:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 20px rgba(1,135,95,.3)}
+
+@media(max-width:900px){.app-page-top{grid-template-columns:auto 1fr;gap:16px}.app-page-icon{width:120px;height:120px;font-size:60px;border-radius:24px}.hero-banner{flex-direction:column;padding:24px;text-align:center}.hero-icon{font-size:80px}.profile-grid{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}.welcome-modal .features{grid-template-columns:1fr}}
+@media(max-width:720px){.tabs-bar{display:none}.mobile-nav{display:block}body{padding-bottom:70px}.header-inner{padding:8px 16px}.search{max-width:none}.container{padding:0 16px}.hero-text h1{font-size:24px}.app-item{flex:0 0 110px}.app-item-ico{width:110px;height:110px;font-size:50px;border-radius:22px}.order-card{grid-template-columns:48px 1fr;gap:12px}.order-actions{grid-column:1/-1;justify-content:flex-start}.footer-grid{grid-template-columns:1fr}.welcome-modal{padding:24px}.welcome-modal h1{font-size:24px}.welcome-modal .subtitle{font-size:16px}}
 </style>
 </head>
 <body>
@@ -218,7 +236,6 @@ textarea.form-control{min-height:100px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <script>
-// ================= ИНИЦИАЛИЗАЦИЯ FIREBASE =================
 const firebaseConfig = {
   apiKey: "AIzaSyA7Kr-HEEs11OZdsTX_vEy3bakPyAd-hhQ",
   authDomain: "awer-d4af4.firebaseapp.com",
@@ -232,7 +249,6 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const IMGBB_KEY = "c2a5f5a7794a778caac28687e2257fac";
 
-// ================= СОСТОЯНИЕ =================
 let S = {
   cu: null,
   theme: localStorage.getItem('awer_theme') || 'light',
@@ -242,15 +258,14 @@ let S = {
 
 const CATS = [
   {id:'ai',n:'AI',i:'🧠'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},
-  {id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
+  {id:'video',n:'Видео',i:''},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
   {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},
   {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},
-  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:'📄'},
+  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:''},
   {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}
 ];
 const COLS = ['#e8f5e9','#e3f2fd','#fce4ec','#fff3e0','#f3e5f5','#e0f2f1','#fff8e1','#e8eaf6','#fbe9e7','#e0f7fa'];
 
-// ================= УТИЛИТЫ =================
 function $(s, c) { return (c || document).querySelector(s); }
 function $$(s, c) { return Array.from((c || document).querySelectorAll(s)); }
 
@@ -265,7 +280,6 @@ function el(tag, attrs, ...children) {
       else e.setAttribute(k, attrs[k]);
     }
   }
-  // Безопасное выравнивание массивов детей
   const flatChildren = [];
   function flatten(arr) {
     for (let i = 0; i < arr.length; i++) {
@@ -274,7 +288,6 @@ function el(tag, attrs, ...children) {
     }
   }
   flatten(children);
-  
   flatChildren.forEach(c => {
     e.append(c.nodeType ? c : document.createTextNode(String(c)));
   });
@@ -333,7 +346,6 @@ function backBtn(label, target, params) {
   return el('button', { class: 'back-btn', onclick: () => back(target, params) }, '← ' + (label || 'Назад'));
 }
 
-// ================= FIREBASE HELPERS =================
 function compressImage(file, maxW) {
   maxW = maxW || 800;
   return new Promise((resolve, reject) => {
@@ -375,56 +387,144 @@ function uploadToImgBB(file) {
   });
 }
 
-// ================= AUTH =================
-let sessionRestored = false;
+// ================= ПРИВЕТСТВЕННОЕ ОКНО =================
+function showWelcome() {
+  const hasSeen = localStorage.getItem('awer_welcome_seen');
+  if (hasSeen) return;
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'welcome-overlay';
+  overlay.innerHTML = `
+    <div class="welcome-modal">
+      <div class="welcome-icon"></div>
+      <h1>Добро пожаловать в awer!</h1>
+      <div class="subtitle">Команда awer наконец-то сделала это!</div>
+      <div class="description">
+        Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, 
+        а пользователи — находить и покупать их напрямую у авторов.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📱</div>
+          <div class="feature-text">Тысячи приложений</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text">Безопасные сделки</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💬</div>
+          <div class="feature-text">Прямой чат с продавцом</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">Мгновенная загрузка</div>
+        </div>
+      </div>
+      <button class="welcome-btn" onclick="this.closest('.welcome-overlay').remove(); localStorage.setItem('awer_welcome_seen', 'true');">
+        Начать исследование 🚀
+      </button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
 
-auth.onAuthStateChanged(function (user) {
-  if (user) {
-    db.collection('users').doc(user.uid).get().then(function (doc) {
-      if (doc.exists) {
-        const data = doc.data();
-        S.cu = { uid: user.uid, name: data.name, email: data.email, role: data.role || 'buyer', avatar: data.avatar || user.displayName || data.name[0], verified: data.verified || false, blocked: data.blocked || false };
-      } else {
-        S.cu = { uid: user.uid, name: user.displayName || 'Пользователь', email: user.email, role: 'buyer', avatar: (user.displayName || 'П')[0], verified: false, blocked: false };
-      }
+// ================= АВТОРИЗАЦИЯ ПО НИКУ И ПАРОЛЮ =================
+
+const savedNick = localStorage.getItem('awer_nick');
+if (savedNick) {
+  db.collection('users').where('nick', '==', savedNick).limit(1).get().then(snap => {
+    if (!snap.empty) {
+      const doc = snap.docs[0];
+      const data = doc.data();
+      S.cu = { uid: doc.id, name: data.name || savedNick, nick: savedNick, role: data.role || 'buyer', avatar: data.avatar || savedNick[0], verified: data.verified || false, blocked: data.blocked || false };
       if (S.cu.blocked) {
-        auth.signOut();
         S.cu = null;
+        localStorage.removeItem('awer_nick');
         toast('Аккаунт заблокирован', '', 'error');
       }
-      saveSettings();
-      render();
-      if (sessionRestored) {
-        sessionRestored = false;
-        setTimeout(() => toast('С возвращением!', S.cu.name, 'success'), 300);
-      }
-    }).catch(function () {
-      S.cu = { uid: user.uid, name: user.displayName || 'Пользователь', email: user.email, role: 'buyer', avatar: (user.displayName || 'П')[0], verified: false, blocked: false };
-      saveSettings(); render();
-    });
-  } else {
-    S.cu = null;
+    }
     saveSettings();
     render();
-  }
-});
+    showWelcome();
+  }).catch(() => {
+    saveSettings();
+    render();
+    showWelcome();
+  });
+} else {
+  saveSettings();
+  render();
+  showWelcome();
+}
 
 function saveSettings() {
   localStorage.setItem('awer_theme', S.theme);
   localStorage.setItem('awer_settings', JSON.stringify(S.settings));
 }
 
-function login(email, password) { return auth.signInWithEmailAndPassword(email, password); }
-function register(name, email, password, role) {
-  return auth.createUserWithEmailAndPassword(email, password).then(function (cred) {
-    return cred.user.updateProfile({ displayName: name }).then(function () {
-      return db.collection('users').doc(cred.user.uid).set({
-        name: name, email: email, role: role || 'buyer', avatar: name[0], verified: false, blocked: false, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+function registerWithNick(nick, password, role) {
+  return new Promise((resolve, reject) => {
+    db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
+      if (!snap.empty) {
+        reject(new Error('Этот ник уже занят. Выберите другой.'));
+        return;
+      }
+      const fakeEmail = nick.toLowerCase().replace(/[^a-z0-9]/g, '') + '@awer.local';
+      auth.createUserWithEmailAndPassword(fakeEmail, password).then(cred => {
+        return db.collection('users').doc(cred.user.uid).set({
+          nick: nick,
+          name: nick,
+          email: fakeEmail,
+          role: role || 'buyer',
+          avatar: nick[0],
+          verified: false,
+          blocked: false,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }).then(() => {
+        resolve({ nick: nick, role: role || 'buyer' });
+      }).catch(err => {
+        if (err.code === 'auth/email-already-in-use') {
+          reject(new Error('Этот ник уже занят. Выберите другой.'));
+        } else if (err.code === 'auth/weak-password') {
+          reject(new Error('Пароль слишком короткий. Минимум 6 символов.'));
+        } else {
+          reject(new Error(err.message));
+        }
       });
-    });
+    }).catch(err => reject(err));
   });
 }
-function logoutUser() { return auth.signOut(); }
+
+function loginWithNick(nick, password) {
+  return new Promise((resolve, reject) => {
+    db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
+      if (snap.empty) {
+        reject(new Error('Пользователь с таким ником не найден.'));
+        return;
+      }
+      const doc = snap.docs[0];
+      const data = doc.data();
+      const fakeEmail = data.email || (nick.toLowerCase().replace(/[^a-z0-9]/g, '') + '@awer.local');
+      auth.signInWithEmailAndPassword(fakeEmail, password).then(() => {
+        resolve({ uid: doc.id, nick: nick, name: data.name || nick, role: data.role || 'buyer', avatar: data.avatar || nick[0], verified: data.verified || false, blocked: data.blocked || false });
+      }).catch(err => {
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+          reject(new Error('Неверный пароль.'));
+        } else {
+          reject(new Error('Ошибка входа: ' + err.message));
+        }
+      });
+    }).catch(err => reject(err));
+  });
+}
+
+function logoutUser() {
+  localStorage.removeItem('awer_nick');
+  S.cu = null;
+  return auth.signOut();
+}
 
 function getApps(callback) {
   db.collection('apps').where('status', '==', 'verified').orderBy('createdAt', 'desc').get()
@@ -442,7 +542,6 @@ function getAppById(id, callback) {
     .catch(() => callback(null));
 }
 
-// ================= RENDER CORE =================
 function render() {
   document.documentElement.setAttribute('data-theme', S.theme);
   const r = $('#app'); r.innerHTML = '';
@@ -482,7 +581,7 @@ function rHeader() {
   const acts = el('div', { class: 'header-actions' });
   acts.append(el('button', { class: 'icon-btn', onclick: () => { S.theme = S.theme === 'light' ? 'dark' : 'light'; saveSettings(); render(); } }, S.theme === 'light' ? '🌙' : '☀️'));
   if (S.cu) {
-    acts.append(el('div', { class: 'avatar-btn', onclick: () => nav('profile') }, S.cu.avatar || S.cu.name[0]));
+    acts.append(el('div', { class: 'avatar-btn', onclick: () => nav('profile') }, S.cu.avatar || '👤'));
   } else {
     acts.append(el('button', { class: 'btn btn-outline btn-sm', onclick: showAuth }, 'Войти'));
   }
@@ -503,7 +602,7 @@ function rTabs() {
 function rMobileNav() {
   const n = el('nav', { class: 'mobile-nav' });
   const i = el('div', { class: 'mobile-nav-inner' });
-  const items = [{ id: 'home', i: '🏠', l: 'Главная' }, { id: 'catalog', i: '🔍', l: 'Каталог' }, { id: 'orders', i: '📋', l: 'Заявки' }, { id: 'library', i: '📚', l: 'Библиотека' }, { id: 'profile', i: '👤', l: 'Профиль' }];
+  const items = [{ id: 'home', i: '🏠', l: 'Главная' }, { id: 'catalog', i: '', l: 'Каталог' }, { id: 'orders', i: '', l: 'Заявки' }, { id: 'library', i: '', l: 'Библиотека' }, { id: 'profile', i: '👤', l: 'Профиль' }];
   items.forEach(it => {
     i.append(el('button', { class: 'mobile-nav-btn' + (S.route.p === it.id ? ' active' : ''), onclick: () => nav(it.id) }, el('span', { class: 'ico' }, it.i), el('span', {}, it.l)));
   });
@@ -612,7 +711,7 @@ function rCatalog() {
     w.append(ch);
     
     if (apps.length === 0) {
-      w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔍'), el('h3', {}, 'Ничего не найдено')));
+      w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Ничего не найдено')));
     } else {
       const g = el('div', { class: 'app-list' });
       apps.forEach(a => { g.append(rAppItem(a)); });
@@ -678,11 +777,11 @@ function rAppPage() {
     if (a.fileName && canDownload) {
       info.append(el('div', { style: 'margin:12px 0;padding:14px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)' },
         el('div', { style: 'display:flex;align-items:center;gap:12px;margin-bottom:8px' },
-          el('span', { style: 'font-size:28px' }, '📦'),
+          el('span', { style: 'font-size:28px' }, ''),
           el('div', { style: 'flex:1' }, el('div', { style: 'font-weight:500;font-size:14px' }, a.fileName), el('div', { style: 'font-size:12px;color:var(--text2);margin-top:2px' }, fsize(a.fileSize)))),
         el('a', { class: 'btn btn-primary', style: 'width:100%', href: a.fileUrl || '#', target: '_blank', download: a.fileName || 'file' }, '⬇ Скачать файл')));
     } else if (a.fileName) {
-      info.append(el('div', { style: 'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)' }, el('span', {}, '📦 '), 'Файл: ', el('strong', {}, a.fileName), ' (', fsize(a.fileSize), ') — доступен после покупки'));
+      info.append(el('div', { style: 'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)' }, el('span', {}, ' '), 'Файл: ', el('strong', {}, a.fileName), ' (', fsize(a.fileSize), ') — доступен после покупки'));
     }
     
     const acts = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin:16px 0' });
@@ -692,7 +791,6 @@ function rAppPage() {
     info.append(acts);
     top.append(iconDiv, info); w.append(top);
     
-    // Screenshots
     const ss = el('section', { class: 'about-section' }); ss.append(el('h3', {}, 'Скриншоты'));
     const sc = el('div', { class: 'screenshots' });
     if (a.screenshots && a.screenshots.length > 0) {
@@ -706,7 +804,6 @@ function rAppPage() {
     }
     ss.append(sc); w.append(ss);
     
-    // About
     const ab = el('section', { class: 'about-section' });
     ab.append(el('h3', {}, 'Об этом приложении')); ab.append(el('p', {}, a.desc || ''));
     if (a.features && a.features.length) {
@@ -719,7 +816,6 @@ function rAppPage() {
     
     w.append(el('section', { class: 'about-section' }, el('div', { class: 'chat-warning' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи. Оплата в чате с продавцом. Если обманули — напишите в поддержку.')));
     
-    // Reviews
     const rs = el('section', { class: 'about-section' }); rs.append(el('h3', {}, 'Оценки и отзывы'));
     db.collection('apps').doc(a.id).collection('reviews').orderBy('createdAt', 'desc').get().then(snapshot => {
       if (snapshot.empty) { rs.append(el('p', { style: 'color:var(--text2)' }, 'Пока нет отзывов')); }
@@ -751,7 +847,7 @@ function toggleFav(appId, isFav, currentFavs) {
 function rFavorites() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
   w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:16px' }, 'Избранное'));
-  if (!S.cu) { w.append(needAuth()); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'))); return w; }
   const cuId = S.cu.uid;
   const favs = JSON.parse(localStorage.getItem('awer_favs_' + cuId) || '{}');
   const ids = Object.keys(favs);
@@ -772,13 +868,10 @@ function rFavorites() {
   return w;
 }
 
-function needAuth() { return el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Требуется вход'), el('button', { class: 'btn btn-primary', style: 'margin-top:14px', onclick: showAuth }, 'Войти')); }
-
-// ================= ORDERS & CHAT =================
 function rOrders() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
   w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:16px' }, 'Мои заявки'));
-  if (!S.cu) { w.append(needAuth()); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
   
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
@@ -820,7 +913,7 @@ function rOrders() {
 
 function rChat() {
   const w = el('div', { class: 'container' });
-  if (!S.cu) { w.append(needAuth()); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
   const orderId = (S.route.params && S.route.params.orderId) ? S.route.params.orderId : null;
   if (!orderId) { w.append(backBtn('Заявки', 'orders')); w.append(el('div', { class: 'empty' }, el('h3', {}, 'Чат не найден'))); return w; }
   
@@ -945,11 +1038,11 @@ function rChat() {
 function rLibrary() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
   w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:16px' }, 'Моя библиотека'));
-  if (!S.cu) { w.append(needAuth()); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'))); return w; }
   const cuId = S.cu.uid;
   const lib = JSON.parse(localStorage.getItem('awer_lib_' + cuId) || '{}');
   const ids = Object.keys(lib);
-  if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '📚'), el('h3', {}, 'Библиотека пуста'))); return w; }
+  if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Библиотека пуста'))); return w; }
   
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
@@ -972,15 +1065,14 @@ function rLibrary() {
   return w;
 }
 
-// ================= PROFILE & SETTINGS =================
 function rProfile() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
-  if (!S.cu) { w.append(needAuth()); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'), el('button', { class: 'btn btn-primary', style: 'margin-top:14px', onclick: showAuth }, 'Войти'))); return w; }
   const u = S.cu; const g = el('div', { class: 'profile-grid' });
   const card = el('div', { class: 'profile-card' });
   card.append(el('div', { class: 'profile-avatar' }, u.avatar || u.name[0]));
   card.append(el('h3', {}, u.name, u.verified ? el('span', { class: 'verified', style: 'margin-left:6px' }, '✓') : null));
-  card.append(el('p', {}, u.email));
+  card.append(el('p', { style: 'font-size:13px;color:var(--text2);margin-bottom:14px' }, '@' + u.nick));
   card.append(el('p', { style: 'font-size:11px;color:var(--text2);margin-bottom:14px' }, u.role === 'buyer' ? 'Покупатель' : u.role === 'developer' ? 'Разработчик' : 'Администратор'));
   const logoutBtn = el('button', { class: 'btn btn-text btn-sm', style: 'width:100%' });
   logoutBtn.textContent = 'Выйти';
@@ -989,7 +1081,7 @@ function rProfile() {
   
   const menu = el('div', { class: 'profile-menu' });
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
-  const menuItems = [['info', '', 'Аккаунт'], ['orders', '', 'Заявки'], ['library', '📚', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '⚙️', 'Настройки'], ['support', '🆘', 'Поддержка']];
+  const menuItems = [['info', '👤', 'Аккаунт'], ['orders', '📋', 'Заявки'], ['library', '📚', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '⚙️', 'Настройки'], ['support', '🆘', 'Поддержка']];
   menuItems.forEach(x => {
     menu.append(el('button', { class: 'profile-menu-item' + (tab === x[0] ? ' active' : ''), onclick: () => nav('profile', { tab: x[0] }) }, el('span', {}, x[1]), el('span', {}, x[2])));
   });
@@ -1008,15 +1100,13 @@ function rProfile() {
   const content = el('div', {});
   if (tab === 'info') {
     content.append(el('div', { class: 'about-section' }, el('h3', {}, 'Личные данные'),
-      el('div', { class: 'form-group' }, el('label', {}, 'Имя'), el('input', { class: 'form-control', id: 'pN', value: u.name })),
-      el('div', { class: 'form-group' }, el('label', {}, 'Email'), el('input', { class: 'form-control', id: 'pE', value: u.email, disabled: true })),
+      el('div', { class: 'form-group' }, el('label', {}, 'Ник'), el('input', { class: 'form-control', id: 'pN', value: u.name })),
       el('button', { class: 'btn btn-primary', onclick: () => {
         const newName = $('#pN').value.trim();
-        auth.currentUser.updateProfile({ displayName: newName }).then(() => {
-          db.collection('users').doc(S.cu.uid).update({ name: newName, avatar: newName[0] });
-          S.cu.name = newName; S.cu.avatar = newName[0];
-          render(); toast('Сохранено', '', 'success');
-        }).catch(e => { toast('Ошибка', e.message, 'error'); });
+        if (!newName) { toast('Введите ник', '', 'error'); return; }
+        db.collection('users').doc(S.cu.uid).update({ name: newName, avatar: newName[0] });
+        S.cu.name = newName; S.cu.avatar = newName[0];
+        render(); toast('Сохранено', '', 'success');
       } }, 'Сохранить')));
   } else if (tab === 'orders') { nav('orders'); return w; }
   else if (tab === 'library') { nav('library'); return w; }
@@ -1033,17 +1123,16 @@ function rSettings() {
   w.append(el('p', { style: 'color:var(--text2);margin-bottom:20px' }, 'Управление аккаунтом'));
   const list = el('div', { class: 'settings-list' });
   const items = [
-    { i: '👤', t: 'Аккаунт и вход', d: S.cu ? S.cu.email : 'Не входили', a: () => nav('settingsSub', { sub: 'account' }) },
+    { i: '', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme' },
     { i: '🔔', t: 'Уведомления', d: S.settings.notif ? 'Включены' : 'Выключены', tg: true, k: 'notif' },
-    { i: '🎨', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme' },
     { i: '🔊', t: 'Звуки', d: S.settings.sound ? 'Включены' : 'Выключены', tg: true, k: 'sound' },
     { i: '🔄', t: 'Автообновление', d: S.settings.autoUpd ? 'Включено' : 'Выключено', tg: true, k: 'autoUpd' },
     { i: '🌐', t: 'Язык', d: 'Русский', a: () => nav('settingsSub', { sub: 'lang' }) },
-    { i: '🔒', t: 'Конфиденциальность', d: 'Настройки приватности', a: () => nav('settingsSub', { sub: 'privacy' }) },
-    { i: '👨‍👩‍👧', t: 'Родительский контроль', d: S.settings.parental ? 'Включён' : 'Выключен', tg: true, k: 'parental' },
+    { i: '', t: 'Конфиденциальность', d: 'Настройки приватности', a: () => nav('settingsSub', { sub: 'privacy' }) },
+    { i: '👨‍‍', t: 'Родительский контроль', d: S.settings.parental ? 'Включён' : 'Выключен', tg: true, k: 'parental' },
     { i: 'ℹ️', t: 'О приложении', d: 'awer v1.0', a: () => nav('settingsSub', { sub: 'about' }) },
     { i: '❓', t: 'Помощь', d: 'FAQ', a: () => nav('settingsSub', { sub: 'help' }) },
-    { i: '📄', t: 'Условия использования', d: 'Правила', a: () => nav('settingsSub', { sub: 'terms' }) }
+    { i: '', t: 'Условия использования', d: 'Правила', a: () => nav('settingsSub', { sub: 'terms' }) }
   ];
   items.forEach(it => {
     const row = el('div', { class: 'settings-item' });
@@ -1071,22 +1160,7 @@ function rSettingsSub() {
   const w = el('div', { class: 'container' });
   const sub = (S.route.params && S.route.params.sub) ? S.route.params.sub : '';
   w.append(backBtn('Настройки', 'settings'));
-  if (sub === 'account') {
-    w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Аккаунт'));
-    if (!S.cu) { w.append(needAuth()); return w; }
-    w.append(el('div', { class: 'about-section' },
-      el('div', { class: 'form-group' }, el('label', {}, 'Имя'), el('input', { class: 'form-control', id: 'pN', value: S.cu.name })),
-      el('div', { class: 'form-group' }, el('label', {}, 'Email'), el('input', { class: 'form-control', id: 'pE', value: S.cu.email, disabled: true })),
-      el('div', { class: 'form-group' }, el('label', {}, 'Новый пароль'), el('input', { class: 'form-control', id: 'pP', type: 'password', placeholder: 'Оставьте пустым' })),
-      el('button', { class: 'btn btn-primary', onclick: () => {
-        const np = $('#pP').value;
-        const newName = $('#pN').value.trim();
-        const promises = [];
-        if (newName && newName !== S.cu.name) { promises.push(auth.currentUser.updateProfile({ displayName: newName })); promises.push(db.collection('users').doc(S.cu.uid).update({ name: newName, avatar: newName[0] })); S.cu.name = newName; S.cu.avatar = newName[0]; }
-        if (np) { promises.push(auth.currentUser.updatePassword(np)); }
-        Promise.all(promises).then(() => { render(); toast('Сохранено', '', 'success'); }).catch(e => { toast('Ошибка', e.message, 'error'); });
-      } }, 'Сохранить')));
-  } else if (sub === 'lang') {
+  if (sub === 'lang') {
     w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Язык'));
     const l = el('div', { class: 'settings-list' });
     [['ru', 'Русский', '✓'], ['en', 'English', '']].forEach(x => {
@@ -1096,7 +1170,7 @@ function rSettingsSub() {
   } else if (sub === 'privacy') {
     w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:20px' }, 'Конфиденциальность'));
     const l = el('div', { class: 'settings-list' });
-    ['Показывать профиль', 'Показывать активность', 'Скрывать email'].forEach(n => {
+    ['Показывать профиль', 'Показывать активность', 'Скрывать ник'].forEach(n => {
       const row = el('div', { class: 'settings-item' });
       row.append(el('div', { class: 'settings-info' }, el('strong', {}, n)));
       const tg = el('div', { class: 'toggle on' });
@@ -1117,12 +1191,11 @@ function rSettingsSub() {
   return w;
 }
 
-// ================= SUPPORT =================
 function rSupport() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Профиль', 'profile'));
   w.append(el('h1', { style: 'font-size:24px;font-weight:500;margin-bottom:10px' }, '🆘 Поддержка'));
   w.append(el('p', { style: 'color:var(--text2);margin-bottom:20px' }, 'Если продавец обманул — напишите нам.'));
-  if (!S.cu) { w.append(needAuth()); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
   
   const form = el('div', { class: 'about-section' }); form.append(el('h3', {}, 'Новое обращение'));
   form.append(el('div', { class: 'form-group' }, el('label', {}, 'Тема'), el('input', { class: 'form-control', id: 'sT', placeholder: 'Продавец не дал приложение' })));
@@ -1130,7 +1203,7 @@ function rSupport() {
   const submitBtn = el('button', { class: 'btn btn-primary' }); submitBtn.textContent = 'Отправить';
   submitBtn.addEventListener('click', () => {
     const th = $('#sT').value.trim(), tx = $('#sX').value.trim();
-    if (!th || !tx) { toast('Ошибка', 'Заполните поля', 'error'); return; }
+    if (!th || !tx) { toast('Заполните поля', '', 'error'); return; }
     db.collection('supports').add({ userId: S.cu.uid, userName: S.cu.name, theme: th, text: tx, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp() })
       .then(() => { toast('Отправлено', '', 'success'); render(); });
   });
@@ -1193,14 +1266,13 @@ function openSupModal(orderId) {
   foot.append(el('button', { class: 'btn btn-text', onclick: closeM }, 'Отмена'));
   const submitBtn = el('button', { class: 'btn btn-primary' }); submitBtn.textContent = 'Отправить';
   submitBtn.addEventListener('click', () => {
-    const t = $('#sD').value.trim(); if (!t) { toast('Ошибка', 'Опишите проблему', 'error'); return; }
+    const t = $('#sD').value.trim(); if (!t) { toast('Опишите проблему', '', 'error'); return; }
     db.collection('supports').add({ userId: S.cu.uid, userName: S.cu.name, theme: 'Проблема со сделкой', text: t, orderId: orderId, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp() })
       .then(() => { closeM(); toast('Отправлено', '', 'success'); });
   });
   foot.append(submitBtn); m.append(body, foot); openM(m);
 }
 
-// ================= DEVELOPER =================
 function rDeveloper() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Профиль', 'profile'));
   if (!S.cu || S.cu.role !== 'developer') { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Нужен аккаунт разработчика'))); return w; }
@@ -1288,7 +1360,7 @@ function rAddApp() {
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Цена (0 = бесплатно)'), el('input', { class: 'form-control', id: 'f_price', type: 'number', value: '0', min: '0' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Старая цена'), el('input', { class: 'form-control', id: 'f_oldPrice', type: 'number', value: '0', min: '0' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Версия'), el('input', { class: 'form-control', id: 'f_ver', value: '1.0.0' })));
-  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Иконка (эмодзи)'), el('input', { class: 'form-control', id: 'f_icon', value: '🚀', maxlength: '2' })));
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Иконка (эмодзи)'), el('input', { class: 'form-control', id: 'f_icon', value: '', maxlength: '2' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Иконка (изображение, необязательно)'), el('input', { type: 'file', id: 'f_iconFile', accept: 'image/*' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Возможности (через запятую)'), el('input', { class: 'form-control', id: 'f_features' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Системные требования'), el('input', { class: 'form-control', id: 'f_sys' })));
@@ -1313,7 +1385,7 @@ function rAddApp() {
   ssInput.addEventListener('change', function (e) {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    if (pendingScreenshots.length + files.length > 10) { toast('Ошибка', 'Максимум 10 скриншотов', 'error'); ssInput.value = ''; return; }
+    if (pendingScreenshots.length + files.length > 10) { toast('Максимум 10 скриншотов', '', 'error'); ssInput.value = ''; return; }
     ssProgress.style.display = 'block';
     let processed = 0; const total = files.length;
     function processNext() {
@@ -1347,8 +1419,8 @@ function rAddApp() {
   pubBtn.textContent = 'Опубликовать';
   pubBtn.addEventListener('click', () => {
     const name = $('#f_name').value.trim(); const desc = $('#f_desc').value.trim();
-    if (!name) { toast('Ошибка', 'Введите название', 'error'); return; }
-    if (!desc) { toast('Ошибка', 'Введите описание', 'error'); return; }
+    if (!name) { toast('Введите название', '', 'error'); return; }
+    if (!desc) { toast('Введите описание', '', 'error'); return; }
     pubBtn.disabled = true; pubBtn.textContent = 'Публикация...';
     const iconFileEl = $('#f_iconFile');
     const iconFile = iconFileEl && iconFileEl.files ? iconFileEl.files[0] : null;
@@ -1384,7 +1456,6 @@ function rAddApp() {
   return f;
 }
 
-// ================= ADMIN =================
 function rAdmin() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Профиль', 'profile'));
   if (!S.cu || S.cu.role !== 'admin') { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Доступ запрещён'))); return w; }
@@ -1413,10 +1484,10 @@ function rAdmin() {
       snap.forEach(doc => {
         const a = { id: doc.id, ...doc.data() };
         const r = el('div', { class: 'order-card' });
-        const sm = { verified: ['status-verified', '🟢'], pending: ['status-pending', '🟡'], blocked: ['status-blocked', '🔴'] };
+        const sm = { verified: ['status-verified', ''], pending: ['status-pending', ''], blocked: ['status-blocked', '🔴'] };
         const st = sm[a.status] || sm.pending;
         if (a.iconUrl) { r.append(el('div', { class: 'order-icon' }, el('img', { src: a.iconUrl }))); }
-        else { r.append(el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '📱')); }
+        else { r.append(el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '')); }
         r.append(el('div', { class: 'order-info' }, el('h4', {}, a.name), el('p', {}, (a.devName || '—') + (a.devVerified ? ' ✓' : '') + ' · ' + fp(a.price) + (a.fileName ? ' · 📎' : '') + (a.screenshots && a.screenshots.length ? ' · 🖼 ' + a.screenshots.length : '')), el('span', { class: 'status-badge ' + st[0] }, st[1])));
         const ac = el('div', { class: 'order-actions' });
         if (a.status !== 'verified') {
@@ -1443,7 +1514,7 @@ function rAdmin() {
       snap.forEach(doc => {
         const u = { uid: doc.id, ...doc.data() };
         const r = el('div', { class: 'order-card' });
-        r.append(el('div', { class: 'order-icon' }, u.avatar || u.name[0]), el('div', { class: 'order-info' }, el('h4', {}, u.name, u.verified ? el('span', { class: 'verified', style: 'margin-left:6px' }, '✓') : null), el('p', {}, u.email + ' · ' + u.role)));
+        r.append(el('div', { class: 'order-icon' }, u.avatar || u.name[0]), el('div', { class: 'order-info' }, el('h4', {}, u.name, u.verified ? el('span', { class: 'verified', style: 'margin-left:6px' }, '✓') : null), el('p', {}, '@' + (u.nick || u.name) + ' · ' + u.role)));
         const ac = el('div', { class: 'order-actions' });
         if (u.role === 'developer') {
           const verifyBtn = el('button', { class: 'btn ' + (u.verified ? 'btn-outline' : 'btn-primary') + ' btn-sm' });
@@ -1559,30 +1630,39 @@ function rAbout() {
   return w;
 }
 
-// ================= AUTH MODAL =================
 function showAuth() {
   const m = el('div', {});
-  const head = el('div', { class: 'modal-head' }, el('h2', {}, 'Войти в awer'), el('button', { class: 'modal-close', onclick: closeM }, '✕'));
+  const head = el('div', { class: 'modal-head' }, el('h2', {}, 'Войти в awer'), el('button', { class: 'modal-close', onclick: closeM }, ''));
   const body = el('div', { class: 'modal-body' });
   let mode = 'login';
   
   function rf() {
     body.innerHTML = '';
     if (mode === 'login') {
-      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Email'), el('input', { class: 'form-control', id: 'aE', placeholder: 'Введите email' })));
-      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Пароль'), el('input', { class: 'form-control', id: 'aP', type: 'password', placeholder: 'Введите пароль' })));
+      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Ник'), el('input', { class: 'form-control', id: 'aNick', placeholder: 'Введите ваш ник' })));
+      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Пароль'), el('input', { class: 'form-control', id: 'aPass', type: 'password', placeholder: 'Введите пароль' })));
       const loginBtn = el('button', { class: 'btn btn-primary', style: 'width:100%;margin-bottom:10px' });
       loginBtn.textContent = 'Войти';
       loginBtn.addEventListener('click', () => {
-        const e = $('#aE').value.trim(), p = $('#aP').value;
-        login(e, p).catch(err => { toast('Ошибка', err.message, 'error'); });
+        const nick = $('#aNick').value.trim();
+        const pass = $('#aPass').value;
+        if (!nick || !pass) { toast('Заполните все поля', '', 'error'); return; }
+        loginWithNick(nick, pass).then(result => {
+          S.cu = result;
+          localStorage.setItem('awer_nick', nick);
+          saveSettings();
+          closeM();
+          render();
+          toast('Добро пожаловать!', nick, 'success');
+        }).catch(err => {
+          toast('Ошибка', err.message, 'error');
+        });
       });
       body.append(loginBtn);
       body.append(el('p', { style: 'text-align:center;font-size:13px;color:var(--text2);margin-top:10px' }, 'Нет аккаунта? ', el('span', { style: 'color:var(--accent);cursor:pointer;font-weight:500', onclick: () => { mode = 'register'; rf(); } }, 'Зарегистрироваться')));
     } else {
-      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Имя'), el('input', { class: 'form-control', id: 'rN' })));
-      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Email'), el('input', { class: 'form-control', id: 'rE' })));
-      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Пароль'), el('input', { class: 'form-control', id: 'rP', type: 'password' })));
+      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Ник'), el('input', { class: 'form-control', id: 'rNick', placeholder: 'Придумайте ник' })));
+      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Пароль'), el('input', { class: 'form-control', id: 'rPass', type: 'password', placeholder: 'Минимум 6 символов' })));
       body.append(el('div', { class: 'form-group' }, el('label', {}, 'Тип аккаунта')));
       const rg = el('div', { class: 'radio-group' });
       [['buyer', 'Покупатель'], ['developer', 'Разработчик']].forEach((x, idx) => {
@@ -1598,11 +1678,23 @@ function showAuth() {
       const regBtn = el('button', { class: 'btn btn-primary', style: 'width:100%;margin-top:10px' });
       regBtn.textContent = 'Зарегистрироваться';
       regBtn.addEventListener('click', () => {
-        const n = $('#rN').value.trim(), e = $('#rE').value.trim(), p = $('#rP').value;
+        const nick = $('#rNick').value.trim();
+        const pass = $('#rPass').value;
         const roleEl = $('.radio-item.selected', rg);
         const role = roleEl ? roleEl.getAttribute('data-val') : 'buyer';
-        if (!n || !e || !p) { toast('Ошибка', 'Заполните все поля', 'error'); return; }
-        register(n, e, p, role).catch(err => { toast('Ошибка', err.message, 'error'); });
+        if (!nick || !pass) { toast('Заполните все поля', '', 'error'); return; }
+        if (nick.length < 3) { toast('Ник должен быть минимум 3 символа', '', 'error'); return; }
+        if (pass.length < 6) { toast('Пароль должен быть минимум 6 символов', '', 'error'); return; }
+        registerWithNick(nick, pass, role).then(result => {
+          S.cu = { uid: auth.currentUser.uid, name: nick, nick: nick, role: result.role, avatar: nick[0], verified: false, blocked: false };
+          localStorage.setItem('awer_nick', nick);
+          saveSettings();
+          closeM();
+          render();
+          toast('Аккаунт создан!', nick, 'success');
+        }).catch(err => {
+          toast('Ошибка', err.message, 'error');
+        });
       });
       body.append(regBtn);
       body.append(el('p', { style: 'text-align:center;font-size:13px;color:var(--text2);margin-top:10px' }, 'Есть аккаунт? ', el('span', { style: 'color:var(--accent);cursor:pointer;font-weight:500', onclick: () => { mode = 'login'; rf(); } }, 'Войти')));
@@ -1611,7 +1703,6 @@ function showAuth() {
   rf(); m.append(head, body); openM(m);
 }
 
-// ================= MODALS =================
 function openOrder(appId) {
   if (!S.cu) { showAuth(); return; }
   getAppById(appId, function (a) {
@@ -1641,7 +1732,7 @@ function openOrder(appId) {
     submitBtn.addEventListener('click', () => {
       const methodEl = $('.radio-item.selected', rg);
       const method = methodEl ? methodEl.getAttribute('data-val') : '';
-      if (!method) { toast('Ошибка', 'Выберите способ', 'error'); return; }
+      if (!method) { toast('Выберите способ', '', 'error'); return; }
       const names = { bank: 'Банковский перевод', other: 'Другой способ', discuss: 'Обсудить в чате' };
       db.collection('orders').add({
         appId: a.id, appName: a.name, appIcon: a.icon, appIconUrl: a.iconUrl,
@@ -1681,7 +1772,7 @@ function openReport(appId) {
     submitBtn.addEventListener('click', () => {
       const reasonEl = $('.radio-item.selected', rg);
       const reason = reasonEl ? reasonEl.getAttribute('data-val') : '';
-      if (!reason) { toast('Ошибка', 'Выберите причину', 'error'); return; }
+      if (!reason) { toast('Выберите причину', '', 'error'); return; }
       db.collection('reports').add({ appId: a.id, appName: a.name, appIcon: a.icon, userId: S.cu.uid, reason: reason, resolved: null, createdAt: firebase.firestore.FieldValue.serverTimestamp() })
         .then(() => { closeM(); toast('Отправлено', '', 'success'); });
     });
@@ -1717,7 +1808,6 @@ function openScreenshotViewer(screenshots, currentSh) {
   m.append(body); openM(m, true);
 }
 
-// ================= INIT =================
 saveSettings();
 render();
 </script>
