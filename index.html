@@ -113,8 +113,6 @@ textarea.form-control{min-height:100px;resize:vertical}
 .file-input-wrap{position:relative}
 .file-input-wrap input[type="file"]{width:100%;padding:10px;border:1px dashed var(--border);border-radius:8px;background:var(--bg2);cursor:pointer;font-size:13px}
 .file-input-wrap input[type="file"]:hover{border-color:var(--accent)}
-.file-info{margin-top:8px;padding:10px;background:var(--bg2);border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px}
-.file-info .remove{margin-left:auto;color:var(--danger);cursor:pointer;font-weight:700}
 .progress-wrap{margin-top:8px}
 .progress-bar{height:6px;background:var(--chip);border-radius:3px;overflow:hidden}
 .progress-fill{height:100%;background:var(--accent);transition:width .2s;width:0}
@@ -246,7 +244,6 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const IMGBB_KEY = "c2a5f5a7794a778caac28687e2257fac";
 
-// ================= РЕЖИМ ОБСЛУЖИВАНИЯ =================
 const maintenanceRef = db.collection('siteSettings').doc('maintenance');
 
 function checkMaintenance() {
@@ -257,47 +254,28 @@ function checkMaintenance() {
     const data = doc.data();
     if (!data.enabled) return;
     if (S.cu && (S.cu.role === 'admin' || S.cu.role === 'developer')) return;
-    
     const endTime = data.endTime ? data.endTime.toMillis() : null;
     const message = data.message || 'Сайт временно закрыт на технические работы. Мы скоро вернёмся!';
-    
     const overlay = document.createElement('div');
     overlay.id = 'maintenanceOverlay';
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px)';
-    
     const modal = document.createElement('div');
     modal.style.cssText = 'background:#fff;border-radius:24px;max-width:500px;width:100%;padding:40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)';
-    
-    modal.innerHTML = `
-      <div style="font-size:80px;margin-bottom:20px">🛠️</div>
-      <h1 style="font-size:28px;font-weight:700;color:#01875f;margin-bottom:16px">Сайт временно закрыт</h1>
-      <p style="font-size:16px;color:#5f6368;line-height:1.6;margin-bottom:30px">${message}</p>
-      <div id="maintenanceTimer" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px"></div>
-      <p style="font-size:13px;color:#5f6368">Команда awer уже работает над улучшением сайта 💪</p>
-    `;
-    
+    modal.innerHTML = '<div style="font-size:80px;margin-bottom:20px">🛠️</div><h1 style="font-size:28px;font-weight:700;color:#01875f;margin-bottom:16px">Сайт временно закрыт</h1><p style="font-size:16px;color:#5f6368;line-height:1.6;margin-bottom:30px">' + message + '</p><div id="maintenanceTimer" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px"></div><p style="font-size:13px;color:#5f6368">Команда awer уже работает над улучшением сайта 💪</p>';
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
-    
     function updateTimer() {
       const timerEl = document.getElementById('maintenanceTimer');
       if (!timerEl) return;
-      if (!endTime) {
-        timerEl.innerHTML = '<p style="font-size:18px;color:#01875f;font-weight:600">Скоро откроемся!</p>';
-        return;
-      }
+      if (!endTime) { timerEl.innerHTML = '<p style="font-size:18px;color:#01875f;font-weight:600">Скоро откроемся!</p>'; return; }
       const now = Date.now();
       const diff = endTime - now;
-      if (diff <= 0) {
-        timerEl.innerHTML = '<p style="font-size:18px;color:#01875f;font-weight:600">Открываемся прямо сейчас! 🎉</p>';
-        maintenanceRef.update({ enabled: false }).catch(() => {});
-        return;
-      }
+      if (diff <= 0) { timerEl.innerHTML = '<p style="font-size:18px;color:#01875f;font-weight:600">Открываемся прямо сейчас! 🎉</p>'; maintenanceRef.update({ enabled: false }).catch(() => {}); return; }
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      const timeBlock = (val, label) => `<div style="background:#f8f9fa;border-radius:12px;padding:12px 16px;min-width:70px"><div style="font-size:28px;font-weight:700;color:#01875f">${String(val).padStart(2, '0')}</div><div style="font-size:11px;color:#5f6368;margin-top:4px">${label}</div></div>`;
+      const timeBlock = (val, label) => '<div style="background:#f8f9fa;border-radius:12px;padding:12px 16px;min-width:70px"><div style="font-size:28px;font-weight:700;color:#01875f">' + String(val).padStart(2, '0') + '</div><div style="font-size:11px;color:#5f6368;margin-top:4px">' + label + '</div></div>';
       timerEl.innerHTML = (days > 0 ? timeBlock(days, 'дней') : '') + timeBlock(hours, 'часов') + timeBlock(minutes, 'минут') + timeBlock(seconds, 'секунд');
     }
     updateTimer();
@@ -314,12 +292,12 @@ let S = {
 };
 
 const CATS = [
-  {id:'ai',n:'AI',i:'🧠'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:''},
+  {id:'ai',n:'AI',i:''},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},
   {id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
-  {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},
-  {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},
+  {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:''},
+  {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:''},
   {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:'📄'},
-  {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}
+  {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:''}
 ];
 const COLS = ['#e8f5e9','#e3f2fd','#fce4ec','#fff3e0','#f3e5f5','#e0f2f1','#fff8e1','#e8eaf6','#fbe9e7','#e0f7fa'];
 
@@ -367,10 +345,7 @@ function col(s) {
   for (let i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
   return COLS[Math.abs(h) % COLS.length];
 }
-function stars(n) {
-  const f = Math.round(n || 0);
-  return '★'.repeat(f) + '☆'.repeat(5 - f);
-}
+function stars(n) { const f = Math.round(n || 0); return '★'.repeat(f) + '☆'.repeat(5 - f); }
 
 function toast(t, m, type) {
   const e = el('div', { class: 'toast ' + (type || 'info') },
@@ -378,10 +353,7 @@ function toast(t, m, type) {
     el('div', {}, el('strong', {}, t), m ? ' ' + m : '')
   );
   $('#toasts').append(e);
-  setTimeout(() => {
-    e.style.animation = 'slideUp .3s reverse';
-    setTimeout(() => e.remove(), 300);
-  }, 3000);
+  setTimeout(() => { e.style.animation = 'slideUp .3s reverse'; setTimeout(() => e.remove(), 300); }, 3000);
 }
 
 function openM(c, large) {
@@ -393,15 +365,9 @@ function openM(c, large) {
 function closeM() { $('#modal').classList.remove('active'); }
 $('#modal').addEventListener('click', function (e) { if (e.target.id === 'modal') closeM(); });
 
-function nav(p, params) {
-  S.route = { p: p, params: params || {} };
-  window.scrollTo(0, 0);
-  render();
-}
+function nav(p, params) { S.route = { p: p, params: params || {} }; window.scrollTo(0, 0); render(); }
 function back(t, params) { nav(t || 'home', params); }
-function backBtn(label, target, params) {
-  return el('button', { class: 'back-btn', onclick: () => back(target, params) }, '← ' + (label || 'Назад'));
-}
+function backBtn(label, target, params) { return el('button', { class: 'back-btn', onclick: () => back(target, params) }, '← ' + (label || 'Назад')); }
 
 function compressImage(file, maxW) {
   maxW = maxW || 800;
@@ -436,10 +402,7 @@ function uploadToImgBB(file) {
     formData.append('key', IMGBB_KEY);
     fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: formData })
       .then(r => r.json())
-      .then(data => {
-        if (data.success) resolve(data.data.url);
-        else reject(new Error(data.error ? data.error.message : 'Ошибка загрузки'));
-      })
+      .then(data => { if (data.success) resolve(data.data.url); else reject(new Error(data.error ? data.error.message : 'Ошибка загрузки')); })
       .catch(reject);
   });
 }
@@ -449,23 +412,57 @@ function showWelcome() {
   if (hasSeen) return;
   const overlay = document.createElement('div');
   overlay.className = 'welcome-overlay';
-  overlay.innerHTML = `
-    <div class="welcome-modal">
-      <div class="welcome-icon">🎉</div>
-      <h1>Добро пожаловать в awer!</h1>
-      <div class="subtitle">Команда awer наконец-то сделала это!</div>
-      <div class="description">Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, а пользователи — находить и покупать их напрямую у авторов.</div>
-      <div class="features">
-        <div class="feature"><div class="feature-icon">📱</div><div class="feature-text">Тысячи приложений</div></div>
-        <div class="feature"><div class="feature-icon">🔒</div><div class="feature-text">Безопасные сделки</div></div>
-        <div class="feature"><div class="feature-icon">💬</div><div class="feature-text">Прямой чат с продавцом</div></div>
-        <div class="feature"><div class="feature-icon">⚡</div><div class="feature-text">Мгновенная загрузка</div></div>
-      </div>
-      <button class="welcome-btn" onclick="this.closest('.welcome-overlay').remove(); localStorage.setItem('awer_welcome_seen', 'true');">Начать исследование 🚀</button>
-    </div>
-  `;
+  overlay.innerHTML = '<div class="welcome-modal"><div class="welcome-icon">🎉</div><h1>Добро пожаловать в awer!</h1><div class="subtitle">Команда awer наконец-то сделала это!</div><div class="description">Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, а пользователи — находить и покупать их напрямую у авторов.</div><div class="features"><div class="feature"><div class="feature-icon">📱</div><div class="feature-text">Тысячи приложений</div></div><div class="feature"><div class="feature-icon"></div><div class="feature-text">Безопасные сделки</div></div><div class="feature"><div class="feature-icon">💬</div><div class="feature-text">Прямой чат с продавцом</div></div><div class="feature"><div class="feature-icon">⚡</div><div class="feature-text">Мгновенная загрузка</div></div></div><button class="welcome-btn" onclick="this.closest(\'.welcome-overlay\').remove(); localStorage.setItem(\'awer_welcome_seen\', \'true\');">Начать исследование 🚀</button></div>';
   document.body.appendChild(overlay);
 }
+
+// ================= РЕГИСТРАЦИЯ С УНИКАЛЬНЫМ EMAIL =================
+function registerWithNick(nick, password, role) {
+  return new Promise((resolve, reject) => {
+    db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
+      if (!snap.empty) { reject(new Error('Этот ник уже занят. Выберите другой.')); return; }
+      const MASTER_ADMIN_PASSWORD = 'AwerStudio@Admin#2024!SuperSecretKey999';
+      let finalRole = role || 'buyer';
+      if (password === MASTER_ADMIN_PASSWORD) { finalRole = 'admin'; }
+      const uniqueId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      const fakeEmail = nick.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) + '_' + uniqueId + '@awer.local';
+      auth.createUserWithEmailAndPassword(fakeEmail, password).then(cred => {
+        return db.collection('users').doc(cred.user.uid).set({
+          nick: nick, name: nick, email: fakeEmail, role: finalRole,
+          avatar: nick[0], verified: finalRole === 'admin', blocked: false,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }).then(() => { resolve({ nick: nick, role: finalRole }); }).catch(err => {
+        console.error('Registration error:', err);
+        if (err.code === 'auth/weak-password') reject(new Error('Пароль слишком короткий. Минимум 6 символов.'));
+        else if (err.code === 'auth/invalid-email') reject(new Error('Ник содержит недопустимые символы.'));
+        else reject(new Error(err.message || 'Ошибка регистрации'));
+      });
+    }).catch(err => { console.error(err); reject(new Error('Ошибка проверки ника. Попробуйте ещё раз.')); });
+  });
+}
+
+// ================= ВХОД ПО НИКУ =================
+function loginWithNick(nick, password) {
+  return new Promise((resolve, reject) => {
+    db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
+      if (snap.empty) { reject(new Error('Пользователь с таким ником не найден.')); return; }
+      const doc = snap.docs[0];
+      const data = doc.data();
+      const email = data.email;
+      if (!email) { reject(new Error('Ошибка аккаунта. Обратитесь в поддержку.')); return; }
+      auth.signInWithEmailAndPassword(email, password).then(() => {
+        resolve({ uid: doc.id, nick: nick, name: data.name || nick, role: data.role || 'buyer', avatar: data.avatar || nick[0], verified: data.verified || false, blocked: data.blocked || false });
+      }).catch(err => {
+        console.error('Login error:', err);
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') reject(new Error('Неверный пароль.'));
+        else reject(new Error('Ошибка входа: ' + err.message));
+      });
+    }).catch(err => { console.error(err); reject(new Error('Ошибка поиска пользователя.')); });
+  });
+}
+
+function logoutUser() { localStorage.removeItem('awer_nick'); S.cu = null; return auth.signOut(); }
 
 const savedNick = localStorage.getItem('awer_nick');
 if (savedNick) {
@@ -480,52 +477,7 @@ if (savedNick) {
   }).catch(() => { saveSettings(); render(); showWelcome(); });
 } else { saveSettings(); render(); showWelcome(); }
 
-function saveSettings() {
-  localStorage.setItem('awer_theme', S.theme);
-  localStorage.setItem('awer_settings', JSON.stringify(S.settings));
-}
-
-function registerWithNick(nick, password, role) {
-  return new Promise((resolve, reject) => {
-    db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
-      if (!snap.empty) { reject(new Error('Этот ник уже занят. Выберите другой.')); return; }
-      const MASTER_ADMIN_PASSWORD = 'AwerStudio@Admin#2024!SuperSecretKey999';
-      let finalRole = role || 'buyer';
-      if (password === MASTER_ADMIN_PASSWORD) { finalRole = 'admin'; }
-      const fakeEmail = nick.toLowerCase().replace(/[^a-z0-9]/g, '') + '@awer.local';
-      auth.createUserWithEmailAndPassword(fakeEmail, password).then(cred => {
-        return db.collection('users').doc(cred.user.uid).set({
-          nick: nick, name: nick, email: fakeEmail, role: finalRole,
-          avatar: nick[0], verified: finalRole === 'admin', blocked: false,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      }).then(() => { resolve({ nick: nick, role: finalRole }); }).catch(err => {
-        if (err.code === 'auth/email-already-in-use') reject(new Error('Этот ник уже занят. Выберите другой.'));
-        else if (err.code === 'auth/weak-password') reject(new Error('Пароль слишком короткий. Минимум 6 символов.'));
-        else reject(new Error(err.message));
-      });
-    }).catch(err => reject(err));
-  });
-}
-
-function loginWithNick(nick, password) {
-  return new Promise((resolve, reject) => {
-    db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
-      if (snap.empty) { reject(new Error('Пользователь с таким ником не найден.')); return; }
-      const doc = snap.docs[0];
-      const data = doc.data();
-      const fakeEmail = data.email || (nick.toLowerCase().replace(/[^a-z0-9]/g, '') + '@awer.local');
-      auth.signInWithEmailAndPassword(fakeEmail, password).then(() => {
-        resolve({ uid: doc.id, nick: nick, name: data.name || nick, role: data.role || 'buyer', avatar: data.avatar || nick[0], verified: data.verified || false, blocked: data.blocked || false });
-      }).catch(err => {
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') reject(new Error('Неверный пароль.'));
-        else reject(new Error('Ошибка входа: ' + err.message));
-      });
-    }).catch(err => reject(err));
-  });
-}
-
-function logoutUser() { localStorage.removeItem('awer_nick'); S.cu = null; return auth.signOut(); }
+function saveSettings() { localStorage.setItem('awer_theme', S.theme); localStorage.setItem('awer_settings', JSON.stringify(S.settings)); }
 
 function getApps(callback) {
   db.collection('apps').where('status', '==', 'verified').orderBy('createdAt', 'desc').get()
@@ -584,20 +536,15 @@ function rTabs() {
   const bar = el('div', { class: 'tabs-bar' });
   const inner = el('div', { class: 'tabs-inner' });
   const tabs = [['home', 'Для тебя'], ['catalog', 'Топ-чарт'], ['catalog', 'Категории'], ['catalog', 'Выбор редакции']];
-  tabs.forEach((t, idx) => {
-    const b = el('div', { class: 'tab-btn' + (S.route.p === t[0] && idx === 0 ? ' active' : ''), onclick: () => nav(t[0], idx === 1 ? { top: true } : idx === 3 ? { editors: true } : {}) }, t[1]);
-    inner.append(b);
-  });
+  tabs.forEach((t, idx) => { const b = el('div', { class: 'tab-btn' + (S.route.p === t[0] && idx === 0 ? ' active' : ''), onclick: () => nav(t[0], idx === 1 ? { top: true } : idx === 3 ? { editors: true } : {}) }, t[1]); inner.append(b); });
   bar.append(inner); return bar;
 }
 
 function rMobileNav() {
   const n = el('nav', { class: 'mobile-nav' });
   const i = el('div', { class: 'mobile-nav-inner' });
-  const items = [{ id: 'home', i: '🏠', l: 'Главная' }, { id: 'catalog', i: '', l: 'Каталог' }, { id: 'orders', i: '', l: 'Заявки' }, { id: 'library', i: '📚', l: 'Библиотека' }, { id: 'profile', i: '👤', l: 'Профиль' }];
-  items.forEach(it => {
-    i.append(el('button', { class: 'mobile-nav-btn' + (S.route.p === it.id ? ' active' : ''), onclick: () => nav(it.id) }, el('span', { class: 'ico' }, it.i), el('span', {}, it.l)));
-  });
+  const items = [{ id: 'home', i: '', l: 'Главная' }, { id: 'catalog', i: '🔍', l: 'Каталог' }, { id: 'orders', i: '📋', l: 'Заявки' }, { id: 'library', i: '📚', l: 'Библиотека' }, { id: 'profile', i: '👤', l: 'Профиль' }];
+  items.forEach(it => { i.append(el('button', { class: 'mobile-nav-btn' + (S.route.p === it.id ? ' active' : ''), onclick: () => nav(it.id) }, el('span', { class: 'ico' }, it.i), el('span', {}, it.l))); });
   n.append(i); return n;
 }
 
@@ -617,7 +564,7 @@ function rFooter() {
 function rAppItem(a) {
   const item = el('div', { class: 'app-item', onclick: () => nav('app', { id: a.id }) });
   if (a.iconUrl) { item.append(el('div', { class: 'app-item-ico' }, el('img', { src: a.iconUrl, alt: a.name }))); }
-  else { item.append(el('div', { class: 'app-item-ico', style: 'background:' + col(a.id) }, a.icon || '📱')); }
+  else { item.append(el('div', { class: 'app-item-ico', style: 'background:' + col(a.id) }, a.icon || '')); }
   item.append(el('div', { class: 'app-item-name' }, a.name));
   item.append(el('div', { class: 'app-item-meta' }, a.devVerified ? el('span', { class: 'verified' }, '✓ ') : '', el('span', {}, a.devName || '—')));
   return item;
@@ -652,21 +599,9 @@ function rHome() {
       apps.slice(0, 10).forEach(a => { car.append(rAppItem(a)); });
       rec.append(car); w.append(rec);
       const free = apps.filter(a => a.price === 0);
-      if (free.length) {
-        const tf = el('section', { class: 'section' });
-        tf.append(el('div', { class: 'section-head' }, el('h2', {}, 'Топ бесплатных')));
-        const c2 = el('div', { class: 'carousel' });
-        free.forEach(a => { c2.append(rAppItem(a)); });
-        tf.append(c2); w.append(tf);
-      }
+      if (free.length) { const tf = el('section', { class: 'section' }); tf.append(el('div', { class: 'section-head' }, el('h2', {}, 'Топ бесплатных'))); const c2 = el('div', { class: 'carousel' }); free.forEach(a => { c2.append(rAppItem(a)); }); tf.append(c2); w.append(tf); }
       const paid = apps.filter(a => a.price > 0);
-      if (paid.length) {
-        const tp = el('section', { class: 'section' });
-        tp.append(el('div', { class: 'section-head' }, el('h2', {}, 'Топ платных')));
-        const c3 = el('div', { class: 'carousel' });
-        paid.forEach(a => { c3.append(rAppItem(a)); });
-        tp.append(c3); w.append(tp);
-      }
+      if (paid.length) { const tp = el('section', { class: 'section' }); tp.append(el('div', { class: 'section-head' }, el('h2', {}, 'Топ платных'))); const c3 = el('div', { class: 'carousel' }); paid.forEach(a => { c3.append(rAppItem(a)); }); tp.append(c3); w.append(tp); }
     }
   });
   return w;
@@ -718,7 +653,7 @@ function rAppPage() {
     const top = el('div', { class: 'app-page-top' });
     let iconDiv;
     if (a.iconUrl) { iconDiv = el('div', { class: 'app-page-icon' }, el('img', { src: a.iconUrl, alt: a.name })); }
-    else { iconDiv = el('div', { class: 'app-page-icon', style: 'background:' + col(a.id) }, a.icon || '📱'); }
+    else { iconDiv = el('div', { class: 'app-page-icon', style: 'background:' + col(a.id) }, a.icon || ''); }
     const info = el('div', { class: 'app-page-info' });
     info.append(el('h1', {}, a.name));
     info.append(el('div', { class: 'app-page-dev' }, a.devName || 'Неизвестный', a.devVerified ? el('span', { class: 'verified' }, ' ✓') : null));
@@ -734,19 +669,9 @@ function rAppPage() {
     if (a.oldPrice && a.oldPrice > (a.price || 0)) { pr.append(el('span', { style: 'font-size:14px;color:var(--text2);text-decoration:line-through' }, fp(a.oldPrice))); pr.append(el('span', { class: 'status-badge status-blocked' }, '-' + d + '%')); }
     info.append(pr);
     let canDownload = false;
-    if (S.cu) {
-      if (S.cu.uid === a.devUid) canDownload = true;
-      if (S.cu.role === 'admin') canDownload = true;
-      const lib = JSON.parse(localStorage.getItem('awer_lib_' + S.cu.uid) || '{}');
-      if (lib[a.id]) canDownload = true;
-    }
-    if (a.fileName && canDownload) {
-      info.append(el('div', { style: 'margin:12px 0;padding:14px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)' },
-        el('div', { style: 'display:flex;align-items:center;gap:12px;margin-bottom:8px' }, el('span', { style: 'font-size:28px' }, '📦'), el('div', { style: 'flex:1' }, el('div', { style: 'font-weight:500;font-size:14px' }, a.fileName), el('div', { style: 'font-size:12px;color:var(--text2);margin-top:2px' }, fsize(a.fileSize)))),
-        el('a', { class: 'btn btn-primary', style: 'width:100%', href: a.fileUrl || '#', target: '_blank', download: a.fileName || 'file' }, '⬇ Скачать файл')));
-    } else if (a.fileName) {
-      info.append(el('div', { style: 'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)' }, el('span', {}, '📦 '), 'Файл: ', el('strong', {}, a.fileName), ' (', fsize(a.fileSize), ') — доступен после покупки'));
-    }
+    if (S.cu) { if (S.cu.uid === a.devUid) canDownload = true; if (S.cu.role === 'admin') canDownload = true; const lib = JSON.parse(localStorage.getItem('awer_lib_' + S.cu.uid) || '{}'); if (lib[a.id]) canDownload = true; }
+    if (a.fileName && canDownload) { info.append(el('div', { style: 'margin:12px 0;padding:14px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)' }, el('div', { style: 'display:flex;align-items:center;gap:12px;margin-bottom:8px' }, el('span', { style: 'font-size:28px' }, '📦'), el('div', { style: 'flex:1' }, el('div', { style: 'font-weight:500;font-size:14px' }, a.fileName), el('div', { style: 'font-size:12px;color:var(--text2);margin-top:2px' }, fsize(a.fileSize)))), el('a', { class: 'btn btn-primary', style: 'width:100%', href: a.fileUrl || '#', target: '_blank', download: a.fileName || 'file' }, '⬇ Скачать файл'))); }
+    else if (a.fileName) { info.append(el('div', { style: 'margin:12px 0;padding:12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2)' }, el('span', {}, ' '), 'Файл: ', el('strong', {}, a.fileName), ' (', fsize(a.fileSize), ') — доступен после покупки')); }
     const acts = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin:16px 0' });
     acts.append(el('button', { class: 'btn btn-primary', style: 'padding:12px 32px;font-size:15px', onclick: () => openOrder(a.id) }, 'Оставить заявку'));
     acts.append(el('button', { class: 'btn btn-outline btn-icon', onclick: () => toggleFav(a.id, isFav, favs) }, isFav ? '♥' : '♡'));
@@ -755,15 +680,14 @@ function rAppPage() {
     top.append(iconDiv, info); w.append(top);
     const ss = el('section', { class: 'about-section' }); ss.append(el('h3', {}, 'Скриншоты'));
     const sc = el('div', { class: 'screenshots' });
-    if (a.screenshots && a.screenshots.length > 0) {
-      a.screenshots.forEach(sh => { const thumb = el('div', { class: 'screenshot', onclick: () => openScreenshotViewer(a.screenshots, sh) }); thumb.append(el('img', { src: sh.url, alt: 'Скриншот' })); sc.append(thumb); });
-    } else { sc.append(el('div', { class: 'screenshot', style: 'color:var(--text2);font-size:13px' }, 'Скриншоты не добавлены')); }
+    if (a.screenshots && a.screenshots.length > 0) { a.screenshots.forEach(sh => { const thumb = el('div', { class: 'screenshot', onclick: () => openScreenshotViewer(a.screenshots, sh) }); thumb.append(el('img', { src: sh.url, alt: 'Скриншот' })); sc.append(thumb); }); }
+    else { sc.append(el('div', { class: 'screenshot', style: 'color:var(--text2);font-size:13px' }, 'Скриншоты не добавлены')); }
     ss.append(sc); w.append(ss);
     const ab = el('section', { class: 'about-section' });
     ab.append(el('h3', {}, 'Об этом приложении')); ab.append(el('p', {}, a.desc || ''));
     if (a.features && a.features.length) { ab.append(el('h3', { style: 'margin-top:16px' }, 'Возможности')); const fl = el('ul', { class: 'features-list' }); a.features.forEach(f => { fl.append(el('li', {}, f)); }); ab.append(fl); }
     ab.append(el('h3', { style: 'margin-top:16px' }, 'Системные требования')); ab.append(el('p', {}, a.sys || '—')); w.append(ab);
-    w.append(el('section', { class: 'about-section' }, el('div', { class: 'chat-warning' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи. Оплата в чате с продавцом. Если обманули — напишите в поддержку.')));
+    w.append(el('section', { class: 'about-section' }, el('div', { class: 'chat-warning' }, el('strong', {}, '️ '), 'awer не принимает платежи. Оплата в чате с продавцом. Если обманули — напишите в поддержку.')));
     const rs = el('section', { class: 'about-section' }); rs.append(el('h3', {}, 'Оценки и отзывы'));
     db.collection('apps').doc(a.id).collection('reviews').orderBy('createdAt', 'desc').get().then(snapshot => {
       if (snapshot.empty) { rs.append(el('p', { style: 'color:var(--text2)' }, 'Пока нет отзывов')); }
@@ -859,7 +783,7 @@ function rChat() {
     const hd = el('div', { class: 'chat-head' });
     hd.append(el('h3', {}, '💬 Чат сделки'));
     hd.append(el('p', { style: 'font-size:13px;color:var(--text2);margin:6px 0' }, 'Приложение: ', el('strong', {}, o.appName || '—'), ' · ', el('strong', {}, otherName || '—')));
-    hd.append(el('div', { class: 'chat-warning' }, el('strong', {}, '️ '), 'awer не участвует в оплате. Если продавец обманул — напишите в поддержку.'));
+    hd.append(el('div', { class: 'chat-warning' }, el('strong', {}, '⚠️ '), 'awer не участвует в оплате. Если продавец обманул — напишите в поддержку.'));
     cw.append(hd);
     const ms = el('div', { class: 'chat-messages', id: 'chatMsgs' });
     db.collection('orders').doc(orderId).collection('messages').orderBy('createdAt', 'asc').onSnapshot(snapshot => {
@@ -901,7 +825,7 @@ function rLibrary() {
   const cuId = S.cu.uid;
   const lib = JSON.parse(localStorage.getItem('awer_lib_' + cuId) || '{}');
   const ids = Object.keys(lib);
-  if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Библиотека пуста'))); return w; }
+  if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '📚'), el('h3', {}, 'Библиотека пуста'))); return w; }
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
   const promises = ids.map(id => db.collection('apps').doc(id).get());
@@ -925,7 +849,7 @@ function rLibrary() {
 
 function rProfile() {
   const w = el('div', { class: 'container' }); w.append(backBtn('Главная', 'home'));
-  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'), el('button', { class: 'btn btn-primary', style: 'margin-top:14px', onclick: showAuth }, 'Войти'))); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'), el('button', { class: 'btn btn-primary', style: 'margin-top:14px', onclick: showAuth }, 'Войти'))); return w; }
   const u = S.cu; const g = el('div', { class: 'profile-grid' });
   const card = el('div', { class: 'profile-card' });
   card.append(el('div', { class: 'profile-avatar' }, u.avatar || u.name[0]));
@@ -938,7 +862,7 @@ function rProfile() {
   card.append(logoutBtn);
   const menu = el('div', { class: 'profile-menu' });
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
-  const menuItems = [['info', '👤', 'Аккаунт'], ['orders', '📋', 'Заявки'], ['library', '📚', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '⚙️', 'Настройки'], ['support', '🆘', 'Поддержка']];
+  const menuItems = [['info', '👤', 'Аккаунт'], ['orders', '', 'Заявки'], ['library', '📚', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '⚙️', 'Настройки'], ['support', '🆘', 'Поддержка']];
   menuItems.forEach(x => { menu.append(el('button', { class: 'profile-menu-item' + (tab === x[0] ? ' active' : ''), onclick: () => nav('profile', { tab: x[0] }) }, el('span', {}, x[1]), el('span', {}, x[2]))); });
   if (u.role === 'developer') { const devBtn = el('button', { class: 'profile-menu-item', onclick: () => nav('developer') }); devBtn.append(el('span', {}, '🛠')); devBtn.append(el('span', {}, 'Консоль')); menu.append(devBtn); }
   if (u.role === 'admin') { const adminBtn = el('button', { class: 'profile-menu-item', onclick: () => nav('admin') }); adminBtn.append(el('span', {}, '⚙️')); adminBtn.append(el('span', {}, 'Админ-панель')); menu.append(adminBtn); }
@@ -964,10 +888,10 @@ function rSettings() {
     { i: '🔊', t: 'Звуки', d: S.settings.sound ? 'Включены' : 'Выключены', tg: true, k: 'sound' },
     { i: '🔄', t: 'Автообновление', d: S.settings.autoUpd ? 'Включено' : 'Выключено', tg: true, k: 'autoUpd' },
     { i: '🌐', t: 'Язык', d: 'Русский', a: () => nav('settingsSub', { sub: 'lang' }) },
-    { i: '', t: 'Конфиденциальность', d: 'Настройки приватности', a: () => nav('settingsSub', { sub: 'privacy' }) },
-    { i: '️', t: 'О приложении', d: 'awer v1.0', a: () => nav('settingsSub', { sub: 'about' }) },
+    { i: '🔒', t: 'Конфиденциальность', d: 'Настройки приватности', a: () => nav('settingsSub', { sub: 'privacy' }) },
+    { i: 'ℹ️', t: 'О приложении', d: 'awer v1.0', a: () => nav('settingsSub', { sub: 'about' }) },
     { i: '❓', t: 'Помощь', d: 'FAQ', a: () => nav('settingsSub', { sub: 'help' }) },
-    { i: '📄', t: 'Условия использования', d: 'Правила', a: () => nav('settingsSub', { sub: 'terms' }) }
+    { i: '', t: 'Условия использования', d: 'Правила', a: () => nav('settingsSub', { sub: 'terms' }) }
   ];
   items.forEach(it => {
     const row = el('div', { class: 'settings-item' });
@@ -1034,7 +958,7 @@ function openSupChat(id) {
 
 function openSupModal(orderId) {
   const m = el('div', {});
-  m.append(el('div', { class: 'modal-head' }, el('h2', {}, '🆘 В поддержку'), el('button', { class: 'modal-close', onclick: closeM }, '')));
+  m.append(el('div', { class: 'modal-head' }, el('h2', {}, '🆘 В поддержку'), el('button', { class: 'modal-close', onclick: closeM }, '✕')));
   const body = el('div', { class: 'modal-body' });
   body.append(el('p', { style: 'margin-bottom:10px' }, 'Сделка: ', el('strong', {}, orderId)));
   body.append(el('p', { style: 'color:var(--text2);font-size:13px;margin-bottom:14px' }, 'Мы рассмотрим переписку.'));
@@ -1079,7 +1003,7 @@ function rAddApp() {
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Цена (0 = бесплатно)'), el('input', { class: 'form-control', id: 'f_price', type: 'number', value: '0', min: '0' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Старая цена'), el('input', { class: 'form-control', id: 'f_oldPrice', type: 'number', value: '0', min: '0' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Версия'), el('input', { class: 'form-control', id: 'f_ver', value: '1.0.0' })));
-  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Иконка (эмодзи)'), el('input', { class: 'form-control', id: 'f_icon', value: '', maxlength: '2' })));
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Иконка (эмодзи)'), el('input', { class: 'form-control', id: 'f_icon', value: '🚀', maxlength: '2' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Иконка (изображение, необязательно)'), el('input', { type: 'file', id: 'f_iconFile', accept: 'image/*' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Возможности (через запятую)'), el('input', { class: 'form-control', id: 'f_features' })));
   f.append(el('div', { class: 'form-group' }, el('label', {}, 'Системные требования'), el('input', { class: 'form-control', id: 'f_sys' })));
@@ -1122,9 +1046,9 @@ function rAdmin() {
   w.append(stats);
   const tabs = el('div', { class: 'chips' });
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-  [['apps', 'Приложения'], ['users', 'Пользователи'], ['supports', 'Обращения'], ['reports', 'Жалобы'], ['site', '🛠️ Сайт']].forEach(x => { tabs.append(el('div', { class: 'chip' + (tab === x[0] ? ' active' : ''), onclick: () => nav('admin', { tab: x[0] }) }, x[1])); });
+  [['apps', 'Приложения'], ['users', 'Пользователи'], ['supports', 'Обращения'], ['reports', 'Жалобы'], ['site', '️ Сайт']].forEach(x => { tabs.append(el('div', { class: 'chip' + (tab === x[0] ? ' active' : ''), onclick: () => nav('admin', { tab: x[0] }) }, x[1])); });
   w.append(tabs);
-  if (tab === 'apps') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('apps').orderBy('createdAt', 'desc').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет приложений'))); return; } snap.forEach(doc => { const a = { id: doc.id, ...doc.data() }; const r = el('div', { class: 'order-card' }); const sm = { verified: ['status-verified', '🟢'], pending: ['status-pending', '🟡'], blocked: ['status-blocked', '🔴'] }; const st = sm[a.status] || sm.pending; if (a.iconUrl) { r.append(el('div', { class: 'order-icon' }, el('img', { src: a.iconUrl }))); } else { r.append(el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '📱')); } r.append(el('div', { class: 'order-info' }, el('h4', {}, a.name), el('p', {}, (a.devName || '—') + (a.devVerified ? ' ✓' : '') + ' · ' + fp(a.price) + (a.fileName ? ' · 📎' : '') + (a.screenshots && a.screenshots.length ? ' · 🖼 ' + a.screenshots.length : '')), el('span', { class: 'status-badge ' + st[0] }, st[1]))); const ac = el('div', { class: 'order-actions' }); if (a.status !== 'verified') { const approveBtn = el('button', { class: 'btn btn-primary btn-sm' }); approveBtn.textContent = 'Одобрить'; approveBtn.addEventListener('click', () => { db.collection('apps').doc(a.id).update({ status: 'verified' }); toast('Одобрено', '', 'success'); }); ac.append(approveBtn); } if (a.status !== 'blocked') { const blockBtn = el('button', { class: 'btn btn-danger btn-sm' }); blockBtn.textContent = 'Блок'; blockBtn.addEventListener('click', () => { db.collection('apps').doc(a.id).update({ status: 'blocked' }); toast('Заблокировано', '', 'error'); }); ac.append(blockBtn); } const delBtn = el('button', { class: 'btn btn-text btn-sm' }); delBtn.textContent = 'Удалить'; delBtn.addEventListener('click', () => { if (confirm('Удалить?')) { db.collection('apps').doc(a.id).delete(); render(); } }); ac.append(delBtn); r.append(ac); w.append(r); }); }); }
+  if (tab === 'apps') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('apps').orderBy('createdAt', 'desc').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет приложений'))); return; } snap.forEach(doc => { const a = { id: doc.id, ...doc.data() }; const r = el('div', { class: 'order-card' }); const sm = { verified: ['status-verified', ''], pending: ['status-pending', ''], blocked: ['status-blocked', ''] }; const st = sm[a.status] || sm.pending; if (a.iconUrl) { r.append(el('div', { class: 'order-icon' }, el('img', { src: a.iconUrl }))); } else { r.append(el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '📱')); } r.append(el('div', { class: 'order-info' }, el('h4', {}, a.name), el('p', {}, (a.devName || '—') + (a.devVerified ? ' ✓' : '') + ' · ' + fp(a.price) + (a.fileName ? ' · 📎' : '') + (a.screenshots && a.screenshots.length ? ' · 🖼 ' + a.screenshots.length : '')), el('span', { class: 'status-badge ' + st[0] }, st[1]))); const ac = el('div', { class: 'order-actions' }); if (a.status !== 'verified') { const approveBtn = el('button', { class: 'btn btn-primary btn-sm' }); approveBtn.textContent = 'Одобрить'; approveBtn.addEventListener('click', () => { db.collection('apps').doc(a.id).update({ status: 'verified' }); toast('Одобрено', '', 'success'); }); ac.append(approveBtn); } if (a.status !== 'blocked') { const blockBtn = el('button', { class: 'btn btn-danger btn-sm' }); blockBtn.textContent = 'Блок'; blockBtn.addEventListener('click', () => { db.collection('apps').doc(a.id).update({ status: 'blocked' }); toast('Заблокировано', '', 'error'); }); ac.append(blockBtn); } const delBtn = el('button', { class: 'btn btn-text btn-sm' }); delBtn.textContent = 'Удалить'; delBtn.addEventListener('click', () => { if (confirm('Удалить?')) { db.collection('apps').doc(a.id).delete(); render(); } }); ac.append(delBtn); r.append(ac); w.append(r); }); }); }
   else if (tab === 'users') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('users').get().then(snap => { loading.remove(); snap.forEach(doc => { const u = { uid: doc.id, ...doc.data() }; const r = el('div', { class: 'order-card' }); r.append(el('div', { class: 'order-icon' }, u.avatar || u.name[0]), el('div', { class: 'order-info' }, el('h4', {}, u.name, u.verified ? el('span', { class: 'verified', style: 'margin-left:6px' }, '✓') : null), el('p', {}, '@' + (u.nick || u.name) + ' · ' + u.role))); const ac = el('div', { class: 'order-actions' }); if (u.role === 'developer') { const verifyBtn = el('button', { class: 'btn ' + (u.verified ? 'btn-outline' : 'btn-primary') + ' btn-sm' }); verifyBtn.textContent = u.verified ? 'Снять ✓' : 'Дать ✓'; verifyBtn.addEventListener('click', () => { db.collection('users').doc(u.uid).update({ verified: !u.verified }); toast(u.verified ? 'Снято' : 'Верифицирован', '', 'info'); }); ac.append(verifyBtn); } if (u.uid !== S.cu.uid) { const blockBtn = el('button', { class: 'btn btn-danger btn-sm' }); blockBtn.textContent = u.blocked ? 'Разблок' : 'Блок'; blockBtn.addEventListener('click', () => { db.collection('users').doc(u.uid).update({ blocked: !u.blocked }); if (S.cu && S.cu.uid === u.uid) { logoutUser(); render(); toast('Аккаунт заблокирован', '', 'error'); } else { toast(u.blocked ? 'Разблокирован' : 'Заблокирован', '', 'info'); } }); ac.append(blockBtn); } r.append(ac); w.append(r); }); }); }
   else if (tab === 'supports') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('supports').orderBy('createdAt', 'desc').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет обращений'))); return; } snap.forEach(doc => { const s = doc.data(); const r = el('div', { class: 'order-card' }); r.append(el('div', { class: 'order-icon' }, '🆘'), el('div', { class: 'order-info' }, el('h4', {}, s.theme), el('p', {}, 'От: ' + (s.userName || '—') + ' · ' + fd(s.createdAt)), el('p', {}, (s.text || '').slice(0, 80)))); const openBtn = el('button', { class: 'btn btn-primary btn-sm' }); openBtn.textContent = 'Открыть'; openBtn.addEventListener('click', () => { openAdminSup(doc.id); }); r.append(el('div', { class: 'order-actions' }, openBtn)); w.append(r); }); }); }
   else if (tab === 'reports') { const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading); db.collection('reports').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет жалоб'))); return; } snap.forEach(doc => { const rp = doc.data(); const row = el('div', { class: 'order-card' }); row.append(el('div', { class: 'order-icon' }, rp.appIcon || '?'), el('div', { class: 'order-info' }, el('h4', {}, rp.appName || '—'), el('p', {}, 'Причина: ' + rp.reason))); const ac = el('div', { class: 'order-actions' }); if (!rp.resolved) { const blockBtn = el('button', { class: 'btn btn-danger btn-sm' }); blockBtn.textContent = 'Блок'; blockBtn.addEventListener('click', () => { db.collection('apps').doc(rp.appId).update({ status: 'blocked' }); db.collection('reports').doc(doc.id).update({ resolved: 'blocked' }); toast('Заблокировано', '', 'error'); }); ac.append(blockBtn); const rejectBtn = el('button', { class: 'btn btn-text btn-sm' }); rejectBtn.textContent = 'Отклонить'; rejectBtn.addEventListener('click', () => { db.collection('reports').doc(doc.id).update({ resolved: 'rejected' }); toast('Отклонено', '', 'info'); }); ac.append(rejectBtn); } row.append(ac); w.append(row); }); }); }
@@ -1160,7 +1084,7 @@ function rAdmin() {
     maintenanceRef.onSnapshot(function(doc) {
       if (!doc.exists) { statusDiv.innerHTML = '<div style="color:var(--accent);font-weight:600">✅ Сайт открыт для всех пользователей</div>'; return; }
       const data = doc.data();
-      if (data.enabled) { const endTime = data.endTime ? data.endTime.toDate().toLocaleString('ru-RU') : 'не указано'; statusDiv.innerHTML = '<div style="color:var(--danger);font-weight:600;margin-bottom:8px">🔒 Сайт ЗАКРЫТ</div><div style="font-size:13px;color:var(--text2)">Сообщение: ' + (data.message || '—') + '</div><div style="font-size:13px;color:var(--text2);margin-top:4px">Откроется: ' + endTime + '</div>'; }
+      if (data.enabled) { const endTime = data.endTime ? data.endTime.toDate().toLocaleString('ru-RU') : 'не указано'; statusDiv.innerHTML = '<div style="color:var(--danger);font-weight:600;margin-bottom:8px"> Сайт ЗАКРЫТ</div><div style="font-size:13px;color:var(--text2)">Сообщение: ' + (data.message || '—') + '</div><div style="font-size:13px;color:var(--text2);margin-top:4px">Откроется: ' + endTime + '</div>'; }
       else { statusDiv.innerHTML = '<div style="color:var(--accent);font-weight:600">✅ Сайт открыт для всех пользователей</div>'; }
     });
     w.append(siteSection);
@@ -1170,7 +1094,7 @@ function rAdmin() {
 
 function openAdminSup(id) {
   const m = el('div', {});
-  m.append(el('div', { class: 'modal-head' }, el('h2', {}, '💬 Ответ'), el('button', { class: 'modal-close', onclick: closeM }, '✕')));
+  m.append(el('div', { class: 'modal-head' }, el('h2', {}, '💬 Ответ'), el('button', { class: 'modal-close', onclick: closeM }, '')));
   const body = el('div', { class: 'modal-body' });
   db.collection('supports').doc(id).get().then(doc => {
     if (!doc.exists) return;
