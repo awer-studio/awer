@@ -9,9 +9,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ============================================
-   БАЗОВЫЕ СТИЛИ И ПЕРЕМЕННЫЕ
-   ============================================ */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -84,9 +81,6 @@ img {
   display: block;
 }
 
-/* ============================================
-   СКРОЛЛБАР
-   ============================================ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -105,9 +99,7 @@ img {
   background: var(--text3);
 }
 
-/* ============================================
-   SPLASH SCREEN (ЭКРАН ЗАГРУЗКИ)
-   ============================================ */
+/* SPLASH SCREEN */
 #splash-screen {
   position: fixed;
   inset: 0;
@@ -209,7 +201,7 @@ img {
   height: 100%;
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   border-radius: 2px;
-  transition: width 0.3s ease;
+  transition: width 0.5s ease;
   width: 0%;
   position: relative;
 }
@@ -274,9 +266,7 @@ img {
   40% { transform: scale(1.2); opacity: 1; background: var(--primary); }
 }
 
-/* ============================================
-   WELCOME MODAL (ПРИВЕТСТВЕННОЕ ОКНО)
-   ============================================ */
+/* WELCOME MODAL */
 #welcome-overlay {
   position: fixed;
   inset: 0;
@@ -408,9 +398,7 @@ img {
   transform: translateY(0);
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
+/* HEADER */
 .header {
   position: sticky;
   top: 0;
@@ -538,9 +526,7 @@ img {
   background: var(--primary-light);
 }
 
-/* ============================================
-   TABS BAR
-   ============================================ */
+/* TABS BAR */
 .tabs-bar {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
@@ -584,9 +570,7 @@ img {
   font-weight: 600;
 }
 
-/* ============================================
-   MAIN CONTENT
-   ============================================ */
+/* MAIN CONTENT */
 .main {
   max-width: 1280px;
   margin: 0 auto;
@@ -594,9 +578,7 @@ img {
   min-height: calc(100vh - 120px);
 }
 
-/* ============================================
-   SECTIONS
-   ============================================ */
+/* SECTIONS */
 .section {
   margin-bottom: 24px;
 }
@@ -633,9 +615,7 @@ img {
   color: var(--text);
 }
 
-/* ============================================
-   APP CAROUSEL
-   ============================================ */
+/* APP CAROUSEL */
 .carousel {
   display: flex;
   gap: 12px;
@@ -702,9 +682,7 @@ img {
   font-size: 10px;
 }
 
-/* ============================================
-   APP LIST
-   ============================================ */
+/* APP LIST */
 .app-list {
   display: flex;
   flex-direction: column;
@@ -775,9 +753,7 @@ img {
   color: #fbbc04;
 }
 
-/* ============================================
-   APP PAGE
-   ============================================ */
+/* APP PAGE */
 .app-page {
   padding: 0;
 }
@@ -911,9 +887,7 @@ img {
   color: var(--text);
 }
 
-/* ============================================
-   SCREENSHOTS
-   ============================================ */
+/* SCREENSHOTS */
 .screenshots-row {
   display: flex;
   gap: 8px;
@@ -948,9 +922,7 @@ img {
   object-fit: cover;
 }
 
-/* ============================================
-   DESCRIPTION
-   ============================================ */
+/* DESCRIPTION */
 .app-description {
   padding: 16px 0;
   border-top: 1px solid var(--border);
@@ -970,9 +942,7 @@ img {
   margin-bottom: 10px;
 }
 
-/* ============================================
-   MODAL
-   ============================================ */
+/* MODAL */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1048,9 +1018,7 @@ img {
   border-top: 1px solid var(--border);
 }
 
-/* ============================================
-   FORMS
-   ============================================ */
+/* FORMS */
 .form-group {
   margin-bottom: 16px;
 }
@@ -1096,9 +1064,7 @@ input[type="file"] {
   color: var(--text2);
 }
 
-/* ============================================
-   BUTTONS
-   ============================================ */
+/* BUTTONS */
 .btn {
   padding: 8px 20px;
   border-radius: 18px;
@@ -1153,9 +1119,7 @@ input[type="file"] {
   width: 100%;
 }
 
-/* ============================================
-   CHAT
-   ============================================ */
+/* CHAT */
 .chat-container {
   max-width: 700px;
   margin: 0 auto;
@@ -1239,9 +1203,7 @@ input[type="file"] {
   border-color: var(--primary);
 }
 
-/* ============================================
-   PROFILE
-   ============================================ */
+/* PROFILE */
 .profile-layout {
   display: grid;
   grid-template-columns: 240px 1fr;
@@ -1319,9 +1281,7 @@ input[type="file"] {
   font-weight: 500;
 }
 
-/* ============================================
-   SETTINGS
-   ============================================ */
+/* SETTINGS */
 .settings-list {
   background: var(--bg2);
   border: 1px solid var(--border);
@@ -1401,9 +1361,7 @@ input[type="file"] {
   left: 18px;
 }
 
-/* ============================================
-   STATS
-   ============================================ */
+/* STATS */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -1432,9 +1390,7 @@ input[type="file"] {
   color: var(--text);
 }
 
-/* ============================================
-   ORDER CARD
-   ============================================ */
+/* ORDER CARD */
 .order-card {
   background: var(--bg2);
   border: 1px solid var(--border);
@@ -1490,9 +1446,7 @@ input[type="file"] {
   justify-content: flex-end;
 }
 
-/* ============================================
-   EMPTY STATE
-   ============================================ */
+/* EMPTY STATE */
 .empty {
   text-align: center;
   padding: 40px 16px;
@@ -1518,9 +1472,7 @@ input[type="file"] {
   margin-bottom: 12px;
 }
 
-/* ============================================
-   LOADING
-   ============================================ */
+/* LOADING */
 .loading-spinner {
   display: flex;
   align-items: center;
@@ -1542,9 +1494,7 @@ input[type="file"] {
   to { transform: rotate(360deg); }
 }
 
-/* ============================================
-   TOASTS
-   ============================================ */
+/* TOASTS */
 .toasts {
   position: fixed;
   bottom: 16px;
@@ -1599,9 +1549,7 @@ input[type="file"] {
   color: #8ab4f8;
 }
 
-/* ============================================
-   SCREENSHOTS PREVIEW
-   ============================================ */
+/* SCREENSHOTS PREVIEW */
 .screenshots-preview {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -1640,9 +1588,7 @@ input[type="file"] {
   cursor: pointer;
 }
 
-/* ============================================
-   RADIO
-   ============================================ */
+/* RADIO */
 .radio-group {
   display: grid;
   gap: 6px;
@@ -1689,9 +1635,7 @@ input[type="file"] {
   border-radius: 50%;
 }
 
-/* ============================================
-   MOBILE NAV
-   ============================================ */
+/* MOBILE NAV */
 .mobile-nav {
   display: none;
   position: fixed;
@@ -1731,9 +1675,7 @@ input[type="file"] {
   font-size: 20px;
 }
 
-/* ============================================
-   WARNING
-   ============================================ */
+/* WARNING */
 .chat-warning {
   background: rgba(249,171,0,.1);
   border: 1px solid rgba(249,171,0,.3);
@@ -1745,9 +1687,7 @@ input[type="file"] {
   line-height: 1.4;
 }
 
-/* ============================================
-   FOOTER
-   ============================================ */
+/* FOOTER */
 .footer {
   background: var(--bg2);
   border-top: 1px solid var(--border);
@@ -1802,9 +1742,7 @@ input[type="file"] {
   padding-right: 16px;
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
+/* RESPONSIVE */
 @media (max-width: 768px) {
   .profile-layout {
     grid-template-columns: 1fr;
@@ -1932,7 +1870,7 @@ input[type="file"] {
         <div class="welcome-feature-text">Прямой чат с продавцом</div>
       </div>
       <div class="welcome-feature">
-        <div class="welcome-feature-icon">⚡</div>
+        <div class="welcome-feature-icon"></div>
         <div class="welcome-feature-text">Мгновенная загрузка</div>
       </div>
     </div>
@@ -2031,7 +1969,7 @@ input[type="file"] {
       <span>Библиотека</span>
     </div>
     <div class="mobile-nav-btn" data-page="profile" onclick="nav('profile')">
-      <span class="ico">👤</span>
+      <span class="ico"></span>
       <span>Профиль</span>
     </div>
   </div>
@@ -2066,10 +2004,9 @@ const db = firebase.firestore();
 const IMGBB_KEY = "c2a5f5a7794a778caac28687e2257fac";
 
 // ============================================
-// ЗВУК ЗАГРУЗКИ (Web Audio API)
+// ЗВУК (только после загрузки)
 // ============================================
 let audioContext = null;
-let isAudioStarted = false;
 
 function initAudio() {
   try {
@@ -2079,76 +2016,11 @@ function initAudio() {
   }
 }
 
-function playLoadingSound() {
-  if (!audioContext || isAudioStarted) return;
-  isAudioStarted = true;
-  
-  // Создаем красивый звук загрузки
-  const now = audioContext.currentTime;
-  const duration = 60; // 60 секунд
-  
-  // Основной тон (мягкий, нарастающий)
-  const oscillator1 = audioContext.createOscillator();
-  const gainNode1 = audioContext.createGain();
-  
-  oscillator1.type = 'sine';
-  oscillator1.frequency.setValueAtTime(220, now);
-  oscillator1.frequency.exponentialRampToValueAtTime(440, now + duration);
-  
-  gainNode1.gain.setValueAtTime(0, now);
-  gainNode1.gain.linearRampToValueAtTime(0.05, now + 2);
-  gainNode1.gain.setValueAtTime(0.05, now + duration - 2);
-  gainNode1.gain.linearRampToValueAtTime(0, now + duration);
-  
-  oscillator1.connect(gainNode1);
-  gainNode1.connect(audioContext.destination);
-  oscillator1.start(now);
-  oscillator1.stop(now + duration);
-  
-  // Второй тон (гармония)
-  const oscillator2 = audioContext.createOscillator();
-  const gainNode2 = audioContext.createGain();
-  
-  oscillator2.type = 'sine';
-  oscillator2.frequency.setValueAtTime(330, now);
-  oscillator2.frequency.exponentialRampToValueAtTime(660, now + duration);
-  
-  gainNode2.gain.setValueAtTime(0, now);
-  gainNode2.gain.linearRampToValueAtTime(0.03, now + 2);
-  gainNode2.gain.setValueAtTime(0.03, now + duration - 2);
-  gainNode2.gain.linearRampToValueAtTime(0, now + duration);
-  
-  oscillator2.connect(gainNode2);
-  gainNode2.connect(audioContext.destination);
-  oscillator2.start(now);
-  oscillator2.stop(now + duration);
-  
-  // Третий тон (высокий, для блеска)
-  const oscillator3 = audioContext.createOscillator();
-  const gainNode3 = audioContext.createGain();
-  
-  oscillator3.type = 'sine';
-  oscillator3.frequency.setValueAtTime(440, now);
-  oscillator3.frequency.exponentialRampToValueAtTime(880, now + duration);
-  
-  gainNode3.gain.setValueAtTime(0, now);
-  gainNode3.gain.linearRampToValueAtTime(0.02, now + 2);
-  gainNode3.gain.setValueAtTime(0.02, now + duration - 2);
-  gainNode3.gain.linearRampToValueAtTime(0, now + duration);
-  
-  oscillator3.connect(gainNode3);
-  gainNode3.connect(audioContext.destination);
-  oscillator3.start(now);
-  oscillator3.stop(now + duration);
-}
-
 function playWelcomeSound() {
   if (!audioContext) return;
   
   const now = audioContext.currentTime;
-  
-  // Приятный аккорд при появлении welcome
-  const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+  const notes = [523.25, 659.25, 783.99, 1046.50];
   
   notes.forEach((freq, i) => {
     const osc = audioContext.createOscillator();
@@ -2180,11 +2052,11 @@ let S = {
 
 const CATS = [
   {id:'ai',n:'AI',i:'🤖'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},
-  {id:'video',n:'Видео',i:''},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
+  {id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:''},{id:'study',n:'Учёба',i:'📚'},
   {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},
-  {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},
-  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:'📄'},
-  {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}
+  {id:'utils',n:'Утилиты',i:''},{id:'dev',n:'Разработка',i:'💻'},
+  {id:'security',n:'Безопасность',i:''},{id:'docs',n:'Документы',i:'📄'},
+  {id:'games',n:'Игры',i:''},{id:'other',n:'Другое',i:'📦'}
 ];
 
 const COLS = ['#e8f5e9','#e3f2fd','#fce4ec','#fff3e0','#f3e5f5','#e0f2f1','#fff8e1','#e8eaf6','#fbe9e7','#e0f7fa'];
@@ -2231,7 +2103,7 @@ function col(s) {
 
 function toast(t, m, type) {
   const e = el('div', { class: 'toast ' + (type || 'info') },
-    el('div', { class: 'toast-icon', html: type === 'success' ? '✓' : type === 'error' ? '' : 'ℹ' }),
+    el('div', { class: 'toast-icon', html: type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ' }),
     el('div', {}, el('strong', {}, t), m ? ' ' + m : '')
   );
   $('#toasts').append(e);
@@ -2271,57 +2143,39 @@ function toggleTheme() {
 }
 
 // ============================================
-// SPLASH SCREEN LOGIC
+// SPLASH SCREEN - РЕАЛЬНАЯ ЗАГРУЗКА
 // ============================================
-let splashProgress = 0;
-let splashInterval = null;
-const splashDuration = 60000; // 60 секунд
-const splashUpdateInterval = 100; // обновление каждые 100мс
-
 const splashStatuses = [
-  { at: 0, text: 'Инициализация системы...', sub: 'Подготовка к запуску' },
-  { at: 5, text: 'Подключение к серверу...', sub: 'Firebase Cloud' },
-  { at: 10, text: 'Загрузка конфигурации...', sub: 'Параметры приложения' },
-  { at: 15, text: 'Проверка авторизации...', sub: 'Ваш аккаунт' },
-  { at: 20, text: 'Загрузка каталога...', sub: 'Приложения и игры' },
-  { at: 30, text: 'Синхронизация данных...', sub: 'Обновление кэша' },
-  { at: 40, text: 'Загрузка интерфейса...', sub: 'Компоненты UI' },
-  { at: 50, text: 'Подготовка контента...', sub: 'Изображения и данные' },
-  { at: 60, text: 'Финальная настройка...', sub: 'Почти готово' },
-  { at: 70, text: 'Оптимизация...', sub: 'Ускорение загрузки' },
-  { at: 80, text: 'Проверка соединений...', sub: 'Стабильность сети' },
-  { at: 90, text: 'Завершение...', sub: 'Добро пожаловать!' },
-  { at: 100, text: 'Готово!', sub: 'Загрузка завершена' }
+  { progress: 0, text: 'Инициализация Firebase...', sub: 'Подключение к серверу' },
+  { progress: 15, text: 'Загрузка профиля...', sub: 'Проверка аккаунта' },
+  { progress: 30, text: 'Загрузка каталога...', sub: 'Приложения и игры' },
+  { progress: 50, text: 'Загрузка настроек...', sub: 'Персонализация' },
+  { progress: 70, text: 'Подготовка интерфейса...', sub: 'Компоненты UI' },
+  { progress: 85, text: 'Финальная проверка...', sub: 'Почти готово' },
+  { progress: 100, text: 'Добро пожаловать!', sub: 'Загрузка завершена' }
 ];
 
-function updateSplashProgress() {
-  splashProgress += (100 / (splashDuration / splashUpdateInterval));
-  if (splashProgress > 100) splashProgress = 100;
+let currentSplashProgress = 0;
+
+function updateSplashProgress(progress, statusIndex) {
+  currentSplashProgress = progress;
+  $('#splashProgressFill').style.width = progress + '%';
   
-  $('#splashProgressFill').style.width = splashProgress + '%';
-  
-  // Обновляем статус
-  const currentStatus = splashStatuses.reduce((prev, curr) => {
-    return splashProgress >= curr.at ? curr : prev;
-  }, splashStatuses[0]);
-  
-  $('#splashStatus').textContent = currentStatus.text;
-  $('#splashStatusText').textContent = currentStatus.sub;
-  
-  if (splashProgress >= 100) {
-    clearInterval(splashInterval);
-    setTimeout(() => {
-      hideSplash();
-    }, 500);
+  if (statusIndex !== undefined && splashStatuses[statusIndex]) {
+    $('#splashStatus').textContent = splashStatuses[statusIndex].text;
+    $('#splashStatusText').textContent = splashStatuses[statusIndex].sub;
   }
 }
 
 function hideSplash() {
-  $('#splash-screen').classList.add('hidden');
+  updateSplashProgress(100, 6);
   setTimeout(() => {
-    showWelcome();
-    playWelcomeSound();
-  }, 800);
+    $('#splash-screen').classList.add('hidden');
+    setTimeout(() => {
+      showWelcome();
+      playWelcomeSound();
+    }, 800);
+  }, 500);
 }
 
 // ============================================
@@ -2386,25 +2240,6 @@ function logoutUser() {
   toast('Вы вышли', '', 'info');
 }
 
-const savedNick = localStorage.getItem('awer_nick');
-if (savedNick) {
-  loginWithNick(savedNick).then(u => {
-    S.cu = u;
-    saveSettings();
-    render();
-    updateAuthBtn();
-  }).catch(() => {
-    localStorage.removeItem('awer_nick');
-    saveSettings();
-    render();
-    updateAuthBtn();
-  });
-} else {
-  saveSettings();
-  render();
-  updateAuthBtn();
-}
-
 function saveSettings() {
   localStorage.setItem('awer_theme', S.theme);
   localStorage.setItem('awer_settings', JSON.stringify(S.settings));
@@ -2440,18 +2275,14 @@ function updateTabs() {
 // DATA
 // ============================================
 let appsCache = null;
-let appsCacheTime = 0;
-const CACHE_DURATION = 60000;
 
 function getApps(cb) {
-  const now = Date.now();
-  if (appsCache && now - appsCacheTime < CACHE_DURATION) { cb(appsCache); return; }
+  if (appsCache) { cb(appsCache); return; }
   db.collection('apps').where('status', '==', 'verified').orderBy('createdAt', 'desc').get()
     .then(snap => {
       const a = [];
       snap.forEach(d => a.push({ id: d.id, ...d.data() }));
       appsCache = a;
-      appsCacheTime = now;
       cb(a);
     })
     .catch(e => { console.error(e); cb([]); });
@@ -2464,11 +2295,76 @@ function getAppById(id, cb) {
 }
 
 // ============================================
+// INIT - РЕАЛЬНАЯ ЗАГРУЗКА ВСЕХ ДАННЫХ
+// ============================================
+async function initializeApp() {
+  initAudio();
+  
+  try {
+    // Шаг 1: Firebase инициализирован (0%)
+    updateSplashProgress(5, 0);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Шаг 2: Загрузка профиля пользователя (15%)
+    updateSplashProgress(15, 1);
+    const savedNick = localStorage.getItem('awer_nick');
+    if (savedNick) {
+      try {
+        const user = await loginWithNick(savedNick);
+        S.cu = user;
+      } catch (e) {
+        localStorage.removeItem('awer_nick');
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 400));
+    
+    // Шаг 3: Загрузка каталога (30%)
+    updateSplashProgress(30, 2);
+    await new Promise((resolve) => {
+      getApps(function(apps) {
+        appsCache = apps;
+        resolve();
+      });
+    });
+    await new Promise(resolve => setTimeout(resolve, 400));
+    
+    // Шаг 4: Загрузка настроек (50%)
+    updateSplashProgress(50, 3);
+    saveSettings();
+    render();
+    updateAuthBtn();
+    updateTabs();
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Шаг 5: Подготовка интерфейса (70%)
+    updateSplashProgress(70, 4);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Шаг 6: Финальная проверка (85%)
+    updateSplashProgress(85, 5);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Готово!
+    hideSplash();
+    
+  } catch (error) {
+    console.error('Initialization error:', error);
+    // Даже при ошибке показываем приложение
+    render();
+    updateAuthBtn();
+    hideSplash();
+  }
+}
+
+// Запускаем загрузку
+initializeApp();
+
+// ============================================
 // RENDER
 // ============================================
 function render() {
   document.documentElement.setAttribute('data-theme', S.theme);
-  $('#themeBtn').textContent = S.theme === 'dark' ? '☀️' : '';
+  $('#themeBtn').textContent = S.theme === 'dark' ? '☀️' : '🌙';
   const c = $('#mainContent');
   c.innerHTML = '';
   const p = S.route.p;
@@ -2494,70 +2390,69 @@ function render() {
 // ============================================
 function rHome() {
   const w = el('div', {});
-  const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
-  w.append(loading);
-  getApps(function(apps) {
-    loading.remove();
-    if (apps.length === 0) {
-      w.append(el('div', { class: 'empty' },
-        el('div', { class: 'empty-icon' }, '📦'),
-        el('h3', {}, 'Каталог пока пуст'),
-        el('p', {}, 'Станьте первым разработчиком!'),
-        el('button', { class: 'btn btn-primary', style: 'margin-top: 12px;', onclick: () => { if (!S.cu) { showAuth(); return; } if (S.cu.role !== 'developer') { toast('Нужен аккаунт разработчика', '', 'error'); return; } nav('developer', { tab: 'add' }); } }, 'Опубликовать приложение')
-      ));
-    } else {
-      const pop = el('div', { class: 'section' });
-      pop.append(el('div', { class: 'section-header' },
-        el('h2', {}, 'Популярные приложения'),
-        el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')
-      ));
-      const car = el('div', { class: 'carousel' });
-      apps.slice(0, 10).forEach(a => { car.append(rAppCardH(a)); });
-      pop.append(car);
-      w.append(pop);
+  if (!appsCache || appsCache.length === 0) {
+    w.append(el('div', { class: 'empty' },
+      el('div', { class: 'empty-icon' }, '📦'),
+      el('h3', {}, 'Каталог пока пуст'),
+      el('p', {}, 'Станьте первым разработчиком!'),
+      el('button', { class: 'btn btn-primary', style: 'margin-top: 12px;', onclick: () => { if (!S.cu) { showAuth(); return; } if (S.cu.role !== 'developer') { toast('Нужен аккаунт разработчика', '', 'error'); return; } nav('developer', { tab: 'add' }); } }, 'Опубликовать приложение')
+    ));
+    return w;
+  }
+  
+  const apps = appsCache;
+  
+  const pop = el('div', { class: 'section' });
+  pop.append(el('div', { class: 'section-header' },
+    el('h2', {}, 'Популярные приложения'),
+    el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')
+  ));
+  const car = el('div', { class: 'carousel' });
+  apps.slice(0, 10).forEach(a => { car.append(rAppCardH(a)); });
+  pop.append(car);
+  w.append(pop);
 
-      const free = apps.filter(a => a.price === 0);
-      if (free.length) {
-        const tf = el('div', { class: 'section' });
-        tf.append(el('div', { class: 'section-header' },
-          el('h2', {}, 'Топ бесплатных'),
-          el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')
-        ));
-        const c2 = el('div', { class: 'carousel' });
-        free.forEach(a => { c2.append(rAppCardH(a)); });
-        tf.append(c2);
-        w.append(tf);
-      }
+  const free = apps.filter(a => a.price === 0);
+  if (free.length) {
+    const tf = el('div', { class: 'section' });
+    tf.append(el('div', { class: 'section-header' },
+      el('h2', {}, 'Топ бесплатных'),
+      el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')
+    ));
+    const c2 = el('div', { class: 'carousel' });
+    free.forEach(a => { c2.append(rAppCardH(a)); });
+    tf.append(c2);
+    w.append(tf);
+  }
 
-      const paid = apps.filter(a => a.price > 0);
-      if (paid.length) {
-        const tp = el('div', { class: 'section' });
-        tp.append(el('div', { class: 'section-header' },
-          el('h2', {}, 'Топ платных'),
-          el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')
-        ));
-        const c3 = el('div', { class: 'carousel' });
-        paid.forEach(a => { c3.append(rAppCardH(a)); });
-        tp.append(c3);
-        w.append(tp);
-      }
+  const paid = apps.filter(a => a.price > 0);
+  if (paid.length) {
+    const tp = el('div', { class: 'section' });
+    tp.append(el('div', { class: 'section-header' },
+      el('h2', {}, 'Топ платных'),
+      el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')
+    ));
+    const c3 = el('div', { class: 'carousel' });
+    paid.forEach(a => { c3.append(rAppCardH(a)); });
+    tp.append(c3);
+    w.append(tp);
+  }
 
-      const cs = el('div', { class: 'section' });
-      cs.append(el('div', { class: 'section-header' },
-        el('h2', {}, 'Категории'),
-        el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')
-      ));
-      const ch = el('div', { class: 'carousel' });
-      CATS.forEach(c => {
-        const card = el('div', { class: 'app-card', onclick: () => nav('catalog', { cat: c.id }) });
-        card.append(el('div', { class: 'app-icon', style: 'background:' + col(c.id) }, c.i));
-        card.append(el('div', { class: 'app-name' }, c.n));
-        ch.append(card);
-      });
-      cs.append(ch);
-      w.append(cs);
-    }
+  const cs = el('div', { class: 'section' });
+  cs.append(el('div', { class: 'section-header' },
+    el('h2', {}, 'Категории'),
+    el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')
+  ));
+  const ch = el('div', { class: 'carousel' });
+  CATS.forEach(c => {
+    const card = el('div', { class: 'app-card', onclick: () => nav('catalog', { cat: c.id }) });
+    card.append(el('div', { class: 'app-icon', style: 'background:' + col(c.id) }, c.i));
+    card.append(el('div', { class: 'app-name' }, c.n));
+    ch.append(card);
   });
+  cs.append(ch);
+  w.append(cs);
+  
   return w;
 }
 
@@ -2566,7 +2461,7 @@ function rAppCardH(a) {
   if (a.iconUrl) {
     card.append(el('div', { class: 'app-icon' }, el('img', { src: a.iconUrl, alt: a.name })));
   } else {
-    card.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || ''));
+    card.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || '📱'));
   }
   card.append(el('div', { class: 'app-name' }, a.name));
   card.append(el('div', { class: 'app-rating' },
@@ -2586,7 +2481,7 @@ function rAppListItem(a) {
   const info = el('div', { class: 'info' });
   info.append(el('div', { class: 'name' },
     a.name,
-    a.official ? el('span', { style: 'color:#ffd700;font-size:12px' }, '🏆') : null
+    a.official ? el('span', { style: 'color:#ffd700;font-size:12px' }, '') : null
   ));
   info.append(el('div', { class: 'cat' }, a.devName || '—'));
   const meta = el('div', { class: 'meta' });
@@ -2620,24 +2515,23 @@ function rCatalog() {
     ch.append(card);
   });
   w.append(ch);
-  const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
-  w.append(loading);
-  getApps(function(apps) {
-    loading.remove();
-    if (q) apps = apps.filter(a => a.name.toLowerCase().indexOf(q) >= 0 || (a.desc || '').toLowerCase().indexOf(q) >= 0);
-    if (cat) apps = apps.filter(a => a.cat === cat);
-    w.append(el('p', { style: 'color: var(--text3); margin-bottom: 12px; font-size: 12px;' }, 'Найдено: ' + apps.length));
-    if (apps.length === 0) {
-      w.append(el('div', { class: 'empty' },
-        el('div', { class: 'empty-icon' }, '🔍'),
-        el('h3', {}, 'Ничего не найдено')
-      ));
-    } else {
-      const list = el('div', { class: 'app-list' });
-      apps.forEach(a => { list.append(rAppListItem(a)); });
-      w.append(list);
-    }
-  });
+  
+  const apps = appsCache || [];
+  let filteredApps = apps;
+  if (q) filteredApps = apps.filter(a => a.name.toLowerCase().indexOf(q) >= 0 || (a.desc || '').toLowerCase().indexOf(q) >= 0);
+  if (cat) filteredApps = apps.filter(a => a.cat === cat);
+  
+  w.append(el('p', { style: 'color: var(--text3); margin-bottom: 12px; font-size: 12px;' }, 'Найдено: ' + filteredApps.length));
+  if (filteredApps.length === 0) {
+    w.append(el('div', { class: 'empty' },
+      el('div', { class: 'empty-icon' }, '🔍'),
+      el('h3', {}, 'Ничего не найдено')
+    ));
+  } else {
+    const list = el('div', { class: 'app-list' });
+    filteredApps.forEach(a => { list.append(rAppListItem(a)); });
+    w.append(list);
+  }
   return w;
 }
 
@@ -2646,13 +2540,15 @@ function rCatalog() {
 // ============================================
 function rAppPage() {
   const w = el('div', { class: 'app-page' });
+  const appId = (S.route.params && S.route.params.id) ? S.route.params.id : null;
+  if (!appId) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Не найдено'))); return w; }
+  
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
-  const appId = (S.route.params && S.route.params.id) ? S.route.params.id : null;
-  if (!appId) { loading.remove(); w.append(el('div', { class: 'empty' }, el('h3', {}, 'Не найдено'))); return w; }
+  
   getAppById(appId, function(a) {
     loading.remove();
-    if (!a) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Не найдено'))); return w; }
+    if (!a) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Не найдено'))); return; }
     const header = el('div', { class: 'app-page-header' });
     let iconDiv;
     if (a.iconUrl) { iconDiv = el('div', { class: 'app-page-icon' }, el('img', { src: a.iconUrl })); }
@@ -2660,7 +2556,7 @@ function rAppPage() {
     const info = el('div', { class: 'app-page-info' });
     info.append(el('h1', {}, a.name));
     const devLine = el('div', { class: 'app-page-dev' }, a.devName || 'Неизвестный');
-    if (a.official) devLine.append(el('span', { style: 'color: #ffd700; font-size: 14px;' }, ''));
+    if (a.official) devLine.append(el('span', { style: 'color: #ffd700; font-size: 14px;' }, '🏆'));
     else if (a.devVerified) devLine.append(el('span', { style: 'color: var(--primary);' }, '✓'));
     info.append(devLine);
     const stats = el('div', { class: 'app-page-stats' });
@@ -2719,7 +2615,7 @@ function toggleFav(appId) {
 function rFavorites() {
   const w = el('div', {});
   w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Избранное'));
-  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'))); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
   const cuId = S.cu.uid;
   const favs = JSON.parse(localStorage.getItem('awer_favs_' + cuId) || '{}');
   const ids = Object.keys(favs);
@@ -2744,7 +2640,7 @@ function rFavorites() {
 function rOrders() {
   const w = el('div', {});
   w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Мои заявки'));
-  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'))); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
   Promise.all([
@@ -2801,7 +2697,7 @@ function rChat() {
     const isB = o.buyerUid === S.cu.uid;
     const otherName = isB ? o.devName : o.buyerName;
     const hd = el('div', { class: 'chat-header' });
-    hd.append(el('h3', {}, '💬 Чат сделки'));
+    hd.append(el('h3', {}, ' Чат сделки'));
     hd.append(el('p', { style: 'font-size: 12px; color: var(--text3); margin: 4px 0;' }, 'Приложение: ', el('strong', {}, o.appName || '—'), ' · ', el('strong', {}, otherName || '—')));
     hd.append(el('div', { class: 'chat-warning' }, el('strong', {}, '⚠️ '), 'awer не участвует в оплате.'));
     w.append(hd);
@@ -2966,12 +2862,12 @@ function rProfile() {
   const content = el('div', {});
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
   const menu = el('div', { class: 'profile-menu', style: 'margin-bottom: 16px;' });
-  [['info', '👤', 'Аккаунт'], ['orders', '📋', 'Заявки'], ['library', '📚', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '⚙️', 'Настройки'], ['support', '🆘', 'Поддержка']].forEach(x => {
+  [['info', '👤', 'Аккаунт'], ['orders', '📋', 'Заявки'], ['library', '', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '️', 'Настройки'], ['support', '🆘', 'Поддержка']].forEach(x => {
     menu.append(el('div', { class: 'profile-menu-item' + (tab === x[0] ? ' active' : ''), onclick: () => nav('profile', { tab: x[0] }) }, el('span', {}, x[1]), el('span', {}, x[2])));
   });
   if (u.role === 'developer') {
     const b = el('div', { class: 'profile-menu-item', onclick: () => nav('developer') });
-    b.append(el('span', {}, '🛠'));
+    b.append(el('span', {}, ''));
     b.append(el('span', {}, 'Консоль'));
     menu.append(b);
   }
@@ -3015,7 +2911,7 @@ function rSettings() {
   w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Настройки'));
   const list = el('div', { class: 'settings-list' });
   [
-    { i: '🎨', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme' },
+    { i: '', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme' },
     { i: '🔔', t: 'Уведомления', d: S.settings.notif ? 'Вкл' : 'Выкл', tg: true, k: 'notif' }
   ].forEach(it => {
     const row = el('div', { class: 'settings-item' });
@@ -3381,7 +3277,7 @@ function rAdmin() {
         const item = el('div', { class: 'app-list-item' });
         item.append(el('div', { class: 'app-icon', style: 'background:' + col(u.name || 'x') }, u.avatar || u.name[0]));
         const info = el('div', { class: 'info' });
-        info.append(el('div', { class: 'name' }, u.name, u.official ? el('span', { style: 'color: #ffd700;' }, '🏆') : null, u.verified ? el('span', { style: 'color: var(--primary);' }, '✓') : null));
+        info.append(el('div', { class: 'name' }, u.name, u.official ? el('span', { style: 'color: #ffd700;' }, '') : null, u.verified ? el('span', { style: 'color: var(--primary);' }, '✓') : null));
         info.append(el('div', { class: 'cat' }, '@' + (u.nick || u.name) + ' · ' + u.role));
         item.append(info);
         const ac = el('div', { class: 'order-actions' });
@@ -3431,7 +3327,7 @@ function showAuth() {
   const m = el('div', {});
   const head = el('div', { class: 'modal-head' },
     el('h2', {}, 'Войти в awer'),
-    el('div', { class: 'modal-close', onclick: closeM }, '')
+    el('div', { class: 'modal-close', onclick: closeM }, '✕')
   );
   const body = el('div', { class: 'modal-body' });
   let mode = 'login';
@@ -3536,7 +3432,7 @@ function openOrder(appId) {
       rg.append(it);
     });
     body.append(rg);
-    body.append(el('div', { class: 'chat-warning', style: 'margin-top: 12px;' }, el('strong', {}, '️ '), 'awer не принимает платежи.'));
+    body.append(el('div', { class: 'chat-warning', style: 'margin-top: 12px;' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи.'));
     const foot = el('div', { class: 'modal-foot' });
     foot.append(el('button', { class: 'btn btn-outline', onclick: closeM }, 'Отмена'));
     const submitBtn = el('button', { class: 'btn btn-primary' });
@@ -3617,7 +3513,7 @@ function openScreenshotViewer(screenshots, currentSh) {
   const m = el('div', {});
   m.append(el('div', { class: 'modal-head' },
     el('h2', {}, 'Скриншот ' + (idx + 1) + ' из ' + screenshots.length),
-    el('div', { class: 'modal-close', onclick: closeM }, '')
+    el('div', { class: 'modal-close', onclick: closeM }, '✕')
   ));
   const body = el('div', { class: 'modal-body' });
   const imgWrap = el('div', { style: 'text-align: center; min-height: 300px; display: flex; align-items: center; justify-content: center; background: var(--bg3); border-radius: var(--radius2); overflow: hidden;' });
@@ -3696,19 +3592,6 @@ $('#searchInput').addEventListener('input', e => {
     updateTabs();
   }
 });
-
-// ============================================
-// INIT & SPLASH START
-// ============================================
-initAudio();
-playLoadingSound();
-
-// Запускаем прогресс splash screen
-splashInterval = setInterval(updateSplashProgress, splashUpdateInterval);
-
-saveSettings();
-render();
-updateTabs();
 </script>
 </body>
 </html>
