@@ -117,7 +117,7 @@ img {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.4s ease, visibility 0.4s ease;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
 #splash-screen.hidden {
@@ -126,50 +126,152 @@ img {
   pointer-events: none;
 }
 
+.splash-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 400px;
+  width: 100%;
+  padding: 40px;
+}
+
+.splash-logo-wrapper {
+  position: relative;
+  margin-bottom: 32px;
+}
+
 .splash-logo {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 24px;
-  animation: splashPulse 1.5s ease-in-out infinite;
+  width: 80px;
+  height: 80px;
+  animation: splashPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 4px 20px rgba(129, 201, 149, 0.3));
 }
 
 @keyframes splashPulse {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 0.9; }
+}
+
+.splash-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: splashSpin 1.5s linear infinite;
+}
+
+@keyframes splashSpin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 .splash-title {
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 36px;
+  font-weight: 700;
   color: var(--text);
   margin-bottom: 8px;
-  letter-spacing: -0.5px;
+  letter-spacing: -1px;
+  animation: splashFadeIn 0.6s ease;
+}
+
+@keyframes splashFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .splash-subtitle {
   font-size: 14px;
   color: var(--text2);
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  animation: splashFadeIn 0.6s ease 0.1s both;
 }
 
-.splash-loader {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.splash-progress-container {
+  width: 100%;
+  margin-bottom: 20px;
+  animation: splashFadeIn 0.6s ease 0.2s both;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.splash-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.splash-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  width: 0%;
+  position: relative;
+}
+
+.splash-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .splash-status {
-  margin-top: 20px;
   font-size: 12px;
   color: var(--text3);
+  text-align: center;
+  margin-bottom: 8px;
+  min-height: 16px;
+  transition: all 0.3s ease;
+}
+
+.splash-status-text {
+  font-size: 11px;
+  color: var(--text4);
+  text-align: center;
   letter-spacing: 0.5px;
+}
+
+.splash-dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  animation: splashFadeIn 0.6s ease 0.3s both;
+}
+
+.splash-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.splash-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.splash-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+  40% { transform: scale(1.2); opacity: 1; background: var(--primary); }
 }
 
 /* ============================================
@@ -1436,6 +1538,10 @@ input[type="file"] {
   animation: spin 0.8s linear infinite;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ============================================
    TOASTS
    ============================================ */
@@ -1775,16 +1881,31 @@ input[type="file"] {
 
 <!-- SPLASH SCREEN -->
 <div id="splash-screen">
-  <svg class="splash-logo" viewBox="0 0 24 24" fill="none">
-    <path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.6 3 21.09 3 20.5Z" fill="#4285f4"/>
-    <path d="M16.81 15.12L6.05 21.34L14.54 12.85L16.81 15.12Z" fill="#34a853"/>
-    <path d="M20.16 10.81C20.5 11.08 20.75 11.5 20.75 12C20.75 12.5 20.53 12.9 20.18 13.18L17.89 14.5L15.39 12L17.89 9.5L20.16 10.81Z" fill="#fbbc05"/>
-    <path d="M6.05 2.66L16.81 8.88L14.54 11.15L6.05 2.66Z" fill="#ea4335"/>
-  </svg>
-  <div class="splash-title">awer</div>
-  <div class="splash-subtitle">Магазин приложений и игр</div>
-  <div class="splash-loader"></div>
-  <div class="splash-status" id="splashStatus">Загрузка...</div>
+  <div class="splash-container">
+    <div class="splash-logo-wrapper">
+      <svg class="splash-logo" viewBox="0 0 24 24" fill="none">
+        <path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.6 3 21.09 3 20.5Z" fill="#4285f4"/>
+        <path d="M16.81 15.12L6.05 21.34L14.54 12.85L16.81 15.12Z" fill="#34a853"/>
+        <path d="M20.16 10.81C20.5 11.08 20.75 11.5 20.75 12C20.75 12.5 20.53 12.9 20.18 13.18L17.89 14.5L15.39 12L17.89 9.5L20.16 10.81Z" fill="#fbbc05"/>
+        <path d="M6.05 2.66L16.81 8.88L14.54 11.15L6.05 2.66Z" fill="#ea4335"/>
+      </svg>
+      <div class="splash-ring"></div>
+    </div>
+    <div class="splash-title">awer</div>
+    <div class="splash-subtitle">Магазин приложений и игр</div>
+    <div class="splash-progress-container">
+      <div class="splash-progress-bar">
+        <div class="splash-progress-fill" id="splashProgressFill"></div>
+      </div>
+    </div>
+    <div class="splash-status" id="splashStatus">Инициализация...</div>
+    <div class="splash-status-text" id="splashStatusText">Подготовка к запуску</div>
+    <div class="splash-dots">
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+    </div>
+  </div>
 </div>
 
 <!-- WELCOME MODAL -->
@@ -1811,7 +1932,7 @@ input[type="file"] {
         <div class="welcome-feature-text">Прямой чат с продавцом</div>
       </div>
       <div class="welcome-feature">
-        <div class="welcome-feature-icon"></div>
+        <div class="welcome-feature-icon">⚡</div>
         <div class="welcome-feature-text">Мгновенная загрузка</div>
       </div>
     </div>
@@ -1835,7 +1956,7 @@ input[type="file"] {
       <input type="text" placeholder="Поиск приложений" id="searchInput">
     </div>
     <div class="header-actions">
-      <div class="icon-btn" onclick="toggleTheme()" id="themeBtn">️</div>
+      <div class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</div>
       <button class="login-btn" id="authBtn" onclick="showAuth()">Войти</button>
     </div>
   </div>
@@ -1906,7 +2027,7 @@ input[type="file"] {
       <span>Поиск</span>
     </div>
     <div class="mobile-nav-btn" data-page="library" onclick="nav('library')">
-      <span class="ico"></span>
+      <span class="ico">📚</span>
       <span>Библиотека</span>
     </div>
     <div class="mobile-nav-btn" data-page="profile" onclick="nav('profile')">
@@ -1945,6 +2066,109 @@ const db = firebase.firestore();
 const IMGBB_KEY = "c2a5f5a7794a778caac28687e2257fac";
 
 // ============================================
+// ЗВУК ЗАГРУЗКИ (Web Audio API)
+// ============================================
+let audioContext = null;
+let isAudioStarted = false;
+
+function initAudio() {
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  } catch (e) {
+    console.log('Audio not supported');
+  }
+}
+
+function playLoadingSound() {
+  if (!audioContext || isAudioStarted) return;
+  isAudioStarted = true;
+  
+  // Создаем красивый звук загрузки
+  const now = audioContext.currentTime;
+  const duration = 60; // 60 секунд
+  
+  // Основной тон (мягкий, нарастающий)
+  const oscillator1 = audioContext.createOscillator();
+  const gainNode1 = audioContext.createGain();
+  
+  oscillator1.type = 'sine';
+  oscillator1.frequency.setValueAtTime(220, now);
+  oscillator1.frequency.exponentialRampToValueAtTime(440, now + duration);
+  
+  gainNode1.gain.setValueAtTime(0, now);
+  gainNode1.gain.linearRampToValueAtTime(0.05, now + 2);
+  gainNode1.gain.setValueAtTime(0.05, now + duration - 2);
+  gainNode1.gain.linearRampToValueAtTime(0, now + duration);
+  
+  oscillator1.connect(gainNode1);
+  gainNode1.connect(audioContext.destination);
+  oscillator1.start(now);
+  oscillator1.stop(now + duration);
+  
+  // Второй тон (гармония)
+  const oscillator2 = audioContext.createOscillator();
+  const gainNode2 = audioContext.createGain();
+  
+  oscillator2.type = 'sine';
+  oscillator2.frequency.setValueAtTime(330, now);
+  oscillator2.frequency.exponentialRampToValueAtTime(660, now + duration);
+  
+  gainNode2.gain.setValueAtTime(0, now);
+  gainNode2.gain.linearRampToValueAtTime(0.03, now + 2);
+  gainNode2.gain.setValueAtTime(0.03, now + duration - 2);
+  gainNode2.gain.linearRampToValueAtTime(0, now + duration);
+  
+  oscillator2.connect(gainNode2);
+  gainNode2.connect(audioContext.destination);
+  oscillator2.start(now);
+  oscillator2.stop(now + duration);
+  
+  // Третий тон (высокий, для блеска)
+  const oscillator3 = audioContext.createOscillator();
+  const gainNode3 = audioContext.createGain();
+  
+  oscillator3.type = 'sine';
+  oscillator3.frequency.setValueAtTime(440, now);
+  oscillator3.frequency.exponentialRampToValueAtTime(880, now + duration);
+  
+  gainNode3.gain.setValueAtTime(0, now);
+  gainNode3.gain.linearRampToValueAtTime(0.02, now + 2);
+  gainNode3.gain.setValueAtTime(0.02, now + duration - 2);
+  gainNode3.gain.linearRampToValueAtTime(0, now + duration);
+  
+  oscillator3.connect(gainNode3);
+  gainNode3.connect(audioContext.destination);
+  oscillator3.start(now);
+  oscillator3.stop(now + duration);
+}
+
+function playWelcomeSound() {
+  if (!audioContext) return;
+  
+  const now = audioContext.currentTime;
+  
+  // Приятный аккорд при появлении welcome
+  const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+  
+  notes.forEach((freq, i) => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    
+    gain.gain.setValueAtTime(0, now + i * 0.1);
+    gain.gain.linearRampToValueAtTime(0.08, now + i * 0.1 + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.5);
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start(now + i * 0.1);
+    osc.stop(now + i * 0.1 + 0.5);
+  });
+}
+
+// ============================================
 // STATE
 // ============================================
 let S = {
@@ -1959,7 +2183,7 @@ const CATS = [
   {id:'video',n:'Видео',i:''},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
   {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},
   {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},
-  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:''},
+  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:'📄'},
   {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}
 ];
 
@@ -2007,7 +2231,7 @@ function col(s) {
 
 function toast(t, m, type) {
   const e = el('div', { class: 'toast ' + (type || 'info') },
-    el('div', { class: 'toast-icon', html: type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ' }),
+    el('div', { class: 'toast-icon', html: type === 'success' ? '✓' : type === 'error' ? '' : 'ℹ' }),
     el('div', {}, el('strong', {}, t), m ? ' ' + m : '')
   );
   $('#toasts').append(e);
@@ -2047,14 +2271,62 @@ function toggleTheme() {
 }
 
 // ============================================
-// SPLASH SCREEN & WELCOME
+// SPLASH SCREEN LOGIC
 // ============================================
+let splashProgress = 0;
+let splashInterval = null;
+const splashDuration = 60000; // 60 секунд
+const splashUpdateInterval = 100; // обновление каждые 100мс
+
+const splashStatuses = [
+  { at: 0, text: 'Инициализация системы...', sub: 'Подготовка к запуску' },
+  { at: 5, text: 'Подключение к серверу...', sub: 'Firebase Cloud' },
+  { at: 10, text: 'Загрузка конфигурации...', sub: 'Параметры приложения' },
+  { at: 15, text: 'Проверка авторизации...', sub: 'Ваш аккаунт' },
+  { at: 20, text: 'Загрузка каталога...', sub: 'Приложения и игры' },
+  { at: 30, text: 'Синхронизация данных...', sub: 'Обновление кэша' },
+  { at: 40, text: 'Загрузка интерфейса...', sub: 'Компоненты UI' },
+  { at: 50, text: 'Подготовка контента...', sub: 'Изображения и данные' },
+  { at: 60, text: 'Финальная настройка...', sub: 'Почти готово' },
+  { at: 70, text: 'Оптимизация...', sub: 'Ускорение загрузки' },
+  { at: 80, text: 'Проверка соединений...', sub: 'Стабильность сети' },
+  { at: 90, text: 'Завершение...', sub: 'Добро пожаловать!' },
+  { at: 100, text: 'Готово!', sub: 'Загрузка завершена' }
+];
+
+function updateSplashProgress() {
+  splashProgress += (100 / (splashDuration / splashUpdateInterval));
+  if (splashProgress > 100) splashProgress = 100;
+  
+  $('#splashProgressFill').style.width = splashProgress + '%';
+  
+  // Обновляем статус
+  const currentStatus = splashStatuses.reduce((prev, curr) => {
+    return splashProgress >= curr.at ? curr : prev;
+  }, splashStatuses[0]);
+  
+  $('#splashStatus').textContent = currentStatus.text;
+  $('#splashStatusText').textContent = currentStatus.sub;
+  
+  if (splashProgress >= 100) {
+    clearInterval(splashInterval);
+    setTimeout(() => {
+      hideSplash();
+    }, 500);
+  }
+}
+
 function hideSplash() {
+  $('#splash-screen').classList.add('hidden');
   setTimeout(() => {
-    $('#splash-screen').classList.add('hidden');
+    showWelcome();
+    playWelcomeSound();
   }, 800);
 }
 
+// ============================================
+// WELCOME MODAL
+// ============================================
 function showWelcome() {
   const hasSeen = localStorage.getItem('awer_welcome_seen');
   if (hasSeen) return;
@@ -2116,29 +2388,21 @@ function logoutUser() {
 
 const savedNick = localStorage.getItem('awer_nick');
 if (savedNick) {
-  $('#splashStatus').textContent = 'Входим в аккаунт...';
   loginWithNick(savedNick).then(u => {
     S.cu = u;
     saveSettings();
     render();
     updateAuthBtn();
-    hideSplash();
-    showWelcome();
   }).catch(() => {
     localStorage.removeItem('awer_nick');
     saveSettings();
     render();
     updateAuthBtn();
-    hideSplash();
-    showWelcome();
   });
 } else {
-  $('#splashStatus').textContent = 'Загрузка каталога...';
   saveSettings();
   render();
   updateAuthBtn();
-  hideSplash();
-  showWelcome();
 }
 
 function saveSettings() {
@@ -2302,7 +2566,7 @@ function rAppCardH(a) {
   if (a.iconUrl) {
     card.append(el('div', { class: 'app-icon' }, el('img', { src: a.iconUrl, alt: a.name })));
   } else {
-    card.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || '📱'));
+    card.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || ''));
   }
   card.append(el('div', { class: 'app-name' }, a.name));
   card.append(el('div', { class: 'app-rating' },
@@ -2317,7 +2581,7 @@ function rAppListItem(a) {
   if (a.iconUrl) {
     item.append(el('div', { class: 'app-icon' }, el('img', { src: a.iconUrl })));
   } else {
-    item.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || '📱'));
+    item.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || ''));
   }
   const info = el('div', { class: 'info' });
   info.append(el('div', { class: 'name' },
@@ -2396,7 +2660,7 @@ function rAppPage() {
     const info = el('div', { class: 'app-page-info' });
     info.append(el('h1', {}, a.name));
     const devLine = el('div', { class: 'app-page-dev' }, a.devName || 'Неизвестный');
-    if (a.official) devLine.append(el('span', { style: 'color: #ffd700; font-size: 14px;' }, '🏆'));
+    if (a.official) devLine.append(el('span', { style: 'color: #ffd700; font-size: 14px;' }, ''));
     else if (a.devVerified) devLine.append(el('span', { style: 'color: var(--primary);' }, '✓'));
     info.append(devLine);
     const stats = el('div', { class: 'app-page-stats' });
@@ -2455,7 +2719,7 @@ function toggleFav(appId) {
 function rFavorites() {
   const w = el('div', {});
   w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Избранное'));
-  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'))); return w; }
   const cuId = S.cu.uid;
   const favs = JSON.parse(localStorage.getItem('awer_favs_' + cuId) || '{}');
   const ids = Object.keys(favs);
@@ -2480,7 +2744,7 @@ function rFavorites() {
 function rOrders() {
   const w = el('div', {});
   w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Мои заявки'));
-  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Войдите'))); return w; }
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
   Promise.all([
@@ -2655,7 +2919,7 @@ function rLibrary() {
   const cuId = S.cu.uid;
   const lib = JSON.parse(localStorage.getItem('awer_lib_' + cuId) || '{}');
   const ids = Object.keys(lib);
-  if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Пусто'))); return w; }
+  if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '📚'), el('h3', {}, 'Пусто'))); return w; }
   const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
   w.append(loading);
   Promise.all(ids.map(id => db.collection('apps').doc(id).get())).then(docs => {
@@ -2849,7 +3113,7 @@ function rDeveloper() {
   const u = S.cu;
   w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Консоль разработчика'));
   if (!u.verified && !u.official) {
-    w.append(el('div', { class: 'chat-warning', style: 'margin-bottom: 16px;' }, el('strong', {}, '️ '), 'Аккаунт не верифицирован.'));
+    w.append(el('div', { class: 'chat-warning', style: 'margin-bottom: 16px;' }, el('strong', {}, '⚠️ '), 'Аккаунт не верифицирован.'));
   }
   const stats = el('div', { class: 'stats-grid' });
   db.collection('apps').where('devUid', '==', u.uid).get().then(snap => {
@@ -3167,7 +3431,7 @@ function showAuth() {
   const m = el('div', {});
   const head = el('div', { class: 'modal-head' },
     el('h2', {}, 'Войти в awer'),
-    el('div', { class: 'modal-close', onclick: closeM }, '✕')
+    el('div', { class: 'modal-close', onclick: closeM }, '')
   );
   const body = el('div', { class: 'modal-body' });
   let mode = 'login';
@@ -3249,7 +3513,7 @@ function openOrder(appId) {
     const m = el('div', {});
     m.append(el('div', { class: 'modal-head' },
       el('h2', {}, 'Заявка'),
-      el('div', { class: 'modal-close', onclick: closeM }, '')
+      el('div', { class: 'modal-close', onclick: closeM }, '✕')
     ));
     const body = el('div', { class: 'modal-body' });
     body.append(el('div', { style: 'display: flex; gap: 12px; align-items: center; padding: 12px; background: var(--bg3); border-radius: var(--radius2); margin-bottom: 16px;' },
@@ -3272,7 +3536,7 @@ function openOrder(appId) {
       rg.append(it);
     });
     body.append(rg);
-    body.append(el('div', { class: 'chat-warning', style: 'margin-top: 12px;' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи.'));
+    body.append(el('div', { class: 'chat-warning', style: 'margin-top: 12px;' }, el('strong', {}, '️ '), 'awer не принимает платежи.'));
     const foot = el('div', { class: 'modal-foot' });
     foot.append(el('button', { class: 'btn btn-outline', onclick: closeM }, 'Отмена'));
     const submitBtn = el('button', { class: 'btn btn-primary' });
@@ -3353,7 +3617,7 @@ function openScreenshotViewer(screenshots, currentSh) {
   const m = el('div', {});
   m.append(el('div', { class: 'modal-head' },
     el('h2', {}, 'Скриншот ' + (idx + 1) + ' из ' + screenshots.length),
-    el('div', { class: 'modal-close', onclick: closeM }, '✕')
+    el('div', { class: 'modal-close', onclick: closeM }, '')
   ));
   const body = el('div', { class: 'modal-body' });
   const imgWrap = el('div', { style: 'text-align: center; min-height: 300px; display: flex; align-items: center; justify-content: center; background: var(--bg3); border-radius: var(--radius2); overflow: hidden;' });
@@ -3432,6 +3696,19 @@ $('#searchInput').addEventListener('input', e => {
     updateTabs();
   }
 });
+
+// ============================================
+// INIT & SPLASH START
+// ============================================
+initAudio();
+playLoadingSound();
+
+// Запускаем прогресс splash screen
+splashInterval = setInterval(updateSplashProgress, splashUpdateInterval);
+
+saveSettings();
+render();
+updateTabs();
 </script>
 </body>
 </html>
