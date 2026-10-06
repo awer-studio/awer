@@ -420,20 +420,23 @@ img {
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
 }
 
 .logo-text {
   font-size: 22px;
   font-weight: 600;
-  color: var(--text);
+  background: linear-gradient(135deg, #81c995, #8ab4f8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: -0.5px;
 }
 
@@ -799,12 +802,13 @@ img {
 }
 
 .admin-badge {
-  background: var(--error);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: #fff;
-  padding: 4px 12px;
+  padding: 6px 16px;
   border-radius: var(--radius4);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .admin-stats {
@@ -819,6 +823,12 @@ img {
   border: 1px solid var(--border);
   border-radius: var(--radius2);
   padding: 20px;
+  transition: all 0.2s;
+}
+
+.admin-stat-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
 }
 
 .admin-stat-card .label {
@@ -851,6 +861,9 @@ img {
 .admin-table {
   width: 100%;
   border-collapse: collapse;
+  background: var(--bg3);
+  border-radius: var(--radius2);
+  overflow: hidden;
 }
 
 .admin-table th,
@@ -866,6 +879,7 @@ img {
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  background: var(--bg4);
 }
 
 .admin-table td {
@@ -874,7 +888,7 @@ img {
 }
 
 .admin-table tr:hover {
-  background: var(--bg3);
+  background: var(--bg4);
 }
 
 .admin-actions {
@@ -918,6 +932,15 @@ img {
 .admin-btn-delete:hover {
   background: var(--error);
   color: #fff;
+}
+
+.admin-btn-view {
+  background: var(--secondary);
+  color: #fff;
+}
+
+.admin-btn-view:hover {
+  background: #6a9fe8;
 }
 
 /* APP CAROUSEL */
@@ -2064,6 +2087,13 @@ input[type="file"] {
   .admin-stats {
     grid-template-columns: 1fr;
   }
+  .admin-table {
+    font-size: 12px;
+  }
+  .admin-table th,
+  .admin-table td {
+    padding: 8px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -2135,11 +2165,17 @@ input[type="file"] {
 <div id="splash-screen">
   <div class="splash-container">
     <div class="splash-logo-wrapper">
-      <svg class="splash-logo" viewBox="0 0 24 24" fill="none">
-        <path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.6 3 21.09 3 20.5Z" fill="#4285f4"/>
-        <path d="M16.81 15.12L6.05 21.34L14.54 12.85L16.81 15.12Z" fill="#34a853"/>
-        <path d="M20.16 10.81C20.5 11.08 20.75 11.5 20.75 12C20.75 12.5 20.53 12.9 20.18 13.18L17.89 14.5L15.39 12L17.89 9.5L20.16 10.81Z" fill="#fbbc05"/>
-        <path d="M6.05 2.66L16.81 8.88L14.54 11.15L6.05 2.66Z" fill="#ea4335"/>
+      <svg class="splash-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#81c995;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#8ab4f8;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="48" height="48" rx="12" fill="url(#logoGradient)"/>
+        <path d="M24 12L28 20L36 20L30 26L32 34L24 30L16 34L18 26L12 20L20 20L24 12Z" fill="#fff" opacity="0.9"/>
+        <path d="M24 16L26.5 21L32 21L28 25L29 30L24 28L19 30L20 25L16 21L21.5 21L24 16Z" fill="#fff" opacity="0.7"/>
+        <path d="M24 20L25.5 23L29 23L26.5 25.5L27 29L24 27.5L21 29L21.5 25.5L19 23L22.5 23L24 20Z" fill="#fff" opacity="0.5"/>
       </svg>
       <div class="splash-ring"></div>
     </div>
@@ -2163,7 +2199,7 @@ input[type="file"] {
 <!-- WELCOME MODAL -->
 <div id="welcome-overlay" class="hidden">
   <div class="welcome-modal">
-    <div class="welcome-icon"></div>
+    <div class="welcome-icon">🎉</div>
     <h1>Добро пожаловать в awer!</h1>
     <div class="subtitle">Команда awer наконец-то сделала это!</div>
     <div class="description">
@@ -2196,12 +2232,17 @@ input[type="file"] {
 <header class="header">
   <div class="header-inner">
     <div class="logo" onclick="nav('home')">
-      <!-- SVG LOGO -->
       <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="48" height="48" rx="12" fill="#4285f4"/>
-        <path d="M24 12L28 20L36 20L30 26L32 34L24 30L16 34L18 26L12 20L20 20L24 12Z" fill="#34a853"/>
-        <path d="M24 16L26.5 21L32 21L28 25L29 30L24 28L19 30L20 25L16 21L21.5 21L24 16Z" fill="#fbbc05"/>
-        <path d="M24 20L25.5 23L29 23L26.5 25.5L27 29L24 27.5L21 29L21.5 25.5L19 23L22.5 23L24 20Z" fill="#ea4335"/>
+        <defs>
+          <linearGradient id="headerLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#81c995;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#8ab4f8;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="48" height="48" rx="12" fill="url(#headerLogoGradient)"/>
+        <path d="M24 12L28 20L36 20L30 26L32 34L24 30L16 34L18 26L12 20L20 20L24 12Z" fill="#fff" opacity="0.9"/>
+        <path d="M24 16L26.5 21L32 21L28 25L29 30L24 28L19 30L20 25L16 21L21.5 21L24 16Z" fill="#fff" opacity="0.7"/>
+        <path d="M24 20L25.5 23L29 23L26.5 25.5L27 29L24 27.5L21 29L21.5 25.5L19 23L22.5 23L24 20Z" fill="#fff" opacity="0.5"/>
       </svg>
       <span class="logo-text">awer</span>
     </div>
@@ -2237,10 +2278,16 @@ input[type="file"] {
     <div>
       <div class="logo" style="margin-bottom:10px">
         <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="48" height="48" rx="12" fill="#4285f4"/>
-          <path d="M24 12L28 20L36 20L30 26L32 34L24 30L16 34L18 26L12 20L20 20L24 12Z" fill="#34a853"/>
-          <path d="M24 16L26.5 21L32 21L28 25L29 30L24 28L19 30L20 25L16 21L21.5 21L24 16Z" fill="#fbbc05"/>
-          <path d="M24 20L25.5 23L29 23L26.5 25.5L27 29L24 27.5L21 29L21.5 25.5L19 23L22.5 23L24 20Z" fill="#ea4335"/>
+          <defs>
+            <linearGradient id="footerLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#81c995;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#8ab4f8;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <rect width="48" height="48" rx="12" fill="url(#footerLogoGradient)"/>
+          <path d="M24 12L28 20L36 20L30 26L32 34L24 30L16 34L18 26L12 20L20 20L24 12Z" fill="#fff" opacity="0.9"/>
+          <path d="M24 16L26.5 21L32 21L28 25L29 30L24 28L19 30L20 25L16 21L21.5 21L24 16Z" fill="#fff" opacity="0.7"/>
+          <path d="M24 20L25.5 23L29 23L26.5 25.5L27 29L24 27.5L21 29L21.5 25.5L19 23L22.5 23L24 20Z" fill="#fff" opacity="0.5"/>
         </svg>
         <span class="logo-text">awer</span>
       </div>
@@ -2317,6 +2364,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const IMGBB_KEY = "c2a5f5a7794a778caac28687e2257fac";
+const maintenanceRef = db.collection('siteSettings').doc('maintenance');
 
 let audioContext = null;
 
@@ -2361,11 +2409,11 @@ let S = {
 };
 
 const CATS = [
-  {id:'ai',n:'AI',i:''},{id:'design',n:'Дизайн',i:''},{id:'photo',n:'Фото',i:'📷'},
-  {id:'video',n:'Видео',i:''},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:''},
-  {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:''},
-  {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:''},
-  {id:'security',n:'Безопасность',i:''},{id:'docs',n:'Документы',i:'📄'},
+  {id:'ai',n:'AI',i:'🤖'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},
+  {id:'video',n:'Видео',i:''},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
+  {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},
+  {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},
+  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:'📄'},
   {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}
 ];
 
@@ -2446,7 +2494,7 @@ function toggleTheme() {
   S.theme = S.theme === 'light' ? 'dark' : 'light';
   saveSettings();
   document.documentElement.setAttribute('data-theme', S.theme);
-  $('#themeBtn').textContent = S.theme === 'dark' ? '☀️' : '🌙';
+  $('#themeBtn').textContent = S.theme === 'dark' ? '️' : '🌙';
 }
 
 const splashStatuses = [
@@ -2489,24 +2537,19 @@ function closeWelcome() {
   localStorage.setItem('awer_welcome_seen', 'true');
 }
 
-// ============================================
-// AUTH WITH ADMIN PROTECTION
-// ============================================
 async function registerWithNick(nick, role) {
   return new Promise((resolve, reject) => {
     if (nick === 'awer_studio') {
-      resolve({ uid: 'official_awer_studio', nick: 'awer_studio', name: 'awer_studio', role: 'developer', avatar: '', verified: true, official: true, blocked: false, isFirstDeveloper: true });
+      resolve({ uid: 'official_awer_studio', nick: 'awer_studio', name: 'awer_studio', role: 'developer', avatar: '🏆', verified: true, official: true, blocked: false, isAdmin: true, isFirstDeveloper: true });
       return;
     }
     nick = nick.toLowerCase().trim();
     
-    // Check if this is the first developer
     db.collection('system').doc('config').get().then(async configDoc => {
       let isFirstDev = false;
       let adminUid = null;
       
       if (!configDoc.exists) {
-        // First developer ever - create config
         isFirstDev = true;
         const uid = 'user_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         await db.collection('system').doc('config').set({
@@ -2518,7 +2561,6 @@ async function registerWithNick(nick, role) {
         adminUid = configDoc.data().firstDeveloperUid;
       }
       
-      // Check if nick is taken
       db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
         if (!snap.empty) { reject(new Error('Ник занят')); return; }
         
@@ -2529,7 +2571,6 @@ async function registerWithNick(nick, role) {
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         
-        // If this is the first developer, mark them
         if (role === 'developer' && isFirstDev) {
           userData.isAdmin = true;
           userData.isFirstDeveloper = true;
@@ -2552,7 +2593,7 @@ async function registerWithNick(nick, role) {
 function loginWithNick(nick) {
   return new Promise((resolve, reject) => {
     if (nick === 'awer_studio') {
-      resolve({ uid: 'official_awer_studio', nick: 'awer_studio', name: 'awer_studio', role: 'developer', avatar: '', verified: true, official: true, blocked: false, isAdmin: true, isFirstDeveloper: true });
+      resolve({ uid: 'official_awer_studio', nick: 'awer_studio', name: 'awer_studio', role: 'developer', avatar: '🏆', verified: true, official: true, blocked: false, isAdmin: true, isFirstDeveloper: true });
       return;
     }
     nick = nick.toLowerCase().trim();
@@ -2562,7 +2603,6 @@ function loginWithNick(nick) {
       const data = doc.data();
       if (data.blocked) { reject(new Error('Заблокирован')); return; }
       
-      // Check if this user is the first developer
       db.collection('system').doc('config').get().then(configDoc => {
         let isAdmin = false;
         let isFirstDeveloper = false;
@@ -2735,24 +2775,20 @@ function render() {
   else c.append(el('div', { class: 'empty' }, el('h3', {}, '404')));
 }
 
-// ============================================
-// TUTORIAL WITH PLACEHOLDER IMAGES
-// ============================================
 function rTutorial() {
   const w = el('div', { class: 'tutorial-container' });
   
   w.append(el('div', { class: 'tutorial-header' },
-    el('h1', {}, '📚 Как опубликовать приложение'),
+    el('h1', {}, ' Как опубликовать приложение'),
     el('p', {}, 'Пошаговое руководство по публикации вашего приложения или игры на платформе awer')
   ));
   
-  // Tutorial steps with placeholder images
   const steps = [
     {
       number: 1,
       title: 'Регистрация аккаунта разработчика',
       description: 'Сначала нужно создать аккаунт и выбрать роль "Разработчик". Нажмите кнопку "Войти" в правом верхнем углу, затем "Зарегистрироваться". Введите уникальный ник (минимум 3 символа) и выберите тип аккаунта "Разработчик".',
-      placeholder: '📝 Скриншот формы регистрации с выбором роли "Разработчик"',
+      placeholder: ' Скриншот формы регистрации с выбором роли "Разработчик"',
       tips: 'Ник должен быть уникальным. Если ник занят, система предложит выбрать другой. После регистрации вы автоматически войдёте в аккаунт.'
     },
     {
@@ -2837,13 +2873,9 @@ function rTutorial() {
   return w;
 }
 
-// ============================================
-// ADMIN PANEL - ONLY FOR FIRST DEVELOPER
-// ============================================
 function rAdmin() {
   const w = el('div', {});
   
-  // SECURITY CHECK - Only first developer can access
   if (!S.cu || !S.cu.isAdmin || !S.cu.isFirstDeveloper) {
     w.append(el('div', { class: 'empty' },
       el('div', { class: 'empty-icon' }, '🔐'),
@@ -2855,7 +2887,6 @@ function rAdmin() {
     return w;
   }
   
-  // Admin panel content
   w.append(el('div', { class: 'admin-panel' },
     el('div', { class: 'admin-header' },
       el('h2', {}, '⚙️ Админ-панель'),
@@ -2863,16 +2894,15 @@ function rAdmin() {
     )
   ));
   
-  // Stats
   const stats = el('div', { class: 'admin-stats' });
   
-  // Get all stats
   Promise.all([
     db.collection('users').get(),
     db.collection('apps').get(),
     db.collection('orders').get(),
-    db.collection('supports').get()
-  ]).then(([usersSnap, appsSnap, ordersSnap, supportsSnap]) => {
+    db.collection('supports').get(),
+    db.collection('reports').get()
+  ]).then(([usersSnap, appsSnap, ordersSnap, supportsSnap, reportsSnap]) => {
     stats.append(el('div', { class: 'admin-stat-card' },
       el('div', { class: 'label' }, 'Пользователи'),
       el('div', { class: 'value' }, String(usersSnap.size))
@@ -2889,19 +2919,21 @@ function rAdmin() {
       el('div', { class: 'label' }, 'Обращения'),
       el('div', { class: 'value' }, String(supportsSnap.size))
     ));
+    stats.append(el('div', { class: 'admin-stat-card' },
+      el('div', { class: 'label' }, 'Жалобы'),
+      el('div', { class: 'value' }, String(reportsSnap.size))
+    ));
   });
   
   w.append(stats);
   
-  // Tabs
   const tabs = el('div', { style: 'display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 6px;' });
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-  [['apps', 'Приложения'], ['users', 'Пользователи'], ['orders', 'Заявки']].forEach(x => {
+  [['apps', 'Приложения'], ['users', 'Пользователи'], ['orders', 'Заявки'], ['supports', 'Обращения'], ['reports', 'Жалобы'], ['site', '⚙️ Сайт']].forEach(x => {
     tabs.append(el('div', { class: 'tab-btn' + (tab === x[0] ? ' active' : ''), onclick: () => nav('admin', { tab: x[0] }) }, x[1]));
   });
   w.append(tabs);
   
-  // Content based on tab
   if (tab === 'apps') {
     const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
     w.append(loading);
@@ -3026,23 +3058,271 @@ function rAdmin() {
             (o.status === 'completed' ? 'rgba(129,201,149,0.2); color: #81c995;' : 
              o.status === 'cancelled' ? 'rgba(242,139,130,0.2); color: #f28b82;' : 
              'rgba(138,180,248,0.2); color: #8ab4f8;') 
-          }, o.status === 'completed' ? '✓ Завершена' : o.status === 'cancelled' ? '✕ Отменена' : '⏳ В процессе')
+          }, o.status === 'completed' ? '✓ Завершена' : o.status === 'cancelled' ? '✕ Отменена' : ' В процессе')
         ));
         tbody.append(tr);
       });
       table.append(tbody);
       w.append(table);
     });
+  } else if (tab === 'supports') {
+    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
+    w.append(loading);
+    db.collection('supports').orderBy('createdAt', 'desc').get().then(snap => {
+      loading.remove();
+      if (snap.empty) {
+        w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет обращений')));
+        return;
+      }
+      const table = el('table', { class: 'admin-table' });
+      table.append(el('thead', {}, el('tr', {},
+        el('th', {}, 'Тема'),
+        el('th', {}, 'Пользователь'),
+        el('th', {}, 'Статус'),
+        el('th', {}, 'Действия')
+      )));
+      const tbody = el('tbody', {});
+      snap.forEach(doc => {
+        const s = { id: doc.id, ...doc.data() };
+        const tr = el('tr', {});
+        tr.append(el('td', {}, s.theme));
+        tr.append(el('td', {}, s.userName || '—'));
+        tr.append(el('td', {}, 
+          el('span', { 
+            style: 'padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ' + 
+            (s.status === 'new' ? 'rgba(253,214,99,0.2); color: #fdd663;' : 'rgba(129,201,149,0.2); color: #81c995;') 
+          }, s.status === 'new' ? '🆕 Новое' : '✓ Отвечено')
+        ));
+        const actions = el('td', {}, el('div', { class: 'admin-actions' }));
+        actions.children[0].append(el('button', { class: 'admin-btn admin-btn-view', onclick: () => openAdminSupport(doc.id) }, 'Открыть'));
+        tr.append(actions);
+        tbody.append(tr);
+      });
+      table.append(tbody);
+      w.append(table);
+    });
+  } else if (tab === 'reports') {
+    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
+    w.append(loading);
+    db.collection('reports').get().then(snap => {
+      loading.remove();
+      if (snap.empty) {
+        w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет жалоб')));
+        return;
+      }
+      const table = el('table', { class: 'admin-table' });
+      table.append(el('thead', {}, el('tr', {},
+        el('th', {}, 'Приложение'),
+        el('th', {}, 'Причина'),
+        el('th', {}, 'Статус'),
+        el('th', {}, 'Действия')
+      )));
+      const tbody = el('tbody', {});
+      snap.forEach(doc => {
+        const rp = { id: doc.id, ...doc.data() };
+        const tr = el('tr', {});
+        tr.append(el('td', {}, rp.appName || '—'));
+        tr.append(el('td', {}, rp.reason));
+        tr.append(el('td', {}, 
+          el('span', { 
+            style: 'padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ' + 
+            (!rp.resolved ? 'rgba(253,214,99,0.2); color: #fdd663;' : 'rgba(129,201,149,0.2); color: #81c995;') 
+          }, !rp.resolved ? '⏳ На рассмотрении' : '✓ Решено')
+        ));
+        const actions = el('td', {}, el('div', { class: 'admin-actions' }));
+        if (!rp.resolved) {
+          actions.children[0].append(el('button', { class: 'admin-btn admin-btn-block', onclick: () => {
+            db.collection('apps').doc(rp.appId).update({ status: 'blocked' });
+            db.collection('reports').doc(doc.id).update({ resolved: 'blocked' });
+            toast('Приложение заблокировано', '', 'error');
+            render();
+          } }, 'Блок'));
+          actions.children[0].append(el('button', { class: 'admin-btn admin-btn-delete', onclick: () => {
+            db.collection('reports').doc(doc.id).update({ resolved: 'rejected' });
+            toast('Жалоба отклонена', '', 'info');
+            render();
+          } }, 'Отклонить'));
+        }
+        tr.append(actions);
+        tbody.append(tr);
+      });
+      table.append(tbody);
+      w.append(table);
+    });
+  } else if (tab === 'site') {
+    const siteSection = el('div', { class: 'admin-section' });
+    siteSection.append(el('h3', {}, '🛠️ Режим обслуживания'));
+    siteSection.append(el('p', { style: 'color: var(--text2); margin-bottom: 20px; font-size: 14px;' }, 'Закройте сайт для всех пользователей кроме админов и разработчиков. Укажите время открытия и сообщение.'));
+    
+    const statusDiv = el('div', { style: 'padding: 16px; background: var(--bg3); border-radius: var(--radius2); margin-bottom: 20px;' });
+    statusDiv.textContent = 'Загрузка статуса...';
+    siteSection.append(statusDiv);
+    
+    const formDiv = el('div', {});
+    formDiv.append(el('div', { class: 'form-group' },
+      el('label', {}, 'Сообщение для пользователей'),
+      el('textarea', { class: 'form-control', id: 'maintMessage', placeholder: 'Технические работы до 18:00...' })
+    ));
+    formDiv.append(el('div', { class: 'form-group' },
+      el('label', {}, 'Время открытия'),
+      el('input', { class: 'form-control', id: 'maintTime', type: 'datetime-local' })
+    ));
+    
+    const btns = el('div', { style: 'display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;' });
+    const enableBtn = el('button', { class: 'btn btn-danger' });
+    enableBtn.textContent = '🔒 Закрыть сайт';
+    enableBtn.addEventListener('click', () => {
+      const msg = $('#maintMessage').value.trim();
+      const timeVal = $('#maintTime').value;
+      if (!timeVal) { toast('Укажите время открытия', '', 'error'); return; }
+      if (!msg) { toast('Напишите сообщение', '', 'error'); return; }
+      const endTime = new Date(timeVal);
+      if (endTime.getTime() < Date.now()) { toast('Время должно быть в будущем', '', 'error'); return; }
+      maintenanceRef.set({
+        enabled: true,
+        message: msg,
+        endTime: firebase.firestore.Timestamp.fromDate(endTime),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        setBy: S.cu.uid
+      }).then(() => {
+        toast('Сайт закрыт', 'Пользователи увидят таймер', 'success');
+      }).catch(e => {
+        toast('Ошибка', e.message, 'error');
+      });
+    });
+    btns.append(enableBtn);
+    
+    const disableBtn = el('button', { class: 'btn btn-primary' });
+    disableBtn.textContent = '🔓 Открыть сайт';
+    disableBtn.addEventListener('click', () => {
+      if (!confirm('Открыть сайт для всех пользователей?')) return;
+      maintenanceRef.update({ enabled: false }).then(() => {
+        toast('Сайт открыт', '', 'success');
+      }).catch(e => {
+        toast('Ошибка', e.message, 'error');
+      });
+    });
+    btns.append(disableBtn);
+    formDiv.append(btns);
+    siteSection.append(formDiv);
+    
+    maintenanceRef.onSnapshot(function(doc) {
+      if (!doc.exists) {
+        statusDiv.innerHTML = '<div style="color: var(--primary); font-weight: 600;">✅ Сайт открыт для всех пользователей</div>';
+        return;
+      }
+      const data = doc.data();
+      if (data.enabled) {
+        const endTime = data.endTime ? data.endTime.toDate().toLocaleString('ru-RU') : 'не указано';
+        statusDiv.innerHTML = '<div style="color: var(--error); font-weight: 600; margin-bottom: 8px;">🔒 Сайт ЗАКРЫТ</div><div style="font-size: 13px; color: var(--text2);">Сообщение: ' + (data.message || '—') + '</div><div style="font-size: 13px; color: var(--text2); margin-top: 4px;">Откроется: ' + endTime + '</div>';
+      } else {
+        statusDiv.innerHTML = '<div style="color: var(--primary); font-weight: 600;">✅ Сайт открыт для всех пользователей</div>';
+      }
+    });
+    
+    w.append(siteSection);
   }
   
   return w;
+}
+
+function openAdminSupport(id) {
+  const m = el('div', {});
+  m.append(el('div', { class: 'modal-head' },
+    el('h2', {}, '💬 Обращение в поддержку'),
+    el('div', { class: 'modal-close', onclick: closeM }, '✕')
+  ));
+  const body = el('div', { class: 'modal-body' });
+  db.collection('supports').doc(id).get().then(doc => {
+    if (!doc.exists) return;
+    const s = doc.data();
+    body.append(el('p', { style: 'font-weight: 500; margin-bottom: 10px;' }, s.theme));
+    body.append(el('p', { style: 'color: var(--text2); font-size: 13px; margin-bottom: 14px;' }, s.text));
+    body.append(el('p', { style: 'color: var(--text3); font-size: 11px; margin-bottom: 16px;' }, 'От: ' + (s.userName || '—') + ' · ' + fd(s.createdAt)));
+    
+    const ms = el('div', { class: 'chat-messages', style: 'min-height: 200px; max-height: 300px; margin-bottom: 16px;' });
+    db.collection('supports').doc(id).collection('messages').orderBy('createdAt', 'asc').get().then(snapshot => {
+      snapshot.forEach(d => {
+        const x = d.data();
+        ms.append(el('div', { class: 'msg ' + (x.from === 'support' ? 'me' : 'other') },
+          el('div', {}, x.text),
+          el('span', { class: 'msg-time' }, ft(x.createdAt))
+        ));
+      });
+      body.append(ms);
+      
+      const inp = el('div', { class: 'chat-input-row' });
+      const input = el('input', { placeholder: 'Ответить...' });
+      const sendBtn = el('button', { class: 'btn btn-primary' });
+      sendBtn.textContent = 'Ответить';
+      sendBtn.addEventListener('click', () => {
+        const t = input.value.trim();
+        if (!t) return;
+        db.collection('supports').doc(id).collection('messages').add({
+          from: 'support',
+          text: t,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        db.collection('supports').doc(id).update({ status: 'answered' });
+        closeM();
+        render();
+        toast('Ответ отправлен', '', 'success');
+      });
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') sendBtn.click(); });
+      inp.append(input, sendBtn);
+      body.append(inp);
+      
+      if (s.orderId) {
+        const acts = el('div', { style: 'display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;' });
+        const returnBtn = el('button', { class: 'btn btn-primary btn-sm' });
+        returnBtn.textContent = '✓ Вернуть приложение';
+        returnBtn.addEventListener('click', () => {
+          db.collection('orders').doc(s.orderId).get().then(od => {
+            if (!od.exists) return;
+            const o = od.data();
+            const lib = JSON.parse(localStorage.getItem('awer_lib_' + o.buyerUid) || '{}');
+            lib[o.appId] = { date: Date.now() };
+            localStorage.setItem('awer_lib_' + o.buyerUid, JSON.stringify(lib));
+            db.collection('supports').doc(id).collection('messages').add({
+              from: 'support',
+              text: 'Приложение возвращено покупателю.',
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            closeM();
+            render();
+            toast('Приложение возвращено', '', 'success');
+          });
+        });
+        acts.append(returnBtn);
+        
+        const cancelBtn = el('button', { class: 'btn btn-danger btn-sm' });
+        cancelBtn.textContent = '✕ Отменить сделку';
+        cancelBtn.addEventListener('click', () => {
+          db.collection('orders').doc(s.orderId).update({ status: 'cancelled' });
+          db.collection('supports').doc(id).collection('messages').add({
+            from: 'support',
+            text: 'Сделка отменена администратором.',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          closeM();
+          render();
+          toast('Сделка отменена', '', 'info');
+        });
+        acts.append(cancelBtn);
+        body.append(acts);
+      }
+      
+      m.append(body);
+      openM(m);
+    });
+  });
 }
 
 function rHome() {
   const w = el('div', {});
   if (!appsCache || appsCache.length === 0) {
     w.append(el('div', { class: 'empty' },
-      el('div', { class: 'empty-icon' }, ''),
+      el('div', { class: 'empty-icon' }, '📦'),
       el('h3', {}, 'Каталог пока пуст'),
       el('p', {}, 'Станьте первым разработчиком!'),
       el('button', { class: 'btn btn-primary', style: 'margin-top: 12px;', onclick: () => { if (!S.cu) { showAuth(); return; } if (S.cu.role !== 'developer') { toast('Нужен аккаунт разработчика', '', 'error'); return; } nav('developer', { tab: 'add' }); } }, 'Опубликовать приложение')
@@ -3111,7 +3391,7 @@ function rAppCardH(a) {
   if (a.iconUrl) {
     card.append(el('div', { class: 'app-icon' }, el('img', { src: a.iconUrl, alt: a.name })));
   } else {
-    card.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || '📱'));
+    card.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || ''));
   }
   card.append(el('div', { class: 'app-name' }, a.name));
   card.append(el('div', { class: 'app-rating' },
@@ -3200,7 +3480,7 @@ function rAppPage() {
     const info = el('div', { class: 'app-page-info' });
     info.append(el('h1', {}, a.name));
     const devLine = el('div', { class: 'app-page-dev' }, a.devName || 'Неизвестный');
-    if (a.official) devLine.append(el('span', { style: 'color: #ffd700; font-size: 14px;' }, ''));
+    if (a.official) devLine.append(el('span', { style: 'color: #ffd700; font-size: 14px;' }, '🏆'));
     else if (a.devVerified) devLine.append(el('span', { style: 'color: var(--primary);' }, '✓'));
     info.append(devLine);
     const stats = el('div', { class: 'app-page-stats' });
@@ -3212,7 +3492,7 @@ function rAppPage() {
     const actions = el('div', { class: 'app-page-actions' });
     actions.append(el('button', { class: 'btn-install', onclick: () => openOrder(a.id) }, 'Оставить заявку'));
     actions.append(el('button', { class: 'btn-icon-sm', onclick: () => toggleFav(a.id), title: 'В избранное' }, '♡'));
-    actions.append(el('button', { class: 'btn-icon-sm', onclick: () => openReport(a.id), title: 'Пожаловаться' }, ''));
+    actions.append(el('button', { class: 'btn-icon-sm', onclick: () => openReport(a.id), title: 'Пожаловаться' }, '⚑'));
     info.append(actions);
     header.append(iconDiv, info);
     w.append(header);
@@ -3290,7 +3570,7 @@ function rOrders() {
     s1.forEach(d => { orders.push({ id: d.id, ...d.data() }); });
     s2.forEach(d => { const o = { id: d.id, ...d.data() }; if (!orders.find(x => x.id === o.id)) orders.push(o); });
     orders.sort((a, b) => (b.createdAt ? b.createdAt.seconds : 0) - (a.createdAt ? a.createdAt.seconds : 0));
-    if (orders.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Заявок нет'))); return; }
+    if (orders.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '📋'), el('h3', {}, 'Заявок нет'))); return; }
     orders.forEach(o => {
       getAppById(o.appId, function(a) {
         if (!a) return;
@@ -3334,7 +3614,7 @@ function rChat() {
     const hd = el('div', { class: 'chat-header' });
     hd.append(el('h3', {}, '💬 Чат сделки'));
     hd.append(el('p', { style: 'font-size: 12px; color: var(--text3); margin: 4px 0;' }, 'Приложение: ', el('strong', {}, o.appName || '—'), ' · ', el('strong', {}, otherName || '—')));
-    hd.append(el('div', { class: 'chat-warning' }, el('strong', {}, '️ '), 'awer не участвует в оплате.'));
+    hd.append(el('div', { class: 'chat-warning' }, el('strong', {}, '⚠️ '), 'awer не участвует в оплате.'));
     w.append(hd);
     const ms = el('div', { class: 'chat-messages' });
     db.collection('orders').doc(orderId).collection('messages').orderBy('createdAt', 'asc').onSnapshot(snap => {
@@ -3481,7 +3761,7 @@ function rProfile() {
   const layout = el('div', { class: 'profile-layout' });
   const card = el('div', { class: 'profile-card' });
   card.append(el('div', { class: 'profile-avatar' }, u.avatar || '👤'));
-  card.append(el('h3', {}, u.name, u.official ? el('span', { style: 'color: #ffd700; font-size: 16px;' }, '') : null));
+  card.append(el('h3', {}, u.name, u.official ? el('span', { style: 'color: #ffd700; font-size: 16px;' }, '🏆') : null));
   card.append(el('div', { class: 'role' }, '@' + u.nick + ' · ' + (u.role === 'buyer' ? 'Покупатель' : u.role === 'developer' ? 'Разработчик' : 'Администратор') + (u.isAdmin ? ' 👑' : '')));
   const logoutBtn = el('button', { class: 'btn btn-outline btn-full', style: 'margin-top: 10px; font-size: 12px;' });
   logoutBtn.textContent = 'Выйти';
@@ -3491,7 +3771,7 @@ function rProfile() {
   const content = el('div', {});
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
   const menu = el('div', { class: 'profile-menu', style: 'margin-bottom: 16px;' });
-  [['info', '👤', 'Аккаунт'], ['orders', '📋', 'Заявки'], ['library', '', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '️', 'Настройки'], ['support', '', 'Поддержка']].forEach(x => {
+  [['info', '👤', 'Аккаунт'], ['orders', '📋', 'Заявки'], ['library', '📚', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '⚙️', 'Настройки'], ['support', '🆘', 'Поддержка']].forEach(x => {
     menu.append(el('div', { class: 'profile-menu-item' + (tab === x[0] ? ' active' : ''), onclick: () => nav('profile', { tab: x[0] }) }, el('span', {}, x[1]), el('span', {}, x[2])));
   });
   if (u.role === 'developer') {
@@ -3840,7 +4120,7 @@ function rAbout() {
   w.append(el('div', { class: 'section' },
     el('p', { style: 'margin-bottom: 10px;' }, 'awer — магазин приложений и игр.'),
     el('p', { style: 'margin-bottom: 10px;' }, 'Оплата НЕ в awer — она в чате с продавцом.'),
-    el('p', { style: 'color: var(--error); font-weight: 500; margin-top: 12px;' }, ' ЗАПРЕЩЕНО выкладывать приложения с вирусами.')
+    el('p', { style: 'color: var(--error); font-weight: 500; margin-top: 12px;' }, '🚫 ЗАПРЕЩЕНО выкладывать приложения с вирусами.')
   ));
   return w;
 }
@@ -3849,7 +4129,7 @@ function showAuth() {
   const m = el('div', {});
   const head = el('div', { class: 'modal-head' },
     el('h2', {}, 'Войти в awer'),
-    el('div', { class: 'modal-close', onclick: closeM }, '')
+    el('div', { class: 'modal-close', onclick: closeM }, '✕')
   );
   const body = el('div', { class: 'modal-body' });
   let mode = 'login';
@@ -4026,7 +4306,7 @@ function openScreenshotViewer(screenshots, currentSh) {
   const m = el('div', {});
   m.append(el('div', { class: 'modal-head' },
     el('h2', {}, 'Скриншот ' + (idx + 1) + ' из ' + screenshots.length),
-    el('div', { class: 'modal-close', onclick: closeM }, '')
+    el('div', { class: 'modal-close', onclick: closeM }, '✕')
   ));
   const body = el('div', { class: 'modal-body' });
   const imgWrap = el('div', { style: 'text-align: center; min-height: 300px; display: flex; align-items: center; justify-content: center; background: var(--bg3); border-radius: var(--radius2); overflow: hidden;' });
