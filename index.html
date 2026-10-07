@@ -2,21 +2,28 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>awer — Магазин приложений</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#121212">
+<title>awer — Магазин приложений и игр</title>
 <link rel="stylesheet" href="style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- SPLASH -->
-<div id="splash">
+<!-- SPLASH SCREEN -->
+<div id="splash-screen">
   <div class="splash-container">
     <div class="splash-logo-wrapper">
-      <svg class="splash-logo" viewBox="0 0 48 48" fill="none">
-        <defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#81c995"/><stop offset="100%" style="stop-color:#8ab4f8"/></linearGradient></defs>
-        <rect width="48" height="48" rx="12" fill="url(#lg)"/>
+      <svg class="splash-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#81c995"/>
+            <stop offset="100%" style="stop-color:#8ab4f8"/>
+          </linearGradient>
+        </defs>
+        <rect width="48" height="48" rx="12" fill="url(#logoGrad)"/>
         <path d="M24 12L28 20L36 20L30 26L32 34L24 30L16 34L18 26L12 20L20 20L24 12Z" fill="#fff" opacity=".9"/>
         <path d="M24 16L26.5 21L32 21L28 25L29 30L24 28L19 30L20 25L16 21L21.5 21L24 16Z" fill="#fff" opacity=".7"/>
         <path d="M24 20L25.5 23L29 23L26.5 25.5L27 29L24 27.5L21 29L21.5 25.5L19 23L22.5 23L24 20Z" fill="#fff" opacity=".5"/>
@@ -26,104 +33,175 @@
     <div class="splash-title">awer</div>
     <div class="splash-subtitle">Магазин приложений и игр</div>
     <div class="splash-progress-container">
-      <div class="splash-progress-bar"><div class="splash-progress-fill" id="sfill"></div></div>
+      <div class="splash-progress-bar">
+        <div class="splash-progress-fill" id="splashProgressFill"></div>
+      </div>
     </div>
-    <div class="splash-status" id="sstat">Инициализация...</div>
-    <div class="splash-status-text" id="sstat2">Подготовка к запуску</div>
-    <div class="splash-dots"><div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div></div>
+    <div class="splash-status" id="splashStatus">Инициализация...</div>
+    <div class="splash-status-text" id="splashStatusText">Подготовка к запуску</div>
+    <div class="splash-dots">
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+    </div>
   </div>
 </div>
 
-<!-- WELCOME -->
-<div id="welcome" class="hidden">
+<!-- WELCOME MODAL -->
+<div id="welcome-overlay" class="hidden">
   <div class="welcome-modal">
     <div class="welcome-icon">🎉</div>
     <h1>Добро пожаловать в awer!</h1>
     <div class="subtitle">Команда awer наконец-то сделала это!</div>
     <div class="description">Мы создали маркетплейс, где разработчики могут публиковать свои приложения и игры, а пользователи — находить и покупать их напрямую у авторов.</div>
     <div class="welcome-features">
-      <div class="welcome-feature"><div class="welcome-feature-icon"></div><div class="welcome-feature-text">Тысячи приложений</div></div>
-      <div class="welcome-feature"><div class="welcome-feature-icon">🔒</div><div class="welcome-feature-text">Безопасные сделки</div></div>
-      <div class="welcome-feature"><div class="welcome-feature-icon">💬</div><div class="welcome-feature-text">Прямой чат с продавцом</div></div>
-      <div class="welcome-feature"><div class="welcome-feature-icon"></div><div class="welcome-feature-text">Мгновенная загрузка</div></div>
+      <div class="welcome-feature">
+        <div class="welcome-feature-icon">📱</div>
+        <div class="welcome-feature-text">Тысячи приложений</div>
+      </div>
+      <div class="welcome-feature">
+        <div class="welcome-feature-icon">🔒</div>
+        <div class="welcome-feature-text">Безопасные сделки</div>
+      </div>
+      <div class="welcome-feature">
+        <div class="welcome-feature-icon">💬</div>
+        <div class="welcome-feature-text">Прямой чат с продавцом</div>
+      </div>
+      <div class="welcome-feature">
+        <div class="welcome-feature-icon">⚡</div>
+        <div class="welcome-feature-text">Мгновенная загрузка</div>
+      </div>
     </div>
-    <button class="welcome-btn" onclick="closeW()">Начать исследование </button>
+    <button class="welcome-btn" onclick="closeWelcome()">Начать исследование 🚀</button>
   </div>
 </div>
 
 <!-- HEADER -->
 <header class="header">
   <div class="header-inner">
-    <div class="logo" onclick="go('home')">
-      <svg class="logo-icon" viewBox="0 0 48 48" fill="none">
-        <defs><linearGradient id="hl" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#81c995"/><stop offset="100%" style="stop-color:#8ab4f8"/></linearGradient></defs>
-        <rect width="48" height="48" rx="12" fill="url(#hl)"/>
+    <div class="logo" onclick="nav('home')">
+      <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="headerLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#81c995"/>
+            <stop offset="100%" style="stop-color:#8ab4f8"/>
+          </linearGradient>
+        </defs>
+        <rect width="48" height="48" rx="12" fill="url(#headerLogoGradient)"/>
         <path d="M24 12L28 20L36 20L30 26L32 34L24 30L16 34L18 26L12 20L20 20L24 12Z" fill="#fff" opacity=".9"/>
         <path d="M24 16L26.5 21L32 21L28 25L29 30L24 28L19 30L20 25L16 21L21.5 21L24 16Z" fill="#fff" opacity=".7"/>
         <path d="M24 20L25.5 23L29 23L26.5 25.5L27 29L24 27.5L21 29L21.5 25.5L19 23L22.5 23L24 20Z" fill="#fff" opacity=".5"/>
       </svg>
       <span class="logo-text">awer</span>
     </div>
-    <div class="search-bar"><input type="text" placeholder="Поиск приложений" id="sinp"></div>
+    <div class="search-bar">
+      <input type="text" placeholder="Поиск приложений" id="searchInput">
+    </div>
     <div class="header-actions">
-      <div class="icon-btn" onclick="togTheme()" id="tbtn"></div>
-      <button class="login-btn" id="abtn" onclick="showAuth()">Войти</button>
+      <div class="icon-btn" onclick="toggleTheme()" id="themeBtn">️</div>
+      <button class="login-btn" id="authBtn" onclick="showAuth()">Войти</button>
     </div>
   </div>
 </header>
 
 <!-- TABS -->
 <nav class="tabs-bar">
-  <div class="tabs-inner">
-    <div class="tab-btn active" data-t="home" onclick="go('home')">Для тебя</div>
-    <div class="tab-btn" data-t="top" onclick="go('catalog',{top:true})">Топ-чарт</div>
-    <div class="tab-btn" data-t="kids" onclick="go('catalog',{cat:'games'})">Детям</div>
-    <div class="tab-btn" data-t="cats" onclick="go('catalog')">Категории</div>
-    <div class="tab-btn" data-t="tut" onclick="go('tutorial')">Как опубликовать</div>
+  <div class="tabs-inner" id="tabsInner">
+    <div class="tab-btn active" data-tab="home" onclick="nav('home')">Для тебя</div>
+    <div class="tab-btn" data-tab="top" onclick="nav('catalog',{top:true})">Топ-чарт</div>
+    <div class="tab-btn" data-tab="children" onclick="nav('catalog',{cat:'games'})">Детям</div>
+    <div class="tab-btn" data-tab="categories" onclick="nav('catalog')">Категории</div>
+    <div class="tab-btn" data-tab="tutorial" onclick="nav('tutorial')">Как опубликовать</div>
   </div>
 </nav>
 
-<!-- MAIN -->
-<main class="main" id="mc"><div class="loading-spinner"><div class="spinner"></div></div></main>
+<!-- MAIN CONTENT -->
+<main class="main" id="mainContent">
+  <div class="loading-spinner"><div class="spinner"></div></div>
+</main>
 
 <!-- FOOTER -->
 <footer class="footer">
   <div class="footer-grid">
     <div>
       <div class="logo" style="margin-bottom:10px">
-        <svg class="logo-icon" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="fl" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#81c995"/><stop offset="100%" style="stop-color:#8ab4f8"/></linearGradient></defs><rect width="48" height="48" rx="12" fill="url(#fl)"/><path d="M24 12L28 20L36 20L30 26L32 34L24 30L16 34L18 26L12 20L20 20L24 12Z" fill="#fff" opacity=".9"/><path d="M24 16L26.5 21L32 21L28 25L29 30L24 28L19 30L20 25L16 21L21.5 21L24 16Z" fill="#fff" opacity=".7"/><path d="M24 20L25.5 23L29 23L26.5 25.5L27 29L24 27.5L21 29L21.5 25.5L19 23L22.5 23L24 20Z" fill="#fff" opacity=".5"/></svg>
+        <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="footerLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#81c995"/>
+              <stop offset="100%" style="stop-color:#8ab4f8"/>
+            </linearGradient>
+          </defs>
+          <rect width="48" height="48" rx="12" fill="url(#footerLogoGradient)"/>
+          <path d="M24 12L28 20L36 20L30 26L32 34L24 30L16 34L18 26L12 20L20 20L24 12Z" fill="#fff" opacity=".9"/>
+          <path d="M24 16L26.5 21L32 21L28 25L29 30L24 28L19 30L20 25L16 21L21.5 21L24 16Z" fill="#fff" opacity=".7"/>
+          <path d="M24 20L25.5 23L29 23L26.5 25.5L27 29L24 27.5L21 29L21.5 25.5L19 23L22.5 23L24 20Z" fill="#fff" opacity=".5"/>
+        </svg>
         <span class="logo-text">awer</span>
       </div>
-      <p style="font-size:12px;color:var(--text2);line-height:1.5">Магазин приложений и игр.</p>
+      <p style="font-size:12px;color:var(--text2);line-height:1.5">Магазин приложений и игр от независимых разработчиков.</p>
     </div>
-    <div><h4>awer</h4><ul><li onclick="go('about')">О нас</li><li onclick="go('support')">Поддержка</li><li onclick="go('tutorial')">Как опубликовать</li></ul></div>
-    <div><h4>Разработчикам</h4><ul><li onclick="go('developer')">Консоль</li><li onclick="go('tutorial')">Туториал</li></ul></div>
-    <div><h4>Связь</h4><ul><li>support@awer.com</li></ul></div>
+    <div>
+      <h4>awer</h4>
+      <ul>
+        <li onclick="nav('about')">О нас</li>
+        <li onclick="nav('support')">Поддержка</li>
+        <li onclick="nav('tutorial')">Как опубликовать</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Разработчикам</h4>
+      <ul>
+        <li onclick="nav('developer')">Консоль</li>
+        <li onclick="nav('tutorial')">Туториал</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Связь</h4>
+      <ul>
+        <li>support@awer.com</li>
+      </ul>
+    </div>
   </div>
   <div class="footer-bottom">© 2024 awer · Все права защищены</div>
 </footer>
 
-<!-- MOBILE NAV -->
+<!-- MOBILE NAVIGATION -->
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
-    <div class="mobile-nav-btn active" data-p="home" onclick="go('home')"><span class="ico">🏠</span><span>Главная</span></div>
-    <div class="mobile-nav-btn" data-p="catalog" onclick="go('catalog')"><span class="ico">🔍</span><span>Поиск</span></div>
-    <div class="mobile-nav-btn" data-p="library" onclick="go('library')"><span class="ico">📚</span><span>Библиотека</span></div>
-    <div class="mobile-nav-btn" data-p="profile" onclick="go('profile')"><span class="ico">👤</span><span>Профиль</span></div>
+    <div class="mobile-nav-btn active" data-page="home" onclick="nav('home')">
+      <span class="ico">🏠</span>
+      <span>Главная</span>
+    </div>
+    <div class="mobile-nav-btn" data-page="catalog" onclick="nav('catalog')">
+      <span class="ico">🔍</span>
+      <span>Поиск</span>
+    </div>
+    <div class="mobile-nav-btn" data-page="library" onclick="nav('library')">
+      <span class="ico">📚</span>
+      <span>Библиотека</span>
+    </div>
+    <div class="mobile-nav-btn" data-page="profile" onclick="nav('profile')">
+      <span class="ico">👤</span>
+      <span>Профиль</span>
+    </div>
   </div>
 </nav>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="mo"><div class="modal" id="mc2"></div></div>
+<!-- MODAL OVERLAY -->
+<div class="modal-overlay" id="modal">
+  <div class="modal" id="modalContent"></div>
+</div>
 
-<!-- TOASTS -->
+<!-- TOASTS CONTAINER -->
 <div class="toasts" id="toasts"></div>
 
-<!-- FIREBASE -->
+<!-- FIREBASE SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- MAIN SCRIPT -->
 <script src="script.js" defer></script>
+
 </body>
 </html>
