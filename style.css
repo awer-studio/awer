@@ -1,7 +1,32 @@
 /* ============================================
-   ПЕРЕМЕННЫЕ И БАЗОВЫЕ СТИЛИ
+   ПЕРЕМЕННЫЕ ТЕМ
    ============================================ */
 :root {
+  --primary: #01875f;
+  --primary-dark: #016d4d;
+  --primary-light: #e8f5e9;
+  --secondary: #1a73e8;
+  --error: #d93025;
+  --warning: #f9ab00;
+  --success: #34a853;
+  --bg: #ffffff;
+  --bg2: #f8f9fa;
+  --bg3: #f1f3f4;
+  --bg4: #e8eaed;
+  --text: #202124;
+  --text2: #5f6368;
+  --text3: #80868b;
+  --text4: #9aa0a6;
+  --border: #dadce0;
+  --shadow: 0 1px 2px rgba(60,64,67,0.1), 0 1px 3px rgba(60,64,67,0.08);
+  --shadow2: 0 1px 3px rgba(60,64,67,0.15), 0 4px 8px rgba(60,64,67,0.1);
+  --radius: 8px;
+  --radius2: 12px;
+  --radius3: 16px;
+  --radius4: 24px;
+}
+
+[data-theme="dark"] {
   --primary: #81c995;
   --primary-dark: #6fbf83;
   --primary-light: #1e3a2a;
@@ -18,14 +43,13 @@
   --text3: #80868b;
   --text4: #5f6368;
   --border: #3c4043;
-  --shadow: 0 1px 2px rgba(0,0,0,.3);
-  --shadow2: 0 2px 6px rgba(0,0,0,.4);
-  --radius: 8px;
-  --radius2: 12px;
-  --radius3: 16px;
-  --radius4: 24px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow2: 0 2px 6px rgba(0,0,0,0.4);
 }
 
+/* ============================================
+   БАЗОВЫЕ СТИЛИ
+   ============================================ */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -40,6 +64,7 @@ html, body {
   min-height: 100vh;
   font-size: 14px;
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 button {
@@ -124,6 +149,10 @@ img {
   width: 80px;
   height: 80px;
   animation: splashPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 4px 20px rgba(1, 135, 95, 0.3));
+}
+
+[data-theme="dark"] .splash-logo {
   filter: drop-shadow(0 4px 20px rgba(129, 201, 149, 0.3));
 }
 
@@ -250,7 +279,7 @@ img {
 #welcome-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.85);
+  background: rgba(0,0,0,0.85);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -276,7 +305,7 @@ img {
   width: 100%;
   padding: 40px;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
   border: 1px solid var(--border);
   animation: welcomeSlideUp 0.5s ease;
 }
@@ -365,6 +394,10 @@ img {
 .welcome-btn:hover {
   background: var(--primary-dark);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(1, 135, 95, 0.3);
+}
+
+[data-theme="dark"] .welcome-btn:hover {
   box-shadow: 0 4px 12px rgba(129, 201, 149, 0.3);
 }
 
@@ -377,6 +410,7 @@ img {
   z-index: 100;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
+  transition: background 0.3s ease;
 }
 
 .header-inner {
@@ -405,11 +439,18 @@ img {
 .logo-text {
   font-size: 22px;
   font-weight: 600;
-  background: linear-gradient(135deg, #81c995, #8ab4f8);
+  background: linear-gradient(135deg, #01875f, #1a73e8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -0.5px;
+}
+
+[data-theme="dark"] .logo-text {
+  background: linear-gradient(135deg, #81c995, #8ab4f8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .search-bar {
@@ -443,8 +484,12 @@ img {
   transform: translateY(-50%);
   width: 18px;
   height: 18px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239aa0a6'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") center/contain no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235f6368'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") center/contain no-repeat;
   pointer-events: none;
+}
+
+[data-theme="dark"] .search-bar::before {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239aa0a6'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
 .header-actions {
@@ -496,6 +541,7 @@ img {
   position: sticky;
   top: 56px;
   z-index: 99;
+  transition: background 0.3s ease;
 }
 
 .tabs-inner {
@@ -905,6 +951,10 @@ img {
 }
 
 .admin-btn-view:hover {
+  background: #1557b0;
+}
+
+[data-theme="dark"] .admin-btn-view:hover {
   background: #6a9fe8;
 }
 
@@ -1179,9 +1229,13 @@ img {
 }
 
 .btn-download:hover {
-  background: #6a9fe8;
+  background: #1557b0;
   transform: translateY(-1px);
   box-shadow: var(--shadow2);
+}
+
+[data-theme="dark"] .btn-download:hover {
+  background: #6a9fe8;
 }
 
 .btn-icon-sm {
@@ -1269,7 +1323,7 @@ img {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.7);
+  background: rgba(0,0,0,0.7);
   z-index: 1000;
   display: none;
   align-items: center;
@@ -1289,7 +1343,7 @@ img {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   border: 1px solid var(--border);
 }
 
@@ -1922,7 +1976,7 @@ input[type="file"] {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(0,0,0,.8);
+  background: rgba(0,0,0,0.8);
   color: #fff;
   display: flex;
   align-items: center;
@@ -2026,14 +2080,18 @@ input[type="file"] {
    WARNING
    ============================================ */
 .chat-warning {
-  background: rgba(249,171,0,.1);
-  border: 1px solid rgba(249,171,0,.3);
+  background: rgba(249,171,0,0.1);
+  border: 1px solid rgba(249,171,0,0.3);
   border-radius: var(--radius);
   padding: 10px;
   font-size: 11px;
-  color: #fdd663;
+  color: #b06000;
   margin-top: 8px;
   line-height: 1.4;
+}
+
+[data-theme="dark"] .chat-warning {
+  color: #fdd663;
 }
 
 /* ============================================
