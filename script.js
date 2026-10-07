@@ -25,6 +25,9 @@ function initAudio() {
 
 function playWelcomeSound() {
   if (!audioContext) return;
+  // Resume context if suspended (browser policy)
+  if (audioContext.state === 'suspended') audioContext.resume();
+  
   const now = audioContext.currentTime;
   [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
     const osc = audioContext.createOscillator();
@@ -48,15 +51,16 @@ let S = {
   cu: null,
   theme: localStorage.getItem('awt') || 'dark',
   route: { p: 'home', params: {} },
-  settings: JSON.parse(localStorage.getItem('aws') || '{"notif":true}')
+  settings: JSON.parse(localStorage.getItem('aws') || '{"notif":true}'),
+  isFirstDeveloper: false
 };
 
 const CATS = [
-  {id:'ai',n:'AI',i:'🤖'},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},
-  {id:'video',n:'Видео',i:''},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:'📚'},
+  {id:'ai',n:'AI',i:''},{id:'design',n:'Дизайн',i:'🎨'},{id:'photo',n:'Фото',i:'📷'},
+  {id:'video',n:'Видео',i:'🎬'},{id:'music',n:'Музыка',i:'🎵'},{id:'study',n:'Учёба',i:''},
   {id:'work',n:'Работа',i:'💼'},{id:'productivity',n:'Продуктивность',i:'⚡'},
   {id:'utils',n:'Утилиты',i:'🛠'},{id:'dev',n:'Разработка',i:'💻'},
-  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:''},
+  {id:'security',n:'Безопасность',i:'🔐'},{id:'docs',n:'Документы',i:'📄'},
   {id:'games',n:'Игры',i:'🎮'},{id:'other',n:'Другое',i:'📦'}
 ];
 
@@ -102,7 +106,7 @@ function col(s) {
 
 function toast(t, m, tp) {
   const e = el('div', { class: 'toast ' + (tp || 'inf') },
-    el('div', { class: 'ti', html: tp === 'ok' ? '✓' : tp === 'er' ? '' : 'ℹ' }),
+    el('div', { class: 'toast-icon', html: tp === 'ok' ? '✓' : tp === 'er' ? '✕' : 'ℹ' }),
     el('div', {}, el('strong', {}, t), m ? ' ' + m : '')
   );
   $('#toasts').append(e);
@@ -110,104 +114,106 @@ function toast(t, m, tp) {
 }
 
 function openM(c, l) {
-  $('#mc2').className = 'modal' + (l ? ' lg' : '');
-  $('#mc2').innerHTML = '';
-  $('#mc2').append(c);
-  $('#mo').classList.add('on');
+  $('#modalContent').className = 'modal' + (l ? ' lg' : '');
+  $('#modalContent').innerHTML = '';
+  $('#modalContent').append(c);
+  $('#modal').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 
 function closeM() {
-  $('#mo').classList.remove('on');
+  $('#modal').classList.remove('active');
   document.body.style.overflow = '';
 }
 
-$('#mo').addEventListener('click', e => { if (e.target.id === 'mo') closeM(); });
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeM(); });
 
-function go(p, params) {
+function nav(p, params) {
   S.route = { p: p, params: params || {} };
   window.scrollTo(0, 0);
   render();
-  updTabs();
+  updateTabs();
 }
 
-function togTheme() {
+function toggleTheme() {
   S.theme = S.theme === 'light' ? 'dark' : 'light';
-  saveS();
+  saveSettings();
   document.documentElement.setAttribute('data-theme', S.theme);
-  $('#tbtn').textContent = S.theme === 'dark' ? '️' : '🌙';
+  $('#themeBtn').textContent = S.theme === 'dark' ? '☀️' : '🌙';
 }
 
 // ============================================
-// SPLASH & WELCOME
+// SPLASH & WELCOME (ИСПРАВЛЕНО: ГАРАНТИРОВАННЫЙ ТАЙМАУТ)
 // ============================================
-let splashDone = false;
+let splashHidden = false;
+
 function hideSplash() {
-  if (splashDone) return;
-  splashDone = true;
-  $('#sfill').style.width = '100%';
-  $('#sstat').textContent = 'Готово!';
+  if (splashHidden) return;
+  splashHidden = true;
+  $('#splashProgressFill').style.width = '100%';
+  $('#splashStatus').textContent = 'Готово!';
   setTimeout(() => {
-    $('#splash').classList.add('hide');
+    $('#splash-screen').classList.add('hide');
     setTimeout(() => {
-      $('#splash').style.display = 'none';
-      showW();
-      playWelcomeSound();
+      $('#splash-screen').style.display = 'none';
+      // Звук играет только после действия пользователя (закрытие welcome), чтобы браузер не заблокировал
     }, 800);
   }, 300);
 }
 
-function showW() {
-  if (localStorage.getItem('aww')) return;
-  $('#welcome').classList.remove('hidden');
-}
-
-function closeW() {
-  $('#welcome').classList.add('hidden');
-  localStorage.setItem('aww', '1');
-}
-
-// ГАРАНТИРОВАННЫЙ ТАЙМАУТ - splash исчезнет через 5 секунд
+// ГАРАНТИРОВАННОЕ ИСЧЕЗНОВЕНИЕ ЧЕРЕЗ 5 СЕКУНД
 setTimeout(() => { hideSplash(); }, 5000);
+
+function showWelcome() {
+  if (localStorage.getItem('aww')) return;
+  $('#welcome-overlay').classList.remove('hidden');
+}
+
+function closeWelcome() {
+  $('#welcome-overlay').classList.add('hidden');
+  localStorage.setItem('aww', '1');
+  playWelcomeSound(); // Играем звук по клику (браузеры разрешают)
+}
 
 // ============================================
 // AUTH
 // ============================================
-async function regNick(nick, role) {
+async function registerWithNick(nick, role) {
   return new Promise((resolve, reject) => {
     if (nick === 'awer_studio') {
-      resolve({ uid: 'off_as', nick: 'awer_studio', name: 'awer_studio', role: 'developer', avatar: '', verified: true, official: true, blocked: false, isAdmin: true, isFirst: true });
+      resolve({ uid: 'official_awer_studio', nick: 'awer_studio', name: 'awer_studio', role: 'developer', avatar: '🏆', verified: true, official: true, blocked: false, isAdmin: true, isFirstDeveloper: true });
       return;
     }
     nick = nick.toLowerCase().trim();
-    db.collection('system').doc('cfg').get().then(async cd => {
-      let isFirst = false;
-      if (!cd.exists) {
-        isFirst = true;
+    db.collection('system').doc('config').get().then(async configDoc => {
+      let isFirstDev = false;
+      if (!configDoc.exists) {
+        isFirstDev = true;
         const uid = 'user_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-        await db.collection('system').doc('cfg').set({
-          firstUid: uid,
+        await db.collection('system').doc('config').set({
+          firstDeveloperUid: uid,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
       }
       db.collection('users').where('nick', '==', nick).limit(1).get().then(snap => {
         if (!snap.empty) { reject(new Error('Ник занят')); return; }
         const uid = 'user_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-        const ud = {
+        const userData = {
           nick, name: nick, role: role || 'buyer', avatar: nick[0].toUpperCase(),
           verified: false, official: false, blocked: false,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
-        if (role === 'developer' && isFirst) {
-          ud.isAdmin = true;
-          ud.isFirst = true;
+        if (role === 'developer' && isFirstDev) {
+          userData.isAdmin = true;
+          userData.isFirstDeveloper = true;
         }
-        db.collection('users').doc(uid).set(ud).then(() => {
-          resolve({
-            uid, nick, name: nick, role: role || 'buyer',
-            avatar: nick[0].toUpperCase(), verified: false, official: false, blocked: false,
-            isAdmin: isFirst && role === 'developer',
-            isFirst: isFirst && role === 'developer'
+        db.collection('users').doc(uid).set(userData).then(() => {
+          resolve({ 
+            uid, nick, name: nick, role: role || 'buyer', 
+            avatar: nick[0].toUpperCase(), verified: false, 
+            official: false, blocked: false,
+            isAdmin: isFirstDev && role === 'developer',
+            isFirstDeveloper: isFirstDev && role === 'developer'
           });
         }).catch(err => reject(new Error(err.message)));
       }).catch(err => reject(new Error('Ошибка сети')));
@@ -215,10 +221,10 @@ async function regNick(nick, role) {
   });
 }
 
-function loginNick(nick) {
+function loginWithNick(nick) {
   return new Promise((resolve, reject) => {
     if (nick === 'awer_studio') {
-      resolve({ uid: 'off_as', nick: 'awer_studio', name: 'awer_studio', role: 'developer', avatar: '🏆', verified: true, official: true, blocked: false, isAdmin: true, isFirst: true });
+      resolve({ uid: 'official_awer_studio', nick: 'awer_studio', name: 'awer_studio', role: 'developer', avatar: '', verified: true, official: true, blocked: false, isAdmin: true, isFirstDeveloper: true });
       return;
     }
     nick = nick.toLowerCase().trim();
@@ -227,68 +233,73 @@ function loginNick(nick) {
       const doc = snap.docs[0];
       const data = doc.data();
       if (data.blocked) { reject(new Error('Заблокирован')); return; }
-      db.collection('system').doc('cfg').get().then(cd => {
-        let ia = false, if2 = false;
-        if (cd.exists && doc.id === cd.data().firstUid) {
-          ia = true;
-          if2 = true;
+      
+      db.collection('system').doc('config').get().then(configDoc => {
+        let isAdmin = false;
+        let isFirstDeveloper = false;
+        if (configDoc.exists && doc.id === configDoc.data().firstDeveloperUid) {
+          isAdmin = true;
+          isFirstDeveloper = true;
         }
-        resolve({
-          uid: doc.id, nick, name: data.name || nick,
-          role: data.role || 'buyer', avatar: data.avatar || nick[0].toUpperCase(),
+        resolve({ 
+          uid: doc.id, nick, name: data.name || nick, 
+          role: data.role || 'buyer', avatar: data.avatar || nick[0].toUpperCase(), 
           verified: data.verified || false, official: false, blocked: data.blocked || false,
-          isAdmin: ia, isFirst: if2
+          isAdmin: isAdmin,
+          isFirstDeveloper: isFirstDeveloper
         });
       }).catch(() => {
-        resolve({
-          uid: doc.id, nick, name: data.name || nick,
-          role: data.role || 'buyer', avatar: data.avatar || nick[0].toUpperCase(),
+        resolve({ 
+          uid: doc.id, nick, name: data.name || nick, 
+          role: data.role || 'buyer', avatar: data.avatar || nick[0].toUpperCase(), 
           verified: data.verified || false, official: false, blocked: data.blocked || false,
-          isAdmin: false, isFirst: false
+          isAdmin: false, isFirstDeveloper: false
         });
       });
     }).catch(err => reject(new Error('Ошибка сети')));
   });
 }
 
-function logout() {
+function logoutUser() {
   localStorage.removeItem('awn');
   S.cu = null;
   render();
-  updAB();
+  updateAuthBtn();
   toast('Вы вышли', '', 'inf');
 }
 
-function saveS() {
+function saveSettings() {
   localStorage.setItem('awt', S.theme);
   localStorage.setItem('aws', JSON.stringify(S.settings));
 }
 
-function updAB() {
+function updateAuthBtn() {
   if (S.cu) {
-    $('#abtn').textContent = S.cu.name;
-    $('#abtn').onclick = () => go('profile');
+    $('#authBtn').textContent = S.cu.name;
+    $('#authBtn').onclick = () => nav('profile');
   } else {
-    $('#abtn').textContent = 'Войти';
-    $('#abtn').onclick = showAuth;
+    $('#authBtn').textContent = 'Войти';
+    $('#authBtn').onclick = showAuth;
   }
 }
 
-function updTabs() {
-  $$('.tab-btn').forEach(e => e.classList.remove('on'));
+function updateTabs() {
+  $$('.tab-btn').forEach(el => el.classList.remove('active'));
   const p = S.route.p;
-  let at = 'home';
+  let activeTab = 'home';
   if (p === 'catalog') {
-    if (S.route.params && S.route.params.top) at = 'top';
-    else if (S.route.params && S.route.params.cat === 'games') at = 'kids';
-    else at = 'cats';
-  } else if (p === 'tutorial') at = 'tut';
-  else if (p === 'admin') at = 'adm';
-  const t = document.querySelector(`.tab-btn[data-t="${at}"]`);
-  if (t) t.classList.add('on');
-  $$('.mnb').forEach(e => e.classList.remove('on'));
-  const m = document.querySelector(`.mnb[data-p="${p}"]`);
-  if (m) m.classList.add('on');
+    if (S.route.params && S.route.params.top) activeTab = 'top';
+    else if (S.route.params && S.route.params.cat === 'games') activeTab = 'children';
+    else activeTab = 'categories';
+  } else if (p === 'tutorial') activeTab = 'tutorial';
+  else if (p === 'admin') activeTab = 'admin';
+  
+  const tab = document.querySelector(`.tab-btn[data-tab="${activeTab}"]`);
+  if (tab) tab.classList.add('active');
+  
+  $$('.mobile-nav-btn').forEach(el => el.classList.remove('active'));
+  const mActive = document.querySelector(`.mobile-nav-btn[data-page="${p}"]`);
+  if (mActive) mActive.classList.add('active');
 }
 
 // ============================================
@@ -315,55 +326,70 @@ function getAppById(id, cb) {
 }
 
 // ============================================
-// INIT
+// INIT (ИСПРАВЛЕНО: ПРОСТОЙ И НАДЁЖНЫЙ)
 // ============================================
-(function init() {
+async function initializeApp() {
+  initAudio();
   try {
-    $('#sfill').style.width = '20%';
-    $('#sstat').textContent = 'Загрузка профиля...';
-    const sn = localStorage.getItem('awn');
-    if (sn) {
-      loginNick(sn).then(u => { S.cu = u; saveS(); }).catch(() => { localStorage.removeItem('awn'); });
+    $('#splashProgressFill').style.width = '20%';
+    $('#splashStatus').textContent = 'Загрузка профиля...';
+    
+    const savedNick = localStorage.getItem('awn');
+    if (savedNick) {
+      try { S.cu = await loginWithNick(savedNick); } catch (e) { localStorage.removeItem('awn'); }
     }
-    setTimeout(() => {
-      $('#sfill').style.width = '50%';
-      $('#sstat').textContent = 'Загрузка каталога...';
-      getApps(function (apps) { appsCache = apps; });
-      setTimeout(() => {
-        $('#sfill').style.width = '80%';
-        $('#sstat').textContent = 'Подготовка...';
-        saveS();
-        render();
-        updAB();
-        updTabs();
-        setTimeout(() => { hideSplash(); }, 500);
-      }, 300);
-    }, 300);
-  } catch (e) {
-    console.error(e);
+    
+    $('#splashProgressFill').style.width = '50%';
+    $('#splashStatus').textContent = 'Загрузка каталога...';
+    
+    await new Promise(resolve => {
+      let resolved = false;
+      getApps(function(apps) {
+        if (!resolved) { resolved = true; appsCache = apps; resolve(); }
+      });
+      setTimeout(() => { if (!resolved) { resolved = true; resolve(); } }, 4000);
+    });
+    
+    $('#splashProgressFill').style.width = '80%';
+    $('#splashStatus').textContent = 'Подготовка...';
+    
+    saveSettings();
+    render();
+    updateAuthBtn();
+    updateTabs();
+    
+    hideSplash();
+  } catch (error) {
+    console.error('Init error:', error);
+    try { render(); updateAuthBtn(); updateTabs(); } catch (e) {}
     hideSplash();
   }
-})();
+}
+
+initializeApp();
 
 // ============================================
-// RENDER
+// RENDER ROUTER
 // ============================================
 function render() {
   document.documentElement.setAttribute('data-theme', S.theme);
-  $('#tbtn').textContent = S.theme === 'dark' ? '☀️' : '🌙';
-  const c = $('#mc');
+  $('#themeBtn').textContent = S.theme === 'dark' ? '☀️' : '🌙';
+  const c = $('#mainContent');
   c.innerHTML = '';
   const p = S.route.p;
+  
   const pages = {
     home: rHome, catalog: rCatalog, app: rAppPage, favorites: rFavorites,
     orders: rOrders, chat: rChat, library: rLibrary, profile: rProfile,
     developer: rDeveloper, admin: rAdmin, settings: rSettings,
     settingsSub: rSettingsSub, about: rAbout, support: rSupport, tutorial: rTutorial
   };
+  
   const fn = pages[p] || rHome;
   const result = fn();
+  
   if (result && typeof result.then === 'function') {
-    result.then(r => c.append(r));
+    result.then(r => { if (c.innerHTML === '') c.append(r); });
   } else {
     c.append(result);
   }
@@ -375,71 +401,77 @@ function render() {
 function rHome() {
   const w = el('div', {});
   if (!appsCache || appsCache.length === 0) {
-    w.append(el('div', { class: 'emp' },
-      el('div', { class: 'ic' }, '📦'),
+    w.append(el('div', { class: 'empty' },
+      el('div', { class: 'empty-icon' }, '📦'),
       el('h3', {}, 'Каталог пока пуст'),
       el('p', {}, 'Станьте первым разработчиком!'),
-      el('button', { class: 'btn btnp', style: 'margin-top:12px', onclick: () => { if (!S.cu) { showAuth(); return; } if (S.cu.role !== 'developer') { toast('Нужен аккаунт разработчика', '', 'er'); return; } go('developer', { tab: 'add' }); } }, 'Опубликовать приложение')
+      el('button', { class: 'btn btn-primary', style: 'margin-top: 12px;', onclick: () => { if (!S.cu) { showAuth(); return; } if (S.cu.role !== 'developer') { toast('Нужен аккаунт разработчика', '', 'er'); return; } nav('developer', { tab: 'add' }); } }, 'Опубликовать приложение')
     ));
     return w;
   }
+  
   const apps = appsCache;
-  const pop = el('div', { class: 'sec' });
-  pop.append(el('div', { class: 'sec-h' }, el('h2', {}, 'Популярные приложения'), el('div', { class: 'arr', onclick: () => go('catalog') }, '→')));
-  const car = el('div', { class: 'car' });
-  apps.slice(0, 10).forEach(a => { car.append(rACH(a)); });
+  
+  const pop = el('div', { class: 'section' });
+  pop.append(el('div', { class: 'section-header' }, el('h2', {}, 'Популярные приложения'), el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')));
+  const car = el('div', { class: 'carousel' });
+  apps.slice(0, 10).forEach(a => { car.append(rAppCardH(a)); });
   pop.append(car);
   w.append(pop);
+
   const free = apps.filter(a => a.price === 0);
   if (free.length) {
-    const tf = el('div', { class: 'sec' });
-    tf.append(el('div', { class: 'sec-h' }, el('h2', {}, 'Топ бесплатных'), el('div', { class: 'arr', onclick: () => go('catalog') }, '→')));
-    const c2 = el('div', { class: 'car' });
-    free.forEach(a => { c2.append(rACH(a)); });
+    const tf = el('div', { class: 'section' });
+    tf.append(el('div', { class: 'section-header' }, el('h2', {}, 'Топ бесплатных'), el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')));
+    const c2 = el('div', { class: 'carousel' });
+    free.forEach(a => { c2.append(rAppCardH(a)); });
     tf.append(c2);
     w.append(tf);
   }
+
   const paid = apps.filter(a => a.price > 0);
   if (paid.length) {
-    const tp = el('div', { class: 'sec' });
-    tp.append(el('div', { class: 'sec-h' }, el('h2', {}, 'Топ платных'), el('div', { class: 'arr', onclick: () => go('catalog') }, '→')));
-    const c3 = el('div', { class: 'car' });
-    paid.forEach(a => { c3.append(rACH(a)); });
+    const tp = el('div', { class: 'section' });
+    tp.append(el('div', { class: 'section-header' }, el('h2', {}, 'Топ платных'), el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')));
+    const c3 = el('div', { class: 'carousel' });
+    paid.forEach(a => { c3.append(rAppCardH(a)); });
     tp.append(c3);
     w.append(tp);
   }
-  const cs = el('div', { class: 'sec' });
-  cs.append(el('div', { class: 'sec-h' }, el('h2', {}, 'Категории'), el('div', { class: 'arr', onclick: () => go('catalog') }, '→')));
-  const ch = el('div', { class: 'car' });
+
+  const cs = el('div', { class: 'section' });
+  cs.append(el('div', { class: 'section-header' }, el('h2', {}, 'Категории'), el('div', { class: 'arrow', onclick: () => nav('catalog') }, '→')));
+  const ch = el('div', { class: 'carousel' });
   CATS.forEach(c => {
-    const card = el('div', { class: 'acard', onclick: () => go('catalog', { cat: c.id }) });
-    card.append(el('div', { class: 'aico', style: 'background:' + col(c.id) }, c.i));
-    card.append(el('div', { class: 'aname' }, c.n));
+    const card = el('div', { class: 'app-card', onclick: () => nav('catalog', { cat: c.id }) });
+    card.append(el('div', { class: 'app-icon', style: 'background:' + col(c.id) }, c.i));
+    card.append(el('div', { class: 'app-name' }, c.n));
     ch.append(card);
   });
   cs.append(ch);
   w.append(cs);
+  
   return w;
 }
 
-function rACH(a) {
-  const card = el('div', { class: 'acard', onclick: () => go('app', { id: a.id }) });
-  if (a.iconUrl) { card.append(el('div', { class: 'aico' }, el('img', { src: a.iconUrl, alt: a.name }))); }
-  else { card.append(el('div', { class: 'aico', style: 'background:' + col(a.id) }, a.icon || '📱')); }
-  card.append(el('div', { class: 'aname' }, a.name));
-  card.append(el('div', { class: 'arat' }, el('span', {}, (a.rating ? a.rating.toFixed(1) : '—')), el('span', { class: 'st' }, '★')));
+function rAppCardH(a) {
+  const card = el('div', { class: 'app-card', onclick: () => nav('app', { id: a.id }) });
+  if (a.iconUrl) { card.append(el('div', { class: 'app-icon' }, el('img', { src: a.iconUrl, alt: a.name }))); }
+  else { card.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || '📱')); }
+  card.append(el('div', { class: 'app-name' }, a.name));
+  card.append(el('div', { class: 'app-rating' }, el('span', {}, (a.rating ? a.rating.toFixed(1) : '—')), el('span', { class: 'star' }, '★')));
   return card;
 }
 
-function rALI(a) {
-  const item = el('div', { class: 'ali', onclick: () => go('app', { id: a.id }) });
-  if (a.iconUrl) { item.append(el('div', { class: 'aico' }, el('img', { src: a.iconUrl }))); }
-  else { item.append(el('div', { class: 'aico', style: 'background:' + col(a.id) }, a.icon || '')); }
-  const info = el('div', { class: 'inf' });
-  info.append(el('div', { class: 'nm' }, a.name, a.official ? el('span', { style: 'color:#ffd700;font-size:12px' }, '🏆') : null));
-  info.append(el('div', { class: 'ct' }, a.devName || '—'));
-  const meta = el('div', { class: 'mt' });
-  if (a.rating) meta.append(el('span', {}, a.rating.toFixed(1), ' ', el('span', { class: 'st' }, '★')));
+function rAppListItem(a) {
+  const item = el('div', { class: 'app-list-item', onclick: () => nav('app', { id: a.id }) });
+  if (a.iconUrl) { item.append(el('div', { class: 'app-icon' }, el('img', { src: a.iconUrl }))); }
+  else { item.append(el('div', { class: 'app-icon', style: 'background:' + col(a.id) }, a.icon || '')); }
+  const info = el('div', { class: 'info' });
+  info.append(el('div', { class: 'name' }, a.name, a.official ? el('span', { style: 'color:#ffd700;font-size:12px' }, '🏆') : null));
+  info.append(el('div', { class: 'cat' }, a.devName || '—'));
+  const meta = el('div', { class: 'meta' });
+  if (a.rating) meta.append(el('span', {}, a.rating.toFixed(1), ' ', el('span', { class: 'star' }, '★')));
   if (a.price === 0) meta.append(el('span', {}, 'Бесплатно'));
   else if (a.price) meta.append(el('span', {}, fp(a.price)));
   info.append(meta);
@@ -451,359 +483,256 @@ function rCatalog() {
   const w = el('div', {});
   const q = (S.route.params && S.route.params.search) ? S.route.params.search.toLowerCase().trim() : '';
   const cat = S.route.params && S.route.params.cat;
-  w.append(el('h1', { style: 'font-size:20px;font-weight:500;margin-bottom:16px' }, q ? 'Результаты: "' + q + '"' : 'Каталог'));
-  const ch = el('div', { class: 'car', style: 'margin-bottom:16px' });
-  ch.append(el('div', { class: 'acard', onclick: () => go('catalog') }, el('div', { class: 'aico', style: 'background:var(--primary);color:#fff' }, 'Все'), el('div', { class: 'aname' }, 'Все')));
+  w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px; color: var(--text);' }, q ? 'Результаты: "' + q + '"' : 'Каталог'));
+  const ch = el('div', { class: 'carousel', style: 'margin-bottom: 16px;' });
+  ch.append(el('div', { class: 'app-card', onclick: () => nav('catalog') }, el('div', { class: 'app-icon', style: 'background: var(--primary); color: #fff;' }, 'Все'), el('div', { class: 'app-name' }, 'Все')));
   CATS.forEach(c => {
-    const card = el('div', { class: 'acard', onclick: () => go('catalog', { cat: c.id }) });
-    card.append(el('div', { class: 'aico', style: 'background:' + col(c.id) }, c.i));
-    card.append(el('div', { class: 'aname' }, c.n));
+    const card = el('div', { class: 'app-card', onclick: () => nav('catalog', { cat: c.id }) });
+    card.append(el('div', { class: 'app-icon', style: 'background:' + col(c.id) }, c.i));
+    card.append(el('div', { class: 'app-name' }, c.n));
     ch.append(card);
   });
   w.append(ch);
   const apps = appsCache || [];
-  let fa = apps;
-  if (q) fa = apps.filter(a => a.name.toLowerCase().indexOf(q) >= 0 || (a.desc || '').toLowerCase().indexOf(q) >= 0);
-  if (cat) fa = apps.filter(a => a.cat === cat);
-  w.append(el('p', { style: 'color:#80868b;margin-bottom:12px;font-size:12px' }, 'Найдено: ' + fa.length));
-  if (fa.length === 0) {
-    w.append(el('div', { class: 'emp' }, el('div', { class: 'ic' }, '🔍'), el('h3', {}, 'Ничего не найдено')));
-  } else {
-    const list = el('div', { class: 'alist' });
-    fa.forEach(a => { list.append(rALI(a)); });
-    w.append(list);
-  }
+  let filteredApps = apps;
+  if (q) filteredApps = apps.filter(a => a.name.toLowerCase().indexOf(q) >= 0 || (a.desc || '').toLowerCase().indexOf(q) >= 0);
+  if (cat) filteredApps = apps.filter(a => a.cat === cat);
+  w.append(el('p', { style: 'color: var(--text3); margin-bottom: 12px; font-size: 12px;' }, 'Найдено: ' + filteredApps.length));
+  if (filteredApps.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, ''), el('h3', {}, 'Ничего не найдено'))); }
+  else { const list = el('div', { class: 'app-list' }); filteredApps.forEach(a => { list.append(rAppListItem(a)); }); w.append(list); }
   return w;
 }
 
 function rAppPage() {
-  const w = el('div', {});
+  const w = el('div', { class: 'app-page' });
   const appId = (S.route.params && S.route.params.id) ? S.route.params.id : null;
-  if (!appId) { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Не найдено'))); return w; }
-  const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-  w.append(ld);
-  getAppById(appId, function (a) {
-    ld.remove();
-    if (!a) { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Не найдено'))); return; }
-    const header = el('div', { class: 'apg-h' });
+  if (!appId) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Не найдено'))); return w; }
+  const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
+  w.append(loading);
+  getAppById(appId, function(a) {
+    loading.remove();
+    if (!a) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Не найдено'))); return; }
+    const header = el('div', { class: 'app-page-header' });
     let iconDiv;
-    if (a.iconUrl) { iconDiv = el('div', { class: 'apg-ico' }, el('img', { src: a.iconUrl })); }
-    else { iconDiv = el('div', { class: 'apg-ico', style: 'background:' + col(a.id) }, a.icon || '📱'); }
-    const info = el('div', { class: 'apg-inf' });
+    if (a.iconUrl) { iconDiv = el('div', { class: 'app-page-icon' }, el('img', { src: a.iconUrl })); }
+    else { iconDiv = el('div', { class: 'app-page-icon', style: 'background:' + col(a.id) }, a.icon || '📱'); }
+    const info = el('div', { class: 'app-page-info' });
     info.append(el('h1', {}, a.name));
-    const devLine = el('div', { class: 'apg-dev' }, a.devName || 'Неизвестный');
-    if (a.official) devLine.append(el('span', { style: 'color:#ffd700;font-size:14px' }, '🏆'));
-    else if (a.devVerified) devLine.append(el('span', { style: 'color:var(--primary)' }, '✓'));
+    const devLine = el('div', { class: 'app-page-dev' }, a.devName || 'Неизвестный');
+    if (a.official) devLine.append(el('span', { style: 'color: #ffd700; font-size: 14px;' }, '🏆'));
+    else if (a.devVerified) devLine.append(el('span', { style: 'color: var(--primary);' }, '✓'));
     info.append(devLine);
-    const stats = el('div', { class: 'apg-stats' });
-    stats.append(el('div', { class: 'apg-st' }, el('div', { class: 'v' }, a.rating ? a.rating.toFixed(1) : '—'), el('div', { class: 'l' }, (a.reviews || 0) + ' отзывов')));
-    stats.append(el('div', { class: 'apg-st' }, el('div', { class: 'v' }, (a.installs || 0).toLocaleString('ru-RU')), el('div', { class: 'l' }, 'установок')));
-    stats.append(el('div', { class: 'apg-st' }, el('div', { class: 'v' }, fp(a.price || 0)), el('div', { class: 'l' }, 'цена')));
-    stats.append(el('div', { class: 'apg-st' }, el('div', { class: 'v' }, a.ver || '1.0'), el('div', { class: 'l' }, 'версия')));
+    const stats = el('div', { class: 'app-page-stats' });
+    stats.append(el('div', { class: 'app-stat' }, el('div', { class: 'val' }, a.rating ? a.rating.toFixed(1) : '—'), el('div', { class: 'lbl' }, (a.reviews || 0) + ' отзывов')));
+    stats.append(el('div', { class: 'app-stat' }, el('div', { class: 'val' }, (a.installs || 0).toLocaleString('ru-RU')), el('div', { class: 'lbl' }, 'установок')));
+    stats.append(el('div', { class: 'app-stat' }, el('div', { class: 'val' }, fp(a.price || 0)), el('div', { class: 'lbl' }, 'цена')));
+    stats.append(el('div', { class: 'app-stat' }, el('div', { class: 'val' }, a.ver || '1.0'), el('div', { class: 'lbl' }, 'версия')));
     info.append(stats);
-    const actions = el('div', { class: 'apg-acts' });
+    const actions = el('div', { class: 'app-page-actions' });
+    
+    // ИСПРАВЛЕНИЕ: АВТОМАТИЧЕСКАЯ ВЫДАЧА ФАЙЛА ДЛЯ БЕСПЛАТНЫХ
     if (a.price === 0 && a.fileName && a.fileUrl) {
-      actions.append(el('a', { class: 'bd', href: a.fileUrl, target: '_blank', download: a.fileName || 'file' }, '⬇ Скачать бесплатно'));
+      actions.append(el('a', { class: 'btn-download', href: a.fileUrl, target: '_blank', download: a.fileName || 'file' }, ' Скачать бесплатно'));
       if (S.cu) {
         const lib = JSON.parse(localStorage.getItem('awl_' + S.cu.uid) || '{}');
         if (!lib[a.id]) { lib[a.id] = { date: Date.now() }; localStorage.setItem('awl_' + S.cu.uid, JSON.stringify(lib)); }
       }
     } else if (a.price > 0) {
-      actions.append(el('button', { class: 'bi', onclick: () => openOrder(a.id) }, 'Оставить заявку'));
+      actions.append(el('button', { class: 'btn-install', onclick: () => openOrder(a.id) }, 'Оставить заявку'));
     } else {
-      actions.append(el('button', { class: 'bi', onclick: () => toast('Файл не добавлен', '', 'inf') }, 'Скачать'));
+      actions.append(el('button', { class: 'btn-install', onclick: () => toast('Файл не добавлен', '', 'inf') }, 'Скачать'));
     }
-    actions.append(el('button', { class: 'bis', onclick: () => togFav(a.id), title: 'В избранное' }, '♡'));
-    actions.append(el('button', { class: 'bis', onclick: () => openReport(a.id), title: 'Пожаловаться' }, '⚑'));
+    
+    actions.append(el('button', { class: 'btn-icon-sm', onclick: () => toggleFav(a.id), title: 'В избранное' }, '♡'));
+    actions.append(el('button', { class: 'btn-icon-sm', onclick: () => openReport(a.id), title: 'Пожаловаться' }, '⚑'));
     info.append(actions);
     header.append(iconDiv, info);
     w.append(header);
     if (a.screenshots && a.screenshots.length > 0) {
-      const ss = el('div', { class: 'sec' });
-      ss.append(el('div', { class: 'sec-h' }, el('h2', {}, 'Скриншоты'), el('div', { class: 'arr' }, '→')));
-      const row = el('div', { class: 'srow' });
-      a.screenshots.forEach(sh => {
-        const item = el('div', { class: 'sitem', onclick: () => openSS(a.screenshots, sh) });
-        item.append(el('img', { src: sh.url }));
-        row.append(item);
-      });
-      ss.append(row);
-      w.append(ss);
+      const ss = el('div', { class: 'section' });
+      ss.append(el('div', { class: 'section-header' }, el('h2', {}, 'Скриншоты'), el('div', { class: 'arrow' }, '→')));
+      const row = el('div', { class: 'screenshots-row' });
+      a.screenshots.forEach(sh => { const item = el('div', { class: 'screenshot-item', onclick: () => openScreenshotViewer(a.screenshots, sh) }); item.append(el('img', { src: sh.url })); row.append(item); });
+      ss.append(row); w.append(ss);
     }
-    const desc = el('div', { class: 'adesc' });
+    const desc = el('div', { class: 'app-description' });
     desc.append(el('h3', {}, 'Об этом приложении'));
     desc.append(el('p', {}, a.desc || 'Описание не добавлено.'));
-    if (a.features && a.features.length) {
-      desc.append(el('h3', { style: 'margin-top:16px' }, 'Возможности'));
-      a.features.forEach(f => { desc.append(el('p', {}, '✓ ' + f)); });
-    }
-    if (a.sys) { desc.append(el('h3', { style: 'margin-top:16px' }, 'Системные требования')); desc.append(el('p', {}, a.sys)); }
+    if (a.features && a.features.length) { desc.append(el('h3', { style: 'margin-top: 16px;' }, 'Возможности')); a.features.forEach(f => { desc.append(el('p', {}, '✓ ' + f)); }); }
+    if (a.sys) { desc.append(el('h3', { style: 'margin-top: 16px;' }, 'Системные требования')); desc.append(el('p', {}, a.sys)); }
     w.append(desc);
-    w.append(el('div', { style: 'padding:16px 0;border-top:1px solid #3c4043' }, el('div', { class: 'cw' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи. Оплата в чате с продавцом.')));
+    w.append(el('div', { style: 'padding: 16px 0; border-top: 1px solid var(--border);' }, el('div', { class: 'chat-warning' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи. Оплата в чате с продавцом.')));
   });
   return w;
 }
 
-function togFav(id) {
+function toggleFav(appId) {
   if (!S.cu) { showAuth(); return; }
-  const cu = S.cu.uid;
-  const f = JSON.parse(localStorage.getItem('awf_' + cu) || '{}');
-  if (f[id]) { delete f[id]; toast('Удалено из избранного', '', 'inf'); }
-  else { f[id] = true; toast('Добавлено в избранное', '', 'ok'); }
-  localStorage.setItem('awf_' + cu, JSON.stringify(f));
+  const cuId = S.cu.uid;
+  const favs = JSON.parse(localStorage.getItem('awf_' + cuId) || '{}');
+  if (favs[appId]) { delete favs[appId]; toast('Удалено из избранного', '', 'inf'); }
+  else { favs[appId] = true; toast('Добавлено в избранное', '', 'ok'); }
+  localStorage.setItem('awf_' + cuId, JSON.stringify(favs));
 }
 
 function rFavorites() {
   const w = el('div', {});
-  w.append(el('h1', { style: 'font-size:20px;font-weight:500;margin-bottom:16px' }, 'Избранное'));
-  if (!S.cu) { w.append(el('div', { class: 'emp' }, el('div', { class: 'ic' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
-  const cu = S.cu.uid;
-  const f = JSON.parse(localStorage.getItem('awf_' + cu) || '{}');
-  const ids = Object.keys(f);
-  if (ids.length === 0) { w.append(el('div', { class: 'emp' }, el('div', { class: 'ic' }, '♡'), el('h3', {}, 'Пока пусто'))); return w; }
-  const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-  w.append(ld);
+  w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Избранное'));
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
+  const cuId = S.cu.uid;
+  const favs = JSON.parse(localStorage.getItem('awf_' + cuId) || '{}');
+  const ids = Object.keys(favs);
+  if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '♡'), el('h3', {}, 'Пока пусто'))); return w; }
+  const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
+  w.append(loading);
   Promise.all(ids.map(id => db.collection('apps').doc(id).get())).then(docs => {
-    ld.remove();
+    loading.remove();
     const apps = [];
-    docs.forEach(d => { if (d.exists) apps.push({ id: d.id, ...d.data() }); });
-    if (apps.length === 0) { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Удалены'))); return; }
-    const list = el('div', { class: 'alist' });
-    apps.forEach(a => { list.append(rALI(a)); });
+    docs.forEach(doc => { if (doc.exists) apps.push({ id: doc.id, ...doc.data() }); });
+    if (apps.length === 0) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Удалены'))); return; }
+    const list = el('div', { class: 'app-list' });
+    apps.forEach(a => { list.append(rAppListItem(a)); });
     w.append(list);
-  }).catch(() => { ld.remove(); w.append(el('div', { class: 'emp' }, el('h3', {}, 'Ошибка'))); });
+  }).catch(() => { loading.remove(); w.append(el('div', { class: 'empty' }, el('h3', {}, 'Ошибка'))); });
   return w;
 }
 
 function rOrders() {
   const w = el('div', {});
-  w.append(el('h1', { style: 'font-size:20px;font-weight:500;margin-bottom:16px' }, 'Мои заявки'));
-  if (!S.cu) { w.append(el('div', { class: 'emp' }, el('div', { class: 'ic' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
-  const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-  w.append(ld);
-  Promise.all([
-    db.collection('orders').where('buyerUid', '==', S.cu.uid).get(),
-    db.collection('orders').where('devUid', '==', S.cu.uid).get()
-  ]).then(([s1, s2]) => {
-    ld.remove();
+  w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Мои заявки'));
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'))); return w; }
+  const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
+  w.append(loading);
+  Promise.all([db.collection('orders').where('buyerUid', '==', S.cu.uid).get(), db.collection('orders').where('devUid', '==', S.cu.uid).get()]).then(([s1, s2]) => {
+    loading.remove();
     const orders = [];
     s1.forEach(d => { orders.push({ id: d.id, ...d.data() }); });
     s2.forEach(d => { const o = { id: d.id, ...d.data() }; if (!orders.find(x => x.id === o.id)) orders.push(o); });
     orders.sort((a, b) => (b.createdAt ? b.createdAt.seconds : 0) - (a.createdAt ? a.createdAt.seconds : 0));
-    if (orders.length === 0) { w.append(el('div', { class: 'emp' }, el('div', { class: 'ic' }, '📋'), el('h3', {}, 'Заявок нет'))); return; }
+    if (orders.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '📋'), el('h3', {}, 'Заявок нет'))); return; }
     orders.forEach(o => {
-      getAppById(o.appId, function (a) {
+      getAppById(o.appId, function(a) {
         if (!a) return;
         const sm = { new: ['Новая', '#f9ab00'], accepted: ['Принята', '#81c995'], discussion: ['Обсуждение', '#8ab4f8'], completed: ['Завершена', '#81c995'], cancelled: ['Отменена', '#f28b82'] };
         const st = sm[o.status] || sm.new;
-        const c = el('div', { class: 'oc' });
-        if (a.iconUrl) { c.append(el('div', { class: 'oi' }, el('img', { src: a.iconUrl }))); }
-        else { c.append(el('div', { class: 'oi', style: 'background:' + col(a.id) }, a.icon || '')); }
-        c.append(el('div', { class: 'oif' },
-          el('h4', {}, a.name),
-          el('p', {}, o.buyerUid === S.cu.uid ? 'Продавец: ' + (o.devName || '') : 'Покупатель: ' + (o.buyerName || '')),
-          el('p', {}, fd(o.createdAt)),
-          el('span', { style: 'color:' + st[1] + ';font-size:11px;font-weight:600' }, st[0])
-        ));
-        const ac = el('div', { class: 'oac' });
-        if (o.status !== 'cancelled' && o.status !== 'completed') {
-          ac.append(el('button', { class: 'btn btnp btns', onclick: () => go('chat', { orderId: o.id }) }, 'Чат'));
-        }
-        c.append(ac);
-        w.append(c);
+        const c = el('div', { class: 'order-card' });
+        if (a.iconUrl) { c.append(el('div', { class: 'order-icon' }, el('img', { src: a.iconUrl }))); }
+        else { c.append(el('div', { class: 'order-icon', style: 'background:' + col(a.id) }, a.icon || '')); }
+        c.append(el('div', { class: 'order-info' }, el('h4', {}, a.name), el('p', {}, o.buyerUid === S.cu.uid ? 'Продавец: ' + (o.devName || '') : 'Покупатель: ' + (o.buyerName || '')), el('p', {}, fd(o.createdAt)), el('span', { style: 'color:' + st[1] + '; font-size: 11px; font-weight: 600;' }, st[0])));
+        const ac = el('div', { class: 'order-actions' });
+        if (o.status !== 'cancelled' && o.status !== 'completed') { ac.append(el('button', { class: 'btn btn-primary btn-sm', onclick: () => nav('chat', { orderId: o.id }) }, 'Чат')); }
+        c.append(ac); w.append(c);
       });
     });
-  }).catch(() => { ld.remove(); w.append(el('div', { class: 'emp' }, el('h3', {}, 'Ошибка'))); });
+  }).catch(() => { loading.remove(); w.append(el('div', { class: 'empty' }, el('h3', {}, 'Ошибка'))); });
   return w;
 }
 
 function rChat() {
-  const w = el('div', { class: 'chc' });
-  if (!S.cu) { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Войдите'))); return w; }
-  const oid = (S.route.params && S.route.params.orderId) ? S.route.params.orderId : null;
-  if (!oid) { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Чат не найден'))); return w; }
-  const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-  w.append(ld);
-  db.collection('orders').doc(oid).get().then(doc => {
-    ld.remove();
-    if (!doc.exists) { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Не найден'))); return; }
+  const w = el('div', { class: 'chat-container' });
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Войдите'))); return w; }
+  const orderId = (S.route.params && S.route.params.orderId) ? S.route.params.orderId : null;
+  if (!orderId) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Чат не найден'))); return w; }
+  const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
+  w.append(loading);
+  db.collection('orders').doc(orderId).get().then(doc => {
+    loading.remove();
+    if (!doc.exists) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Не найден'))); return w; }
     const o = { id: doc.id, ...doc.data() };
-    if (o.buyerUid !== S.cu.uid && o.devUid !== S.cu.uid) { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Нет доступа'))); return; }
+    if (o.buyerUid !== S.cu.uid && o.devUid !== S.cu.uid) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Нет доступа'))); return w; }
     const isB = o.buyerUid === S.cu.uid;
-    const other = isB ? o.devName : o.buyerName;
-    const hd = el('div', { class: 'chh' });
+    const otherName = isB ? o.devName : o.buyerName;
+    const hd = el('div', { class: 'chat-header' });
     hd.append(el('h3', {}, '💬 Чат сделки'));
-    hd.append(el('p', { style: 'font-size:12px;color:#80868b;margin:4px 0' }, 'Приложение: ', el('strong', {}, o.appName || '—'), ' · ', el('strong', {}, other || '—')));
-    hd.append(el('div', { class: 'cw' }, el('strong', {}, '⚠️ '), 'awer не участвует в оплате.'));
+    hd.append(el('p', { style: 'font-size: 12px; color: var(--text3); margin: 4px 0;' }, 'Приложение: ', el('strong', {}, o.appName || '—'), ' · ', el('strong', {}, otherName || '—')));
+    hd.append(el('div', { class: 'chat-warning' }, el('strong', {}, '⚠️ '), 'awer не участвует в оплате.'));
     w.append(hd);
-    const ms = el('div', { class: 'chm' });
-    db.collection('orders').doc(oid).collection('messages').orderBy('createdAt', 'asc').onSnapshot(snap => {
+    const ms = el('div', { class: 'chat-messages' });
+    db.collection('orders').doc(orderId).collection('messages').orderBy('createdAt', 'asc').onSnapshot(snap => {
       ms.innerHTML = '';
-      if (snap.empty) { ms.append(el('div', { style: 'text-align:center;color:#80868b;padding:32px;font-size:13px' }, 'Начните общение')); }
-      snap.forEach(doc => {
-        const m = doc.data();
-        const me = m.senderUid === S.cu.uid;
-        ms.append(el('div', { class: 'msg ' + (me ? 'me' : 'ot') },
-          !me ? el('div', { style: 'font-size:10px;font-weight:600;margin-bottom:3px;opacity:.8' }, m.senderName) : null,
-          el('div', {}, m.text),
-          el('span', { class: 'mt' }, ft(m.createdAt))
-        ));
-      });
+      if (snap.empty) { ms.append(el('div', { style: 'text-align: center; color: var(--text3); padding: 32px; font-size: 13px;' }, 'Начните общение')); }
+      snap.forEach(doc => { const m = doc.data(); const me = m.senderUid === S.cu.uid; ms.append(el('div', { class: 'msg ' + (me ? 'me' : 'other') }, !me ? el('div', { style: 'font-size: 10px; font-weight: 600; margin-bottom: 3px; opacity: 0.8;' }, m.senderName) : null, el('div', {}, m.text), el('span', { class: 'msg-time' }, ft(m.createdAt)))); });
       ms.scrollTop = ms.scrollHeight;
     });
     w.append(ms);
     if (o.status !== 'cancelled' && o.status !== 'completed') {
-      const inp = el('div', { class: 'cir' });
+      const inp = el('div', { class: 'chat-input-row' });
       const input = el('input', { placeholder: 'Написать сообщение...' });
-      const sb = el('button', { class: 'btn btnp' });
-      sb.textContent = 'Отправить';
-      sb.addEventListener('click', () => {
-        const t = input.value.trim();
-        if (!t) return;
-        db.collection('orders').doc(oid).collection('messages').add({
-          senderUid: S.cu.uid, senderName: S.cu.name, text: t,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        input.value = '';
-        if (o.status === 'new' || o.status === 'accepted') {
-          db.collection('orders').doc(oid).update({ status: 'discussion' });
-        }
-      });
-      input.addEventListener('keydown', e => { if (e.key === 'Enter') sb.click(); });
-      inp.append(input, sb);
-      w.append(inp);
-      const ac = el('div', { style: 'display:flex;gap:6px;flex-wrap:wrap;margin-top:10px' });
+      const sendBtn = el('button', { class: 'btn btn-primary' });
+      sendBtn.textContent = 'Отправить';
+      sendBtn.addEventListener('click', () => { const t = input.value.trim(); if (!t) return; db.collection('orders').doc(orderId).collection('messages').add({ senderUid: S.cu.uid, senderName: S.cu.name, text: t, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); input.value = ''; if (o.status === 'new' || o.status === 'accepted') { db.collection('orders').doc(orderId).update({ status: 'discussion' }); } });
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') sendBtn.click(); });
+      inp.append(input, sendBtn); w.append(inp);
+      const ac = el('div', { style: 'display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;' });
       if (isB && !o.buyerConfirmed) {
-        const btn = el('button', { class: 'btn btnp btns' });
+        const btn = el('button', { class: 'btn btn-primary btn-sm' });
         btn.textContent = '✓ Завершил сделку';
-        btn.addEventListener('click', () => {
-          db.collection('orders').doc(oid).update({ buyerConfirmed: true });
-          db.collection('orders').doc(oid).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Покупатель подтвердил.', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-          if (o.devConfirmed) {
-            db.collection('orders').doc(oid).update({ status: 'completed' });
-            const lib = JSON.parse(localStorage.getItem('awl_' + S.cu.uid) || '{}');
-            lib[o.appId] = { date: Date.now() };
-            localStorage.setItem('awl_' + S.cu.uid, JSON.stringify(lib));
-            toast('Готово', 'В библиотеке', 'ok');
-          }
-          toast('Подтверждено', '', 'ok');
-        });
+        btn.addEventListener('click', () => { db.collection('orders').doc(orderId).update({ buyerConfirmed: true }); db.collection('orders').doc(orderId).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Покупатель подтвердил.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); if (o.devConfirmed) { db.collection('orders').doc(orderId).update({ status: 'completed' }); const lib = JSON.parse(localStorage.getItem('awl_' + S.cu.uid) || '{}'); lib[o.appId] = { date: Date.now() }; localStorage.setItem('awl_' + S.cu.uid, JSON.stringify(lib)); toast('Готово', 'В библиотеке', 'ok'); } toast('Подтверждено', '', 'ok'); });
         ac.append(btn);
-      } else if (isB) {
-        ac.append(el('span', { class: 'btn btno btns', style: 'cursor:default;font-size:11px' }, '✓ Вы подтвердили'));
-      }
+      } else if (isB) { ac.append(el('span', { class: 'btn btn-outline btn-sm', style: 'cursor: default; font-size: 11px;' }, '✓ Вы подтвердили')); }
       if (!isB && !o.devConfirmed) {
-        const btn = el('button', { class: 'btn btnp btns' });
+        const btn = el('button', { class: 'btn btn-primary btn-sm' });
         btn.textContent = '✓ Подтвердить';
-        btn.addEventListener('click', () => {
-          db.collection('orders').doc(oid).update({ devConfirmed: true });
-          db.collection('orders').doc(oid).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Продавец подтвердил.', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-          if (o.buyerConfirmed) {
-            db.collection('orders').doc(oid).update({ status: 'completed' });
-            const lib = JSON.parse(localStorage.getItem('awl_' + o.buyerUid) || '{}');
-            lib[o.appId] = { date: Date.now() };
-            localStorage.setItem('awl_' + o.buyerUid, JSON.stringify(lib));
-          }
-          toast('Подтверждено', '', 'ok');
-        });
+        btn.addEventListener('click', () => { db.collection('orders').doc(orderId).update({ devConfirmed: true }); db.collection('orders').doc(orderId).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Продавец подтвердил.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); if (o.buyerConfirmed) { db.collection('orders').doc(orderId).update({ status: 'completed' }); const lib = JSON.parse(localStorage.getItem('awl_' + o.buyerUid) || '{}'); lib[o.appId] = { date: Date.now() }; localStorage.setItem('awl_' + o.buyerUid, JSON.stringify(lib)); } toast('Подтверждено', '', 'ok'); });
         ac.append(btn);
-      } else if (!isB) {
-        ac.append(el('span', { class: 'btn btno btns', style: 'cursor:default;font-size:11px' }, '✓ Вы подтвердили'));
-      }
-      const cb = el('button', { class: 'btn btnd btns' });
-      cb.textContent = 'Отменить';
-      cb.addEventListener('click', () => {
-        if (!confirm('Отменить сделку?')) return;
-        db.collection('orders').doc(oid).update({ status: 'cancelled' });
-        db.collection('orders').doc(oid).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Сделка отменена.', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-      });
-      ac.append(cb);
-      w.append(ac);
-    } else {
-      w.append(el('div', { style: 'text-align:center;padding:16px;color:#80868b;font-size:13px' }, o.status === 'completed' ? '✓ Завершена' : '✕ Отменена'));
-    }
-  }).catch(() => { ld.remove(); w.append(el('div', { class: 'emp' }, el('h3', {}, 'Ошибка'))); });
+      } else if (!isB) { ac.append(el('span', { class: 'btn btn-outline btn-sm', style: 'cursor: default; font-size: 11px;' }, '✓ Вы подтвердили')); }
+      const cancelBtn = el('button', { class: 'btn btn-danger btn-sm' });
+      cancelBtn.textContent = 'Отменить';
+      cancelBtn.addEventListener('click', () => { if (!confirm('Отменить сделку?')) return; db.collection('orders').doc(orderId).update({ status: 'cancelled' }); db.collection('orders').doc(orderId).collection('messages').add({ senderUid: 'sys', senderName: 'Система', text: 'Сделка отменена.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); });
+      ac.append(cancelBtn); w.append(ac);
+    } else { w.append(el('div', { style: 'text-align: center; padding: 16px; color: var(--text3); font-size: 13px;' }, o.status === 'completed' ? '✓ Завершена' : '✕ Отменена')); }
+  }).catch(() => { loading.remove(); w.append(el('div', { class: 'empty' }, el('h3', {}, 'Ошибка'))); });
   return w;
 }
 
 function rLibrary() {
   const w = el('div', {});
-  w.append(el('h1', { style: 'font-size:20px;font-weight:500;margin-bottom:16px' }, 'Моя библиотека'));
-  if (!S.cu) { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Войдите'))); return w; }
-  const cu = S.cu.uid;
-  const lib = JSON.parse(localStorage.getItem('awl_' + cu) || '{}');
+  w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Моя библиотека'));
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Войдите'))); return w; }
+  const cuId = S.cu.uid;
+  const lib = JSON.parse(localStorage.getItem('awl_' + cuId) || '{}');
   const ids = Object.keys(lib);
-  if (ids.length === 0) { w.append(el('div', { class: 'emp' }, el('div', { class: 'ic' }, '📚'), el('h3', {}, 'Пусто'))); return w; }
-  const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-  w.append(ld);
+  if (ids.length === 0) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '📚'), el('h3', {}, 'Пусто'))); return w; }
+  const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
+  w.append(loading);
   Promise.all(ids.map(id => db.collection('apps').doc(id).get())).then(docs => {
-    ld.remove();
-    const list = el('div', { class: 'alist' });
+    loading.remove();
+    const list = el('div', { class: 'app-list' });
     docs.forEach(doc => {
       if (!doc.exists) return;
       const a = { id: doc.id, ...doc.data() };
-      const item = rALI(a);
-      if (a.fileName && a.fileUrl) {
-        item.append(el('a', { class: 'btn btnp btns', href: a.fileUrl, target: '_blank', download: a.fileName, style: 'margin-left:8px;font-size:11px' }, '⬇ Скачать'));
-      }
+      const item = rAppListItem(a);
+      if (a.fileName && a.fileUrl) { item.append(el('a', { class: 'btn btn-primary btn-sm', href: a.fileUrl, target: '_blank', download: a.fileName, style: 'margin-left: 8px; font-size: 11px;' }, '⬇ Скачать')); }
       list.append(item);
     });
     w.append(list);
-  }).catch(() => { ld.remove(); w.append(el('div', { class: 'emp' }, el('h3', {}, 'Ошибка'))); });
+  }).catch(() => { loading.remove(); w.append(el('div', { class: 'empty' }, el('h3', {}, 'Ошибка'))); });
   return w;
 }
 
 function rProfile() {
   const w = el('div', {});
-  if (!S.cu) {
-    w.append(el('div', { class: 'emp' }, el('div', { class: 'ic' }, '🔐'), el('h3', {}, 'Войдите'), el('button', { class: 'btn btnp', style: 'margin-top:12px', onclick: showAuth }, 'Войти')));
-    return w;
-  }
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Войдите'), el('button', { class: 'btn btn-primary', style: 'margin-top: 12px;', onclick: showAuth }, 'Войти'))); return w; }
   const u = S.cu;
-  const layout = el('div', { class: 'play' });
-  const card = el('div', { class: 'pcard' });
-  card.append(el('div', { class: 'pava' }, u.avatar || '👤'));
-  card.append(el('h3', {}, u.name, u.official ? el('span', { style: 'color:#ffd700;font-size:16px' }, '🏆') : null));
-  card.append(el('div', { class: 'rl' }, '@' + u.nick + ' · ' + (u.role === 'buyer' ? 'Покупатель' : u.role === 'developer' ? 'Разработчик' : 'Администратор') + (u.isAdmin ? ' 👑' : '')));
-  const lb = el('button', { class: 'btn btno btnf', style: 'margin-top:10px;font-size:12px' });
-  lb.textContent = 'Выйти';
-  lb.addEventListener('click', () => { logout(); });
-  card.append(lb);
+  const layout = el('div', { class: 'profile-layout' });
+  const card = el('div', { class: 'profile-card' });
+  card.append(el('div', { class: 'profile-avatar' }, u.avatar || '👤'));
+  card.append(el('h3', {}, u.name, u.official ? el('span', { style: 'color: #ffd700; font-size: 16px;' }, '🏆') : null));
+  card.append(el('div', { class: 'role' }, '@' + u.nick + ' · ' + (u.role === 'buyer' ? 'Покупатель' : u.role === 'developer' ? 'Разработчик' : 'Администратор') + (u.isAdmin ? ' 👑' : '')));
+  const logoutBtn = el('button', { class: 'btn btn-outline btn-full', style: 'margin-top: 10px; font-size: 12px;' });
+  logoutBtn.textContent = 'Выйти';
+  logoutBtn.addEventListener('click', () => { logoutUser(); });
+  card.append(logoutBtn);
   layout.append(card);
   const content = el('div', {});
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'info';
-  const menu = el('div', { class: 'pmenu', style: 'margin-bottom:16px' });
-  [['info', '👤', 'Аккаунт'], ['orders', '📋', 'Заявки'], ['library', '📚', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '⚙️', 'Настройки'], ['support', '🆘', 'Поддержка']].forEach(x => {
-    menu.append(el('div', { class: 'pmi' + (tab === x[0] ? ' on' : ''), onclick: () => go('profile', { tab: x[0] }) }, el('span', {}, x[1]), el('span', {}, x[2])));
-  });
-  if (u.role === 'developer') {
-    const b = el('div', { class: 'pmi', onclick: () => go('developer') });
-    b.append(el('span', {}, '🛠'));
-    b.append(el('span', {}, 'Консоль'));
-    menu.append(b);
-  }
-  if (u.isAdmin) {
-    const b = el('div', { class: 'pmi', onclick: () => go('admin') });
-    b.append(el('span', {}, '⚙️'));
-    b.append(el('span', {}, 'Админ-панель'));
-    menu.append(b);
-  }
+  const menu = el('div', { class: 'profile-menu', style: 'margin-bottom: 16px;' });
+  [['info', '👤', 'Аккаунт'], ['orders', '📋', 'Заявки'], ['library', '', 'Библиотека'], ['favorites', '♡', 'Избранное'], ['settings', '️', 'Настройки'], ['support', '', 'Поддержка']].forEach(x => { menu.append(el('div', { class: 'profile-menu-item' + (tab === x[0] ? ' active' : ''), onclick: () => nav('profile', { tab: x[0] }) }, el('span', {}, x[1]), el('span', {}, x[2]))); });
+  if (u.role === 'developer') { const b = el('div', { class: 'profile-menu-item', onclick: () => nav('developer') }); b.append(el('span', {}, '🛠')); b.append(el('span', {}, 'Консоль')); menu.append(b); }
+  if (u.isAdmin) { const b = el('div', { class: 'profile-menu-item', onclick: () => nav('admin') }); b.append(el('span', {}, '⚙️')); b.append(el('span', {}, 'Админ-панель')); menu.append(b); }
   content.append(menu);
   if (tab === 'info') {
-    content.append(el('div', { class: 'sec' },
-      el('h3', { style: 'font-size:15px;font-weight:500;margin-bottom:12px' }, 'Личные данные'),
-      el('div', { class: 'fg' }, el('label', {}, 'Ник'), el('input', { class: 'fc', id: 'pN', value: u.name })),
-      el('button', { class: 'btn btnp', onclick: () => {
-        const n = $('#pN').value.trim();
-        if (!n) { toast('Введите ник', '', 'er'); return; }
-        db.collection('users').doc(S.cu.uid).update({ name: n, avatar: n[0].toUpperCase() });
-        S.cu.name = n;
-        S.cu.avatar = n[0].toUpperCase();
-        render();
-        updAB();
-        toast('Сохранено', '', 'ok');
-      } }, 'Сохранить')
-    ));
+    content.append(el('div', { class: 'section' }, el('h3', { style: 'font-size: 15px; font-weight: 500; margin-bottom: 12px;' }, 'Личные данные'), el('div', { class: 'form-group' }, el('label', {}, 'Ник'), el('input', { class: 'form-control', id: 'pN', value: u.name })), el('button', { class: 'btn btn-primary', onclick: () => { const n = $('#pN').value.trim(); if (!n) { toast('Введите ник', '', 'er'); return; } db.collection('users').doc(S.cu.uid).update({ name: n, avatar: n[0].toUpperCase() }); S.cu.name = n; S.cu.avatar = n[0].toUpperCase(); render(); updateAuthBtn(); toast('Сохранено', '', 'ok'); } }, 'Сохранить')));
   } else if (tab === 'orders') { content.append(rOrders()); }
   else if (tab === 'library') { content.append(rLibrary()); }
   else if (tab === 'favorites') { content.append(rFavorites()); }
@@ -816,23 +745,12 @@ function rProfile() {
 
 function rSettings() {
   const w = el('div', {});
-  w.append(el('h1', { style: 'font-size:20px;font-weight:500;margin-bottom:16px' }, 'Настройки'));
-  const list = el('div', { class: 'slist' });
-  [{ i: '🎨', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme' }, { i: '🔔', t: 'Уведомления', d: S.settings.notif ? 'Вкл' : 'Выкл', tg: true, k: 'notif' }].forEach(it => {
-    const row = el('div', { class: 'si' });
-    row.append(el('div', { class: 'ic' }, it.i), el('div', { class: 'inf' }, el('strong', {}, it.t), el('span', {}, it.d)));
-    if (it.tg) {
-      const isOn = it.k === 'theme' ? S.theme === 'dark' : S.settings[it.k];
-      const tg = el('div', { class: 'tog' + (isOn ? ' on' : '') });
-      tg.addEventListener('click', e => {
-        e.stopPropagation();
-        if (it.k === 'theme') { S.theme = S.theme === 'light' ? 'dark' : 'light'; }
-        else { S.settings[it.k] = !S.settings[it.k]; }
-        saveS();
-        render();
-      });
-      row.append(tg);
-    }
+  w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Настройки'));
+  const list = el('div', { class: 'settings-list' });
+  [{ i: '🎨', t: 'Тема', d: S.theme === 'light' ? 'Светлая' : 'Тёмная', tg: true, k: 'theme' }, { i: '', t: 'Уведомления', d: S.settings.notif ? 'Вкл' : 'Выкл', tg: true, k: 'notif' }].forEach(it => {
+    const row = el('div', { class: 'settings-item' });
+    row.append(el('div', { class: 'si-icon' }, it.i), el('div', { class: 'si-info' }, el('strong', {}, it.t), el('span', {}, it.d)));
+    if (it.tg) { const isOn = it.k === 'theme' ? S.theme === 'dark' : S.settings[it.k]; const tg = el('div', { class: 'toggle' + (isOn ? ' on' : '') }); tg.addEventListener('click', e => { e.stopPropagation(); if (it.k === 'theme') { S.theme = S.theme === 'light' ? 'dark' : 'light'; } else { S.settings[it.k] = !S.settings[it.k]; } saveSettings(); render(); }); row.append(tg); }
     list.append(row);
   });
   w.append(list);
@@ -842,38 +760,25 @@ function rSettings() {
 function rSettingsSub() {
   const w = el('div', {});
   const sub = (S.route.params && S.route.params.sub) ? S.route.params.sub : '';
-  w.append(el('h1', { style: 'font-size:20px;font-weight:500;margin-bottom:16px' }, sub === 'lang' ? 'Язык' : sub === 'about' ? 'О приложении' : sub === 'help' ? 'Помощь' : sub === 'terms' ? 'Условия' : 'Настройки'));
-  if (sub === 'lang') {
-    const l = el('div', { class: 'slist' });
-    [['ru', 'Русский', '✓'], ['en', 'English', '']].forEach(x => {
-      l.append(el('div', { class: 'si', onclick: () => { toast('Язык', x[1], 'inf'); go('settings'); } }, el('div', { class: 'inf' }, el('strong', {}, x[1])), el('div', { style: 'color:#80868b' }, x[2])));
-    });
-    w.append(l);
-  } else if (sub === 'about') {
-    w.append(el('div', { class: 'sec' }, el('p', { style: 'margin-bottom:10px' }, el('strong', {}, 'awer'), ' — магазин приложений'), el('p', {}, 'Версия: 1.0.0')));
-  } else if (sub === 'help') {
-    w.append(el('div', { class: 'sec' }, el('h3', { style: 'font-size:14px;font-weight:500;margin-bottom:10px' }, 'Как оставить заявку?'), el('p', { style: 'margin-bottom:10px' }, 'Откройте приложение и нажмите «Оставить заявку».'), el('h3', { style: 'font-size:14px;font-weight:500;margin:12px 0 10px' }, 'Что если обманули?'), el('p', {}, 'Напишите в поддержку.')));
-  } else if (sub === 'terms') {
-    w.append(el('div', { class: 'sec' }, el('p', { style: 'margin-bottom:10px' }, '1. awer — платформа-посредник.'), el('p', { style: 'margin-bottom:10px' }, '2. Оплата в чате между сторонами.'), el('p', {}, '3. Запрещено размещать приложения с вирусами.')));
-  }
+  w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, sub === 'lang' ? 'Язык' : sub === 'about' ? 'О приложении' : sub === 'help' ? 'Помощь' : sub === 'terms' ? 'Условия' : 'Настройки'));
+  if (sub === 'lang') { const l = el('div', { class: 'settings-list' }); [['ru', 'Русский', '✓'], ['en', 'English', '']].forEach(x => { l.append(el('div', { class: 'settings-item', onclick: () => { toast('Язык', x[1], 'inf'); nav('settings'); } }, el('div', { class: 'si-info' }, el('strong', {}, x[1])), el('div', { style: 'color: var(--text3);' }, x[2]))); }); w.append(l); }
+  else if (sub === 'about') { w.append(el('div', { class: 'section' }, el('p', { style: 'margin-bottom: 10px;' }, el('strong', {}, 'awer'), ' — магазин приложений'), el('p', {}, 'Версия: 1.0.0'))); }
+  else if (sub === 'help') { w.append(el('div', { class: 'section' }, el('h3', { style: 'font-size: 14px; font-weight: 500; margin-bottom: 10px;' }, 'Как оставить заявку?'), el('p', { style: 'margin-bottom: 10px;' }, 'Откройте приложение и нажмите «Оставить заявку».'), el('h3', { style: 'font-size: 14px; font-weight: 500; margin: 12px 0 10px;' }, 'Что если обманули?'), el('p', {}, 'Напишите в поддержку.'))); }
+  else if (sub === 'terms') { w.append(el('div', { class: 'section' }, el('p', { style: 'margin-bottom: 10px;' }, '1. awer — платформа-посредник.'), el('p', { style: 'margin-bottom: 10px;' }, '2. Оплата в чате между сторонами.'), el('p', {}, '3. Запрещено размещать приложения с вирусами.'))); }
   return w;
 }
 
 function rSupport() {
   const w = el('div', {});
-  w.append(el('h1', { style: 'font-size:20px;font-weight:500;margin-bottom:16px' }, '🆘 Поддержка'));
-  if (!S.cu) { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Войдите'))); return w; }
-  const form = el('div', { class: 'sec' });
-  form.append(el('h3', { style: 'font-size:15px;font-weight:500;margin-bottom:12px' }, 'Новое обращение'));
-  form.append(el('div', { class: 'fg' }, el('label', {}, 'Тема'), el('input', { class: 'fc', id: 'sT', placeholder: 'Проблема' })));
-  form.append(el('div', { class: 'fg' }, el('label', {}, 'Описание'), el('textarea', { class: 'fc', id: 'sX', placeholder: 'Опишите...' })));
-  const sb = el('button', { class: 'btn btnp' });
+  w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, '🆘 Поддержка'));
+  if (!S.cu) { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Войдите'))); return w; }
+  const form = el('div', { class: 'section' });
+  form.append(el('h3', { style: 'font-size: 15px; font-weight: 500; margin-bottom: 12px;' }, 'Новое обращение'));
+  form.append(el('div', { class: 'form-group' }, el('label', {}, 'Тема'), el('input', { class: 'form-control', id: 'sT', placeholder: 'Проблема' })));
+  form.append(el('div', { class: 'form-group' }, el('label', {}, 'Описание'), el('textarea', { class: 'form-control', id: 'sX', placeholder: 'Опишите...' })));
+  const sb = el('button', { class: 'btn btn-primary' });
   sb.textContent = 'Отправить';
-  sb.addEventListener('click', () => {
-    const th = $('#sT').value.trim(), tx = $('#sX').value.trim();
-    if (!th || !tx) { toast('Заполните поля', '', 'er'); return; }
-    db.collection('supports').add({ userId: S.cu.uid, userName: S.cu.name, theme: th, text: tx, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { toast('Отправлено', '', 'ok'); render(); });
-  });
+  sb.addEventListener('click', () => { const th = $('#sT').value.trim(), tx = $('#sX').value.trim(); if (!th || !tx) { toast('Заполните поля', '', 'er'); return; } db.collection('supports').add({ userId: S.cu.uid, userName: S.cu.name, theme: th, text: tx, status: 'new', createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { toast('Отправлено', '', 'ok'); render(); }); });
   form.append(sb);
   w.append(form);
   return w;
@@ -881,502 +786,193 @@ function rSupport() {
 
 function rDeveloper() {
   const w = el('div', {});
-  if (!S.cu || S.cu.role !== 'developer') { w.append(el('div', { class: 'emp' }, el('h3', {}, 'Нужен аккаунт разработчика'))); return w; }
+  if (!S.cu || S.cu.role !== 'developer') { w.append(el('div', { class: 'empty' }, el('h3', {}, 'Нужен аккаунт разработчика'))); return w; }
   const u = S.cu;
-  w.append(el('h1', { style: 'font-size:20px;font-weight:500;margin-bottom:16px' }, 'Консоль разработчика'));
-  if (!u.verified && !u.official) { w.append(el('div', { class: 'cw', style: 'margin-bottom:16px' }, el('strong', {}, '⚠️ '), 'Аккаунт не верифицирован.')); }
-  const stats = el('div', { class: 'sgrid' });
-  db.collection('apps').where('devUid', '==', u.uid).get().then(snap => { stats.append(el('div', { class: 'scard' }, el('div', { class: 'lb' }, 'Приложения'), el('div', { class: 'vl' }, String(snap.size)))); });
-  db.collection('orders').where('devUid', '==', u.uid).get().then(snap => { stats.append(el('div', { class: 'scard' }, el('div', { class: 'lb' }, 'Заявки'), el('div', { class: 'vl' }, String(snap.size)))); });
+  w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'Консоль разработчика'));
+  if (!u.verified && !u.official) { w.append(el('div', { class: 'chat-warning', style: 'margin-bottom: 16px;' }, el('strong', {}, '⚠️ '), 'Аккаунт не верифицирован.')); }
+  const stats = el('div', { class: 'stats-grid' });
+  db.collection('apps').where('devUid', '==', u.uid).get().then(snap => { stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Приложения'), el('div', { class: 'stat-value' }, String(snap.size)))); });
+  db.collection('orders').where('devUid', '==', u.uid).get().then(snap => { stats.append(el('div', { class: 'stat-card' }, el('div', { class: 'stat-label' }, 'Заявки'), el('div', { class: 'stat-value' }, String(snap.size)))); });
   w.append(stats);
-  const tabs = el('div', { style: 'display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:6px' });
+  const tabs = el('div', { style: 'display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 6px;' });
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-  [['apps', 'Мои приложения'], ['orders', 'Заявки'], ['add', 'Добавить']].forEach(x => { tabs.append(el('div', { class: 'tab-btn' + (tab === x[0] ? ' on' : ''), onclick: () => go('developer', { tab: x[0] }) }, x[1])); });
+  [['apps', 'Мои приложения'], ['orders', 'Заявки'], ['add', 'Добавить']].forEach(x => { tabs.append(el('div', { class: 'tab-btn' + (tab === x[0] ? ' active' : ''), onclick: () => nav('developer', { tab: x[0] }) }, x[1])); });
   w.append(tabs);
   if (tab === 'apps') {
-    const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-    w.append(ld);
-    db.collection('apps').where('devUid', '==', u.uid).get().then(snap => {
-      ld.remove();
-      if (snap.empty) { w.append(el('div', { class: 'emp' }, el('p', {}, 'Нет приложений.'))); return; }
-      const list = el('div', { class: 'alist' });
-      snap.forEach(doc => {
-        const a = { id: doc.id, ...doc.data() };
-        const item = rALI(a);
-        if (a.status === 'blocked') item.append(el('span', { style: 'color:#f28b82;font-size:11px' }, ' Заблокировано'));
-        list.append(item);
-      });
-      w.append(list);
-    });
+    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
+    w.append(loading);
+    db.collection('apps').where('devUid', '==', u.uid).get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет приложений.'))); return; } const list = el('div', { class: 'app-list' }); snap.forEach(doc => { const a = { id: doc.id, ...doc.data() }; const item = rAppListItem(a); if (a.status === 'blocked') item.append(el('span', { style: 'color: var(--error); font-size: 11px;' }, ' Заблокировано')); list.append(item); }); w.append(list); });
   } else if (tab === 'orders') {
-    const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-    w.append(ld);
-    db.collection('orders').where('devUid', '==', u.uid).get().then(snap => {
-      ld.remove();
-      let has = false;
-      snap.forEach(doc => {
-        const o = { id: doc.id, ...doc.data() };
-        if (o.status === 'completed' || o.status === 'cancelled') return;
-        has = true;
-        const c = el('div', { class: 'oc' });
-        if (o.appIconUrl) { c.append(el('div', { class: 'oi' }, el('img', { src: o.appIconUrl }))); }
-        else { c.append(el('div', { class: 'oi', style: 'background:' + col(o.appId) }, o.appIcon || '')); }
-        c.append(el('div', { class: 'oif' }, el('h4', {}, o.appName), el('p', {}, 'Покупатель: ' + (o.buyerName || '—')), el('p', {}, o.paymentMethod)));
-        const ac = el('div', { class: 'oac' });
-        if (o.status === 'new') {
-          const ab = el('button', { class: 'btn btnp btns' });
-          ab.textContent = 'Принять';
-          ab.addEventListener('click', () => { db.collection('orders').doc(o.id).update({ status: 'accepted' }); toast('Принято', '', 'ok'); });
-          ac.append(ab);
-          const rb = el('button', { class: 'btn btnd btns' });
-          rb.textContent = 'Отклонить';
-          rb.addEventListener('click', () => { if (!confirm('Отклонить?')) return; db.collection('orders').doc(o.id).update({ status: 'cancelled' }); render(); });
-          ac.append(rb);
-        }
-        const cb = el('button', { class: 'btn btno btns' });
-        cb.textContent = 'Чат';
-        cb.addEventListener('click', () => { go('chat', { orderId: o.id }); });
-        ac.append(cb);
-        c.append(ac);
-        w.append(c);
-      });
-      if (!has) w.append(el('div', { class: 'emp' }, el('p', {}, 'Нет заявок')));
-    });
-  } else if (tab === 'add') {
-    w.append(rAddApp());
-  }
+    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' }));
+    w.append(loading);
+    db.collection('orders').where('devUid', '==', u.uid).get().then(snap => { loading.remove(); let has = false; snap.forEach(doc => { const o = { id: doc.id, ...doc.data() }; if (o.status === 'completed' || o.status === 'cancelled') return; has = true; const c = el('div', { class: 'order-card' }); if (o.appIconUrl) { c.append(el('div', { class: 'order-icon' }, el('img', { src: o.appIconUrl }))); } else { c.append(el('div', { class: 'order-icon', style: 'background:' + col(o.appId) }, o.appIcon || '')); } c.append(el('div', { class: 'order-info' }, el('h4', {}, o.appName), el('p', {}, 'Покупатель: ' + (o.buyerName || '—')), el('p', {}, o.paymentMethod))); const ac = el('div', { class: 'order-actions' }); if (o.status === 'new') { const ab = el('button', { class: 'btn btn-primary btn-sm' }); ab.textContent = 'Принять'; ab.addEventListener('click', () => { db.collection('orders').doc(o.id).update({ status: 'accepted' }); toast('Принято', '', 'ok'); }); ac.append(ab); const rb = el('button', { class: 'btn btn-danger btn-sm' }); rb.textContent = 'Отклонить'; rb.addEventListener('click', () => { if (!confirm('Отклонить?')) return; db.collection('orders').doc(o.id).update({ status: 'cancelled' }); render(); }); ac.append(rb); } const cb = el('button', { class: 'btn btn-outline btn-sm' }); cb.textContent = 'Чат'; cb.addEventListener('click', () => { nav('chat', { orderId: o.id }); }); ac.append(cb); c.append(ac); w.append(c); }); if (!has) w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет заявок'))); });
+  } else if (tab === 'add') { w.append(rAddApp()); }
   return w;
 }
 
 function rAddApp() {
-  const f = el('div', { class: 'sec' });
-  f.append(el('h3', { style: 'font-size:15px;font-weight:500;margin-bottom:12px' }, 'Новое приложение'));
-  f.append(el('div', { class: 'fg' }, el('label', {}, 'Название *'), el('input', { class: 'fc', id: 'fn', placeholder: 'Название' })));
-  f.append(el('div', { class: 'fg' }, el('label', {}, 'Описание *'), el('textarea', { class: 'fc', id: 'fd', placeholder: 'Описание...' })));
-  const g3 = el('div', { class: 'fg' });
-  g3.append(el('label', {}, 'Категория *'));
-  const sel = el('select', { class: 'fc', id: 'fc' });
-  CATS.forEach(c => { sel.append(el('option', { value: c.id }, c.i + ' ' + c.n)); });
-  g3.append(sel);
-  f.append(g3);
-  f.append(el('div', { class: 'fg' }, el('label', {}, 'Цена (0 = бесплатно)'), el('input', { class: 'fc', id: 'fp2', type: 'number', value: '0', min: '0' })));
-  f.append(el('div', { class: 'fg' }, el('label', {}, 'Версия'), el('input', { class: 'fc', id: 'fv', value: '1.0.0' })));
-  f.append(el('div', { class: 'fg' }, el('label', {}, 'Иконка (эмодзи)'), el('input', { class: 'fc', id: 'fi', value: '🚀', maxlength: '2' })));
-  f.append(el('div', { class: 'fg' }, el('label', {}, 'Иконка (файл)'), el('input', { type: 'file', id: 'fif', accept: 'image/*' })));
-  f.append(el('div', { class: 'fg' }, el('label', {}, 'Ссылка на файл'), el('input', { class: 'fc', id: 'ffu', placeholder: 'https://drive.google.com/...' })));
-  f.append(el('div', { class: 'fg' }, el('label', {}, 'Имя файла'), el('input', { class: 'fc', id: 'ffn', placeholder: 'app.zip' })));
-  const gs = el('div', { class: 'fg' });
-  gs.append(el('label', {}, 'Скриншоты (до 10)'));
-  const ssW = el('div', {});
-  const ssI = el('input', { type: 'file', id: 'fss', accept: 'image/*', multiple: 'multiple' });
-  ssW.append(ssI);
-  const ssP = el('div', { style: 'display:none;margin-top:6px' });
-  ssP.append(el('div', { style: 'height:4px;background:#3c4043;border-radius:2px;overflow:hidden' }, el('div', { style: 'height:100%;background:#81c995;width:0', id: 'spf' })));
-  ssP.append(el('div', { style: 'font-size:10px;color:#80868b;margin-top:3px', id: 'spt' }, 'Обработка...'));
-  ssW.append(ssP);
-  const ssPr = el('div', { class: 'sprev', id: 'sspr' });
-  ssW.append(ssPr);
-  gs.append(ssW);
-  f.append(gs);
-  let pss = [];
-  ssI.addEventListener('change', function (e) {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-    if (pss.length + files.length > 10) { toast('Максимум 10', '', 'er'); ssI.value = ''; return; }
-    ssP.style.display = 'block';
-    let pr = 0;
-    const tot = files.length;
-    function next() {
-      if (pr >= tot) { ssP.style.display = 'none'; ssI.value = ''; rSS(); toast('Добавлены', tot + ' шт.', 'ok'); return; }
-      const file = files[pr];
-      $('#spt').textContent = 'Обработка ' + (pr + 1) + ' из ' + tot;
-      $('#spf').style.width = Math.round((pr / tot) * 100) + '%';
-      cImg(file, 800).then(result => {
-        uImg(result.blob).then(url => {
-          pss.push({ url: url, name: file.name, size: result.blob.size });
-          pr++;
-          next();
-        }).catch(() => { toast('Ошибка', file.name, 'er'); pr++; next(); });
-      }).catch(() => { pr++; next(); });
-    }
-    next();
-  });
-  function rSS() {
-    $('#sspr').innerHTML = '';
-    pss.forEach((sh, idx) => {
-      const th = el('div', { class: 'sth' });
-      th.append(el('img', { src: sh.url }));
-      const rm = el('div', { class: 'rm' });
-      rm.textContent = '✕';
-      rm.addEventListener('click', () => { pss.splice(idx, 1); rSS(); });
-      th.append(rm);
-      $('#sspr').append(th);
-    });
-  }
-  const pb = el('button', { class: 'btn btnp', style: 'margin-top:12px' });
-  pb.textContent = 'Опубликовать';
-  pb.addEventListener('click', () => {
-    const name = $('#fn').value.trim();
-    const desc = $('#fd').value.trim();
-    if (!name) { toast('Введите название', '', 'er'); return; }
-    if (!desc) { toast('Введите описание', '', 'er'); return; }
-    pb.disabled = true;
-    pb.textContent = 'Публикация...';
-    const ife = $('#fif');
-    const if2 = ife && ife.files ? ife.files[0] : null;
-    let ip = Promise.resolve(null);
-    if (if2) { ip = cImg(if2, 200).then(r => uImg(r.blob)); }
-    ip.then(iu => {
-      const ad = {
-        name, desc, cat: $('#fc').value,
-        price: parseInt($('#fp2').value) || 0,
-        ver: $('#fv').value.trim() || '1.0.0',
-        icon: $('#fi').value.trim() || '',
-        iconUrl: iu || null,
-        fileUrl: $('#ffu').value.trim(),
-        fileName: $('#ffn').value.trim(),
-        devUid: S.cu.uid, devName: S.cu.name,
-        devVerified: S.cu.verified || false,
-        official: S.cu.official || false,
-        installs: 0, rating: 0, reviews: 0, status: 'verified',
-        screenshots: pss.slice(),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      };
-      db.collection('apps').add(ad).then(() => {
-        pb.disabled = false;
-        pb.textContent = 'Опубликовать';
-        pss = [];
-        toast('✓ Опубликовано', '', 'ok');
-        go('developer', { tab: 'apps' });
-      }).catch(e => { pb.disabled = false; pb.textContent = 'Опубликовать'; toast('Ошибка', e.message, 'er'); });
-    }).catch(e => { pb.disabled = false; pb.textContent = 'Опубликовать'; toast('Ошибка', e.message, 'er'); });
-  });
-  f.append(pb);
+  const f = el('div', { class: 'section' });
+  f.append(el('h3', { style: 'font-size: 15px; font-weight: 500; margin-bottom: 12px;' }, 'Новое приложение'));
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Название *'), el('input', { class: 'form-control', id: 'f_name', placeholder: 'Название' })));
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Описание *'), el('textarea', { class: 'form-control', id: 'f_desc', placeholder: 'Описание...' })));
+  const g3 = el('div', { class: 'form-group' }); g3.append(el('label', {}, 'Категория *')); const sel = el('select', { class: 'form-control', id: 'f_cat' }); CATS.forEach(c => { sel.append(el('option', { value: c.id }, c.i + ' ' + c.n)); }); g3.append(sel); f.append(g3);
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Цена (0 = бесплатно)'), el('input', { class: 'form-control', id: 'f_price', type: 'number', value: '0', min: '0' })));
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Версия'), el('input', { class: 'form-control', id: 'f_ver', value: '1.0.0' })));
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Иконка (эмодзи)'), el('input', { class: 'form-control', id: 'f_icon', value: '🚀', maxlength: '2' })));
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Иконка (файл)'), el('input', { type: 'file', id: 'f_iconFile', accept: 'image/*' })));
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Ссылка на файл'), el('input', { class: 'form-control', id: 'f_fileUrl', placeholder: 'https://drive.google.com/...' })));
+  f.append(el('div', { class: 'form-group' }, el('label', {}, 'Имя файла'), el('input', { class: 'form-control', id: 'f_fileName', placeholder: 'app.zip' })));
+  const gs = el('div', { class: 'form-group' }); gs.append(el('label', {}, 'Скриншоты (до 10)'));
+  const ssWrap = el('div', {}); const ssInput = el('input', { type: 'file', id: 'f_screenshots', accept: 'image/*', multiple: 'multiple' }); ssWrap.append(ssInput);
+  const ssProgress = el('div', { style: 'display: none; margin-top: 6px;' }); ssProgress.append(el('div', { style: 'height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;' }, el('div', { style: 'height: 100%; background: var(--primary); width: 0;', id: 'ssProgFill' }))); ssProgress.append(el('div', { style: 'font-size: 10px; color: var(--text3); margin-top: 3px;', id: 'ssProgText' }, 'Обработка...')); ssWrap.append(ssProgress);
+  const ssPreview = el('div', { class: 'screenshots-preview', id: 'ssPreview' }); ssWrap.append(ssPreview); gs.append(ssWrap); f.append(gs);
+  let pendingScreenshots = [];
+  ssInput.addEventListener('change', function(e) { const files = Array.from(e.target.files || []); if (files.length === 0) return; if (pendingScreenshots.length + files.length > 10) { toast('Максимум 10', '', 'er'); ssInput.value = ''; return; } ssProgress.style.display = 'block'; let processed = 0; const total = files.length; function processNext() { if (processed >= total) { ssProgress.style.display = 'none'; ssInput.value = ''; renderSSPreview(); toast('Добавлены', total + ' шт.', 'ok'); return; } const file = files[processed]; $('#ssProgText').textContent = 'Обработка ' + (processed + 1) + ' из ' + total; $('#ssProgFill').style.width = Math.round((processed / total) * 100) + '%'; compressImage(file, 800).then(result => { uploadToImgBB(result.blob).then(url => { pendingScreenshots.push({ url: url, name: file.name, size: result.blob.size }); processed++; processNext(); }).catch(() => { toast('Ошибка', file.name, 'er'); processed++; processNext(); }); }).catch(() => { processed++; processNext(); }); } processNext(); });
+  function renderSSPreview() { ssPreview.innerHTML = ''; pendingScreenshots.forEach((sh, idx) => { const thumb = el('div', { class: 'screenshot-thumb' }); thumb.append(el('img', { src: sh.url })); const rm = el('div', { class: 'remove' }); rm.textContent = '✕'; rm.addEventListener('click', () => { pendingScreenshots.splice(idx, 1); renderSSPreview(); }); thumb.append(rm); ssPreview.append(thumb); }); }
+  const pubBtn = el('button', { class: 'btn btn-primary', style: 'margin-top: 12px;' }); pubBtn.textContent = 'Опубликовать';
+  pubBtn.addEventListener('click', () => { const name = $('#f_name').value.trim(); const desc = $('#f_desc').value.trim(); if (!name) { toast('Введите название', '', 'er'); return; } if (!desc) { toast('Введите описание', '', 'er'); return; } pubBtn.disabled = true; pubBtn.textContent = 'Публикация...'; const iconFileEl = $('#f_iconFile'); const iconFile = iconFileEl && iconFileEl.files ? iconFileEl.files[0] : null; let iconPromise = Promise.resolve(null); if (iconFile) { iconPromise = compressImage(iconFile, 200).then(r => uploadToImgBB(r.blob)); } iconPromise.then(iconUrl => { const appData = { name, desc, cat: $('#f_cat').value, price: parseInt($('#f_price').value) || 0, ver: $('#f_ver').value.trim() || '1.0.0', icon: $('#f_icon').value.trim() || '', iconUrl: iconUrl || null, fileUrl: $('#f_fileUrl').value.trim(), fileName: $('#f_fileName').value.trim(), devUid: S.cu.uid, devName: S.cu.name, devVerified: S.cu.verified || false, official: S.cu.official || false, installs: 0, rating: 0, reviews: 0, status: 'verified', screenshots: pendingScreenshots.slice(), createdAt: firebase.firestore.FieldValue.serverTimestamp() }; db.collection('apps').add(appData).then(() => { pubBtn.disabled = false; pubBtn.textContent = 'Опубликовать'; pendingScreenshots = []; toast('✓ Опубликовано', '', 'ok'); nav('developer', { tab: 'apps' }); }).catch(e => { pubBtn.disabled = false; pubBtn.textContent = 'Опубликовать'; toast('Ошибка', e.message, 'er'); }); }).catch(e => { pubBtn.disabled = false; pubBtn.textContent = 'Опубликовать'; toast('Ошибка', e.message, 'er'); }); });
+  f.append(pubBtn);
   return f;
 }
 
 function rAdmin() {
   const w = el('div', {});
-  if (!S.cu || !S.cu.isAdmin || !S.cu.isFirst) {
-    w.append(el('div', { class: 'emp' }, el('div', { class: 'ic' }, '🔐'), el('h3', {}, 'Доступ запрещён'), el('p', {}, 'Только создатель аккаунта разработчика.'), el('p', { style: 'font-size:12px;color:#80868b;margin-top:8px' }, 'Если вы создали первый аккаунт разработчика, войдите под этим аккаунтом.')));
-    return w;
-  }
-  w.append(el('div', { class: 'admin-panel' }, el('div', { class: 'admin-header' }, el('h2', {}, '️ Админ-панель'), el('span', { class: 'admin-badge' }, 'SUPER ADMIN'))));
+  if (!S.cu || !S.cu.isAdmin || !S.cu.isFirstDeveloper) { w.append(el('div', { class: 'empty' }, el('div', { class: 'empty-icon' }, '🔐'), el('h3', {}, 'Доступ запрещён'), el('p', {}, 'Этот раздел доступен только создателю аккаунта разработчика.'), el('p', { style: 'font-size: 12px; color: var(--text3); margin-top: 8px;' }, 'Если вы создали первый аккаунт разработчика, войдите под этим аккаунтом.'))); return w; }
+  w.append(el('div', { class: 'admin-panel' }, el('div', { class: 'admin-header' }, el('h2', {}, '⚙️ Админ-панель'), el('span', { class: 'admin-badge' }, 'SUPER ADMIN'))));
   const stats = el('div', { class: 'admin-stats' });
-  Promise.all([db.collection('users').get(), db.collection('apps').get(), db.collection('orders').get(), db.collection('supports').get(), db.collection('reports').get()]).then(([us, as, os, ss, rs]) => {
-    stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Пользователи'), el('div', { class: 'value' }, String(us.size))));
-    stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Приложения'), el('div', { class: 'value' }, String(as.size))));
-    stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Заявки'), el('div', { class: 'value' }, String(os.size))));
-    stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Обращения'), el('div', { class: 'value' }, String(ss.size))));
-    stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Жалобы'), el('div', { class: 'value' }, String(rs.size))));
-  });
+  Promise.all([db.collection('users').get(), db.collection('apps').get(), db.collection('orders').get(), db.collection('supports').get(), db.collection('reports').get()]).then(([usersSnap, appsSnap, ordersSnap, supportsSnap, reportsSnap]) => { stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Пользователи'), el('div', { class: 'value' }, String(usersSnap.size)))); stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Приложения'), el('div', { class: 'value' }, String(appsSnap.size)))); stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Заявки'), el('div', { class: 'value' }, String(ordersSnap.size)))); stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Обращения'), el('div', { class: 'value' }, String(supportsSnap.size)))); stats.append(el('div', { class: 'admin-stat-card' }, el('div', { class: 'label' }, 'Жалобы'), el('div', { class: 'value' }, String(reportsSnap.size)))); });
   w.append(stats);
-  const tabs = el('div', { style: 'display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:6px' });
+  const tabs = el('div', { style: 'display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 6px;' });
   const tab = (S.route.params && S.route.params.tab) ? S.route.params.tab : 'apps';
-  [['apps', 'Приложения'], ['users', 'Пользователи'], ['orders', 'Заявки'], ['supports', 'Обращения'], ['reports', 'Жалобы'], ['site', '️ Сайт']].forEach(x => { tabs.append(el('div', { class: 'tab-btn' + (tab === x[0] ? ' on' : ''), onclick: () => go('admin', { tab: x[0] }) }, x[1])); });
+  [['apps', 'Приложения'], ['users', 'Пользователи'], ['orders', 'Заявки'], ['supports', 'Обращения'], ['reports', 'Жалобы'], ['site', '⚙️ Сайт']].forEach(x => { tabs.append(el('div', { class: 'tab-btn' + (tab === x[0] ? ' active' : ''), onclick: () => nav('admin', { tab: x[0] }) }, x[1])); });
   w.append(tabs);
   if (tab === 'apps') {
-    const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-    w.append(ld);
-    db.collection('apps').orderBy('createdAt', 'desc').get().then(snap => {
-      ld.remove();
-      if (snap.empty) { w.append(el('div', { class: 'emp' }, el('p', {}, 'Нет приложений'))); return; }
-      const table = el('table', { class: 'admin-table' });
-      table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Приложение'), el('th', {}, 'Разработчик'), el('th', {}, 'Статус'), el('th', {}, 'Действия'))));
-      const tbody = el('tbody', {});
-      snap.forEach(doc => {
-        const a = { id: doc.id, ...doc.data() };
-        const tr = el('tr', {});
-        tr.append(el('td', {}, a.name));
-        tr.append(el('td', {}, a.devName || '—'));
-        tr.append(el('td', {}, el('span', { style: 'padding:4px 8px;border-radius:12px;font-size:11px;font-weight:600;background:' + (a.status === 'verified' ? 'rgba(129,201,149,.2);color:#81c995;' : a.status === 'blocked' ? 'rgba(242,139,130,.2);color:#f28b82;' : 'rgba(253,214,99,.2);color:#fdd663;') }, a.status === 'verified' ? '✓ Одобрено' : a.status === 'blocked' ? '✕ Заблокировано' : ' На модерации')));
-        const actions = el('td', {}, el('div', { class: 'admin-actions' }));
-        if (a.status !== 'verified') { actions.children[0].append(el('button', { class: 'admin-btn admin-btn-approve', onclick: () => { db.collection('apps').doc(a.id).update({ status: 'verified' }); toast('Одобрено', '', 'ok'); render(); } }, '✓')); }
-        if (a.status !== 'blocked') { actions.children[0].append(el('button', { class: 'admin-btn admin-btn-block', onclick: () => { db.collection('apps').doc(a.id).update({ status: 'blocked' }); toast('Заблокировано', '', 'er'); render(); } }, '✕')); }
-        actions.children[0].append(el('button', { class: 'admin-btn admin-btn-delete', onclick: () => { if (confirm('Удалить?')) { db.collection('apps').doc(a.id).delete(); render(); } } }, '🗑'));
-        tr.append(actions);
-        tbody.append(tr);
-      });
-      table.append(tbody);
-      w.append(table);
-    });
+    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading);
+    db.collection('apps').orderBy('createdAt', 'desc').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет приложений'))); return; } const table = el('table', { class: 'admin-table' }); table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Приложение'), el('th', {}, 'Разработчик'), el('th', {}, 'Статус'), el('th', {}, 'Действия')))); const tbody = el('tbody', {}); snap.forEach(doc => { const a = { id: doc.id, ...doc.data() }; const tr = el('tr', {}); tr.append(el('td', {}, a.name)); tr.append(el('td', {}, a.devName || '—')); tr.append(el('td', {}, el('span', { style: 'padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ' + (a.status === 'verified' ? 'rgba(129,201,149,.2); color: #81c995;' : a.status === 'blocked' ? 'rgba(242,139,130,.2); color: #f28b82;' : 'rgba(253,214,99,.2); color: #fdd663;') }, a.status === 'verified' ? '✓ Одобрено' : a.status === 'blocked' ? '✕ Заблокировано' : '⏳ На модерации'))); const actions = el('td', {}, el('div', { class: 'admin-actions' })); if (a.status !== 'verified') { actions.children[0].append(el('button', { class: 'admin-btn admin-btn-approve', onclick: () => { db.collection('apps').doc(a.id).update({ status: 'verified' }); toast('Одобрено', '', 'ok'); render(); } }, '✓')); } if (a.status !== 'blocked') { actions.children[0].append(el('button', { class: 'admin-btn admin-btn-block', onclick: () => { db.collection('apps').doc(a.id).update({ status: 'blocked' }); toast('Заблокировано', '', 'er'); render(); } }, '✕')); } actions.children[0].append(el('button', { class: 'admin-btn admin-btn-delete', onclick: () => { if (confirm('Удалить приложение?')) { db.collection('apps').doc(a.id).delete(); render(); } } }, '🗑')); tr.append(actions); tbody.append(tr); }); table.append(tbody); w.append(table); });
   } else if (tab === 'users') {
-    const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-    w.append(ld);
-    db.collection('users').get().then(snap => {
-      ld.remove();
-      const table = el('table', { class: 'admin-table' });
-      table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Пользователь'), el('th', {}, 'Роль'), el('th', {}, 'Статус'), el('th', {}, 'Действия'))));
-      const tbody = el('tbody', {});
-      snap.forEach(doc => {
-        const u = { uid: doc.id, ...doc.data() };
-        const tr = el('tr', {});
-        tr.append(el('td', {}, u.name + (u.isAdmin ? ' ' : '')));
-        tr.append(el('td', {}, u.role === 'developer' ? 'Разработчик' : 'Покупатель'));
-        tr.append(el('td', {}, el('span', { style: 'padding:4px 8px;border-radius:12px;font-size:11px;font-weight:600;background:' + (u.blocked ? 'rgba(242,139,130,.2);color:#f28b82;' : 'rgba(129,201,149,.2);color:#81c995;') }, u.blocked ? 'Заблокирован' : 'Активен')));
-        const actions = el('td', {}, el('div', { class: 'admin-actions' }));
-        if (u.uid !== S.cu.uid) { actions.children[0].append(el('button', { class: 'admin-btn ' + (u.blocked ? 'admin-btn-approve' : 'admin-btn-block'), onclick: () => { db.collection('users').doc(u.uid).update({ blocked: !u.blocked }); toast(u.blocked ? 'Разблокирован' : 'Заблокирован', '', 'inf'); render(); } }, u.blocked ? 'Разблок' : 'Блок')); }
-        tr.append(actions);
-        tbody.append(tr);
-      });
-      table.append(tbody);
-      w.append(table);
-    });
+    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading);
+    db.collection('users').get().then(snap => { loading.remove(); const table = el('table', { class: 'admin-table' }); table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Пользователь'), el('th', {}, 'Роль'), el('th', {}, 'Статус'), el('th', {}, 'Действия')))); const tbody = el('tbody', {}); snap.forEach(doc => { const u = { uid: doc.id, ...doc.data() }; const tr = el('tr', {}); tr.append(el('td', {}, u.name + (u.isAdmin ? ' 👑' : ''))); tr.append(el('td', {}, u.role === 'developer' ? 'Разработчик' : 'Покупатель')); tr.append(el('td', {}, el('span', { style: 'padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ' + (u.blocked ? 'rgba(242,139,130,.2); color: #f28b82;' : 'rgba(129,201,149,.2); color: #81c995;') }, u.blocked ? 'Заблокирован' : 'Активен'))); const actions = el('td', {}, el('div', { class: 'admin-actions' })); if (u.uid !== S.cu.uid) { actions.children[0].append(el('button', { class: 'admin-btn ' + (u.blocked ? 'admin-btn-approve' : 'admin-btn-block'), onclick: () => { db.collection('users').doc(u.uid).update({ blocked: !u.blocked }); toast(u.blocked ? 'Разблокирован' : 'Заблокирован', '', 'inf'); render(); } }, u.blocked ? 'Разблок' : 'Блок')); } tr.append(actions); tbody.append(tr); }); table.append(tbody); w.append(table); });
   } else if (tab === 'orders') {
-    const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-    w.append(ld);
-    db.collection('orders').orderBy('createdAt', 'desc').get().then(snap => {
-      ld.remove();
-      if (snap.empty) { w.append(el('div', { class: 'emp' }, el('p', {}, 'Нет заявок'))); return; }
-      const table = el('table', { class: 'admin-table' });
-      table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Приложение'), el('th', {}, 'Покупатель'), el('th', {}, 'Продавец'), el('th', {}, 'Статус'))));
-      const tbody = el('tbody', {});
-      snap.forEach(doc => {
-        const o = { id: doc.id, ...doc.data() };
-        const tr = el('tr', {});
-        tr.append(el('td', {}, o.appName));
-        tr.append(el('td', {}, o.buyerName || '—'));
-        tr.append(el('td', {}, o.devName || '—'));
-        tr.append(el('td', {}, el('span', { style: 'padding:4px 8px;border-radius:12px;font-size:11px;font-weight:600;background:' + (o.status === 'completed' ? 'rgba(129,201,149,.2);color:#81c995;' : o.status === 'cancelled' ? 'rgba(242,139,130,.2);color:#f28b82;' : 'rgba(138,180,248,.2);color:#8ab4f8;') }, o.status === 'completed' ? '✓ Завершена' : o.status === 'cancelled' ? ' Отменена' : '⏳ В процессе')));
-        tbody.append(tr);
-      });
-      table.append(tbody);
-      w.append(table);
-    });
+    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading);
+    db.collection('orders').orderBy('createdAt', 'desc').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет заявок'))); return; } const table = el('table', { class: 'admin-table' }); table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Приложение'), el('th', {}, 'Покупатель'), el('th', {}, 'Продавец'), el('th', {}, 'Статус')))); const tbody = el('tbody', {}); snap.forEach(doc => { const o = { id: doc.id, ...doc.data() }; const tr = el('tr', {}); tr.append(el('td', {}, o.appName)); tr.append(el('td', {}, o.buyerName || '—')); tr.append(el('td', {}, o.devName || '—')); tr.append(el('td', {}, el('span', { style: 'padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ' + (o.status === 'completed' ? 'rgba(129,201,149,.2); color: #81c995;' : o.status === 'cancelled' ? 'rgba(242,139,130,.2); color: #f28b82;' : 'rgba(138,180,248,.2); color: #8ab4f8;') }, o.status === 'completed' ? '✓ Завершена' : o.status === 'cancelled' ? '✕ Отменена' : ' В процессе'))); tbody.append(tr); }); table.append(tbody); w.append(table); });
   } else if (tab === 'supports') {
-    const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-    w.append(ld);
-    db.collection('supports').orderBy('createdAt', 'desc').get().then(snap => {
-      ld.remove();
-      if (snap.empty) { w.append(el('div', { class: 'emp' }, el('p', {}, 'Нет обращений'))); return; }
-      const table = el('table', { class: 'admin-table' });
-      table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Тема'), el('th', {}, 'Пользователь'), el('th', {}, 'Статус'), el('th', {}, 'Действия'))));
-      const tbody = el('tbody', {});
-      snap.forEach(doc => {
-        const s = { id: doc.id, ...doc.data() };
-        const tr = el('tr', {});
-        tr.append(el('td', {}, s.theme));
-        tr.append(el('td', {}, s.userName || '—'));
-        tr.append(el('td', {}, el('span', { style: 'padding:4px 8px;border-radius:12px;font-size:11px;font-weight:600;background:' + (s.status === 'new' ? 'rgba(253,214,99,.2);color:#fdd663;' : 'rgba(129,201,149,.2);color:#81c995;') }, s.status === 'new' ? '🆕 Новое' : '✓ Отвечено')));
-        const actions = el('td', {}, el('div', { class: 'admin-actions' }));
-        actions.children[0].append(el('button', { class: 'admin-btn admin-btn-view', onclick: () => openAS(doc.id) }, 'Открыть'));
-        tr.append(actions);
-        tbody.append(tr);
-      });
-      table.append(tbody);
-      w.append(table);
-    });
+    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading);
+    db.collection('supports').orderBy('createdAt', 'desc').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет обращений'))); return; } const table = el('table', { class: 'admin-table' }); table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Тема'), el('th', {}, 'Пользователь'), el('th', {}, 'Статус'), el('th', {}, 'Действия')))); const tbody = el('tbody', {}); snap.forEach(doc => { const s = { id: doc.id, ...doc.data() }; const tr = el('tr', {}); tr.append(el('td', {}, s.theme)); tr.append(el('td', {}, s.userName || '—')); tr.append(el('td', {}, el('span', { style: 'padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ' + (s.status === 'new' ? 'rgba(253,214,99,.2); color: #fdd663;' : 'rgba(129,201,149,.2); color: #81c995;') }, s.status === 'new' ? '🆕 Новое' : '✓ Отвечено'))); const actions = el('td', {}, el('div', { class: 'admin-actions' })); actions.children[0].append(el('button', { class: 'admin-btn admin-btn-view', onclick: () => openAdminSupport(doc.id) }, 'Открыть')); tr.append(actions); tbody.append(tr); }); table.append(tbody); w.append(table); });
   } else if (tab === 'reports') {
-    const ld = el('div', { class: 'ld' }, el('div', { class: 'sp' }));
-    w.append(ld);
-    db.collection('reports').get().then(snap => {
-      ld.remove();
-      if (snap.empty) { w.append(el('div', { class: 'emp' }, el('p', {}, 'Нет жалоб'))); return; }
-      const table = el('table', { class: 'admin-table' });
-      table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Приложение'), el('th', {}, 'Причина'), el('th', {}, 'Статус'), el('th', {}, 'Действия'))));
-      const tbody = el('tbody', {});
-      snap.forEach(doc => {
-        const rp = { id: doc.id, ...doc.data() };
-        const tr = el('tr', {});
-        tr.append(el('td', {}, rp.appName || '—'));
-        tr.append(el('td', {}, rp.reason));
-        tr.append(el('td', {}, el('span', { style: 'padding:4px 8px;border-radius:12px;font-size:11px;font-weight:600;background:' + (!rp.resolved ? 'rgba(253,214,99,.2);color:#fdd663;' : 'rgba(129,201,149,.2);color:#81c995;') }, !rp.resolved ? '⏳ На рассмотрении' : '✓ Решено')));
-        const actions = el('td', {}, el('div', { class: 'admin-actions' }));
-        if (!rp.resolved) {
-          actions.children[0].append(el('button', { class: 'admin-btn admin-btn-block', onclick: () => { db.collection('apps').doc(rp.appId).update({ status: 'blocked' }); db.collection('reports').doc(doc.id).update({ resolved: 'blocked' }); toast('Заблокировано', '', 'er'); render(); } }, 'Блок'));
-          actions.children[0].append(el('button', { class: 'admin-btn admin-btn-delete', onclick: () => { db.collection('reports').doc(doc.id).update({ resolved: 'rejected' }); toast('Отклонено', '', 'inf'); render(); } }, 'Отклонить'));
-        }
-        tr.append(actions);
-        tbody.append(tr);
-      });
-      table.append(tbody);
-      w.append(table);
-    });
+    const loading = el('div', { class: 'loading-spinner' }, el('div', { class: 'spinner' })); w.append(loading);
+    db.collection('reports').get().then(snap => { loading.remove(); if (snap.empty) { w.append(el('div', { class: 'empty' }, el('p', {}, 'Нет жалоб'))); return; } const table = el('table', { class: 'admin-table' }); table.append(el('thead', {}, el('tr', {}, el('th', {}, 'Приложение'), el('th', {}, 'Причина'), el('th', {}, 'Статус'), el('th', {}, 'Действия')))); const tbody = el('tbody', {}); snap.forEach(doc => { const rp = { id: doc.id, ...doc.data() }; const tr = el('tr', {}); tr.append(el('td', {}, rp.appName || '—')); tr.append(el('td', {}, rp.reason)); tr.append(el('td', {}, el('span', { style: 'padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ' + (!rp.resolved ? 'rgba(253,214,99,.2); color: #fdd663;' : 'rgba(129,201,149,.2); color: #81c995;') }, !rp.resolved ? '⏳ На рассмотрении' : '✓ Решено'))); const actions = el('td', {}, el('div', { class: 'admin-actions' })); if (!rp.resolved) { actions.children[0].append(el('button', { class: 'admin-btn admin-btn-block', onclick: () => { db.collection('apps').doc(rp.appId).update({ status: 'blocked' }); db.collection('reports').doc(doc.id).update({ resolved: 'blocked' }); toast('Приложение заблокировано', '', 'er'); render(); } }, 'Блок')); actions.children[0].append(el('button', { class: 'admin-btn admin-btn-delete', onclick: () => { db.collection('reports').doc(doc.id).update({ resolved: 'rejected' }); toast('Жалоба отклонена', '', 'inf'); render(); } }, 'Отклонить')); } tr.append(actions); tbody.append(tr); }); table.append(tbody); w.append(table); });
   } else if (tab === 'site') {
-    const ss = el('div', { class: 'admin-section' });
-    ss.append(el('h3', {}, '🛠️ Управление сайтом'));
-    const sd = el('div', { style: 'padding:20px;background:#2d2d2d;border-radius:12px;margin-bottom:20px;text-align:center' });
-    sd.textContent = 'Загрузка...';
-    ss.append(sd);
-    const bd = el('div', { style: 'display:flex;gap:12px;justify-content:center;flex-wrap:wrap' });
-    const cb = el('button', { class: 'btn btnd', style: 'padding:16px 32px;font-size:16px;font-weight:600' });
-    cb.textContent = '🔒 Закрыть сайт';
-    cb.addEventListener('click', () => {
+    // ИСПРАВЛЕНИЕ: ПРОСТОЕ УПРАВЛЕНИЕ БЕЗ ГЛЮЧНЫХ ПОЛЕЙ ВВОДА
+    const siteSection = el('div', { class: 'admin-section' });
+    siteSection.append(el('h3', {}, '️ Управление сайтом'));
+    const statusDiv = el('div', { style: 'padding: 20px; background: var(--bg3); border-radius: var(--radius2); margin-bottom: 20px; text-align: center;' });
+    statusDiv.textContent = 'Загрузка статуса...';
+    siteSection.append(statusDiv);
+    const buttonsDiv = el('div', { style: 'display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;' });
+    const closeBtn = el('button', { class: 'btn btn-danger', style: 'padding: 16px 32px; font-size: 16px; font-weight: 600;' });
+    closeBtn.textContent = '🔒 Закрыть сайт (на 1 час)';
+    closeBtn.addEventListener('click', () => {
       if (!confirm('Закрыть сайт для всех пользователей?\n\nАдмины и разработчики продолжат видеть сайт.')) return;
-      const et = new Date(Date.now() + 60 * 60 * 1000);
-      maintenanceRef.set({ enabled: true, message: 'Технические работы. Скоро вернёмся!', endTime: firebase.firestore.Timestamp.fromDate(et), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), setBy: S.cu.uid }).then(() => { toast('Сайт закрыт на 1 час', '', 'ok'); render(); }).catch(e => { toast('Ошибка', e.message, 'er'); });
+      const endTime = new Date(Date.now() + 60 * 60 * 1000);
+      maintenanceRef.set({ enabled: true, message: 'Технические работы. Скоро вернёмся!', endTime: firebase.firestore.Timestamp.fromDate(endTime), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), setBy: S.cu.uid }).then(() => { toast('Сайт закрыт', 'Откроется через 1 час', 'ok'); render(); }).catch(e => { toast('Ошибка', e.message, 'er'); });
     });
-    bd.append(cb);
-    const ob = el('button', { class: 'btn btnp', style: 'padding:16px 32px;font-size:16px;font-weight:600' });
-    ob.textContent = '🔓 Открыть сайт';
-    ob.addEventListener('click', () => {
+    buttonsDiv.append(closeBtn);
+    const openBtn = el('button', { class: 'btn btn-primary', style: 'padding: 16px 32px; font-size: 16px; font-weight: 600;' });
+    openBtn.textContent = '🔓 Открыть сайт сейчас';
+    openBtn.addEventListener('click', () => {
       if (!confirm('Открыть сайт для всех пользователей?')) return;
       maintenanceRef.update({ enabled: false }).then(() => { toast('Сайт открыт', '', 'ok'); render(); }).catch(e => { toast('Ошибка', e.message, 'er'); });
     });
-    bd.append(ob);
-    ss.append(bd);
-    maintenanceRef.onSnapshot(function (doc) {
-      if (!doc.exists) { sd.innerHTML = '<div style="color:#81c995;font-weight:600;font-size:16px">✅ Сайт открыт</div><div style="font-size:12px;color:#80868b;margin-top:8px">Все пользователи имеют доступ</div>'; return; }
+    buttonsDiv.append(openBtn);
+    siteSection.append(buttonsDiv);
+    maintenanceRef.onSnapshot(function(doc) {
+      if (!doc.exists) { statusDiv.innerHTML = '<div style="color: var(--primary); font-weight: 600; font-size: 16px;">✅ Сайт открыт</div><div style="font-size: 12px; color: var(--text3); margin-top: 8px;">Все пользователи имеют доступ</div>'; return; }
       const data = doc.data();
-      if (data.enabled) {
-        const et = data.endTime ? data.endTime.toDate().toLocaleString('ru-RU') : 'не указано';
-        sd.innerHTML = '<div style="color:#f28b82;font-weight:600;font-size:16px;margin-bottom:8px">🔒 Сайт ЗАКРЫТ</div><div style="font-size:13px;color:#9aa0a6;margin-bottom:4px">Сообщение: ' + (data.message || '—') + '</div><div style="font-size:13px;color:#9aa0a6">Откроется: ' + et + '</div>';
-      } else {
-        sd.innerHTML = '<div style="color:#81c995;font-weight:600;font-size:16px">✅ Сайт открыт</div><div style="font-size:12px;color:#80868b;margin-top:8px">Все пользователи имеют доступ</div>';
-      }
+      if (data.enabled) { const endTime = data.endTime ? data.endTime.toDate().toLocaleString('ru-RU') : 'не указано'; statusDiv.innerHTML = '<div style="color: var(--error); font-weight: 600; font-size: 16px; margin-bottom: 8px;">🔒 Сайт ЗАКРЫТ</div><div style="font-size: 13px; color: var(--text2); margin-bottom: 4px;">Сообщение: ' + (data.message || '—') + '</div><div style="font-size: 13px; color: var(--text2);">Откроется: ' + endTime + '</div>'; }
+      else { statusDiv.innerHTML = '<div style="color: var(--primary); font-weight: 600; font-size: 16px;">✅ Сайт открыт</div><div style="font-size: 12px; color: var(--text3); margin-top: 8px;">Все пользователи имеют доступ</div>'; }
     });
-    w.append(ss);
+    w.append(siteSection);
   }
   return w;
 }
 
-function openAS(id) {
+function openAdminSupport(id) {
   const m = el('div', {});
-  m.append(el('div', { class: 'mhead' }, el('h2', {}, '💬 Обращение'), el('div', { class: 'mclose', onclick: closeM }, '✕')));
-  const body = el('div', { class: 'mbody' });
+  m.append(el('div', { class: 'modal-head' }, el('h2', {}, '💬 Обращение'), el('div', { class: 'modal-close', onclick: closeM }, '✕')));
+  const body = el('div', { class: 'modal-body' });
   db.collection('supports').doc(id).get().then(doc => {
     if (!doc.exists) return;
     const s = doc.data();
-    body.append(el('p', { style: 'font-weight:500' }, s.theme));
-    body.append(el('p', { style: 'color:#9aa0a6;font-size:13px;margin-bottom:14px' }, s.text));
-    const ms = el('div', { class: 'chm', style: 'min-height:200px;max-height:300px' });
-    db.collection('supports').doc(id).collection('messages').orderBy('createdAt', 'asc').get().then(snap => {
-      snap.forEach(d => {
-        const x = d.data();
-        ms.append(el('div', { class: 'msg ' + (x.from === 'support' ? 'me' : 'ot') }, el('div', {}, x.text), el('span', { class: 'mt' }, ft(x.createdAt))));
-      });
+    body.append(el('p', { style: 'font-weight: 500;' }, s.theme));
+    body.append(el('p', { style: 'color: var(--text2); font-size: 13px; margin-bottom: 14px;' }, s.text));
+    const ms = el('div', { class: 'chat-messages', style: 'min-height: 200px; max-height: 300px;' });
+    db.collection('supports').doc(id).collection('messages').orderBy('createdAt', 'asc').get().then(snapshot => {
+      snapshot.forEach(d => { const x = d.data(); ms.append(el('div', { class: 'msg ' + (x.from === 'support' ? 'me' : 'other') }, el('div', {}, x.text), el('span', { class: 'msg-time' }, ft(x.createdAt)))); });
       body.append(ms);
-      const inp = el('div', { class: 'cir' });
-      const input = el('input', { placeholder: 'Ответить...' });
-      const sb = el('button', { class: 'btn btnp' });
-      sb.textContent = 'Ответить';
-      sb.addEventListener('click', () => {
-        const t = input.value.trim();
-        if (!t) return;
-        db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: t, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-        db.collection('supports').doc(id).update({ status: 'answered' });
-        closeM();
-        render();
-      });
-      input.addEventListener('keydown', e => { if (e.key === 'Enter') sb.click(); });
-      inp.append(input, sb);
-      body.append(inp);
-      if (s.orderId) {
-        const acts = el('div', { style: 'display:flex;gap:8px;margin-top:14px;flex-wrap:wrap' });
-        const rb = el('button', { class: 'btn btnp btns' });
-        rb.textContent = '✓ Вернуть';
-        rb.addEventListener('click', () => {
-          db.collection('orders').doc(s.orderId).get().then(od => {
-            if (!od.exists) return;
-            const o = od.data();
-            const lib = JSON.parse(localStorage.getItem('awl_' + o.buyerUid) || '{}');
-            lib[o.appId] = { date: Date.now() };
-            localStorage.setItem('awl_' + o.buyerUid, JSON.stringify(lib));
-            db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: 'Приложение возвращено.', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-            closeM();
-            render();
-            toast('Возвращено', '', 'ok');
-          });
-        });
-        acts.append(rb);
-        const cb = el('button', { class: 'btn btnd btns' });
-        cb.textContent = '✕ Отменить';
-        cb.addEventListener('click', () => {
-          db.collection('orders').doc(s.orderId).update({ status: 'cancelled' });
-          db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: 'Сделка отменена.', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-          closeM();
-          render();
-        });
-        acts.append(cb);
-        body.append(acts);
-      }
-      m.append(body);
-      openM(m);
+      const inp = el('div', { class: 'chat-input-row' }); const input = el('input', { placeholder: 'Ответить...' });
+      const sendBtn = el('button', { class: 'btn btn-primary' }); sendBtn.textContent = 'Ответить';
+      sendBtn.addEventListener('click', () => { const t = input.value.trim(); if (!t) return; db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: t, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); db.collection('supports').doc(id).update({ status: 'answered' }); closeM(); render(); });
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') sendBtn.click(); });
+      inp.append(input, sendBtn); body.append(inp);
+      if (s.orderId) { const acts = el('div', { style: 'display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;' }); const returnBtn = el('button', { class: 'btn btn-primary btn-sm' }); returnBtn.textContent = '✓ Вернуть'; returnBtn.addEventListener('click', () => { db.collection('orders').doc(s.orderId).get().then(od => { if (!od.exists) return; const o = od.data(); const lib = JSON.parse(localStorage.getItem('awl_' + o.buyerUid) || '{}'); lib[o.appId] = { date: Date.now() }; localStorage.setItem('awl_' + o.buyerUid, JSON.stringify(lib)); db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: 'Приложение возвращено.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); closeM(); render(); toast('Возвращено', '', 'ok'); }); }); acts.append(returnBtn); const cancelBtn = el('button', { class: 'btn btn-danger btn-sm' }); cancelBtn.textContent = '✕ Отменить'; cancelBtn.addEventListener('click', () => { db.collection('orders').doc(s.orderId).update({ status: 'cancelled' }); db.collection('supports').doc(id).collection('messages').add({ from: 'support', text: 'Сделка отменена.', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); closeM(); render(); }); acts.append(cancelBtn); body.append(acts); }
+      m.append(body); openM(m);
     });
   });
 }
 
-async function rTutorial() {
+function rTutorial() {
   const w = el('div', { class: 'tutorial-container' });
   w.append(el('div', { class: 'tutorial-header' }, el('h1', {}, '📚 Как опубликовать приложение'), el('p', {}, 'Пошаговое руководство по публикации вашего приложения или игры на платформе awer')));
   const steps = [
-    { n: 1, t: 'Регистрация аккаунта разработчика', d: 'Сначала нужно создать аккаунт и выбрать роль "Разработчик". Нажмите кнопку "Войти" в правом верхнем углу, затем "Зарегистрироваться". Введите уникальный ник (минимум 3 символа) и выберите тип аккаунта "Разработчик".', p: '📝 Скриншот формы регистрации с выбором роли "Разработчик"', tip: 'Ник должен быть уникальным. Если ник занят, система предложит выбрать другой. После регистрации вы автоматически войдёте в аккаунт.' },
-    { n: 2, t: 'Вход в консоль разработчика', d: 'После регистрации нажмите на свой аватар в правом верхнем углу, чтобы перейти в профиль. В меню профиля выберите "Консоль разработчика". Здесь вы увидите статистику ваших приложений и заявок.', p: '👤 Скриншот профиля с кнопкой "Консоль разработчика"', tip: 'Если вы не видите кнопку "Консоль разработчика", убедитесь, что при регистрации выбрали роль "Разработчик".' },
+    { n: 1, t: 'Регистрация аккаунта разработчика', d: 'Сначала нужно создать аккаунт и выбрать роль "Разработчик". Нажмите кнопку "Войти" в правом верхнем углу, затем "Зарегистрироваться". Введите уникальный ник (минимум 3 символа) и выберите тип аккаунта "Разработчик".', p: ' Скриншот формы регистрации с выбором роли "Разработчик"', tip: 'Ник должен быть уникальным. Если ник занят, система предложит выбрать другой. После регистрации вы автоматически войдёте в аккаунт.' },
+    { n: 2, t: 'Вход в консоль разработчика', d: 'После регистрации нажмите на свой аватар в правом верхнем углу, чтобы перейти в профиль. В меню профиля выберите "Консоль разработчика". Здесь вы увидите статистику ваших приложений и заявок.', p: ' Скриншот профиля с кнопкой "Консоль разработчика"', tip: 'Если вы не видите кнопку "Консоль разработчика", убедитесь, что при регистрации выбрали роль "Разработчик".' },
     { n: 3, t: 'Нажатие кнопки "Добавить"', d: 'В консоли разработчика перейдите на вкладку "Добавить" (третья вкладка вверху). Здесь откроется форма для создания нового приложения. Все поля со звёздочкой (*) обязательны для заполнения.', p: '➕ Скриншот консоли разработчика с выделенной вкладкой "Добавить"', tip: 'Вы можете иметь неограниченное количество приложений.' },
     { n: 4, t: 'Заполнение основной информации', d: 'Заполните название приложения (обязательно), подробное описание (обязательно), выберите категорию из списка и укажите цену. Если приложение бесплатное, оставьте цену 0.', p: '📋 Скриншот формы с полями: Название, Описание, Категория, Цена', tip: 'Название должно быть кратким и запоминающимся (до 30 символов). Хорошее описание увеличивает количество скачиваний!' },
-    { n: 5, t: 'Загрузка иконки приложения', d: 'Загрузите иконку вашего приложения. Можно использовать эмодзи (например, ) или загрузить изображение. Рекомендуемый размер иконки: 512x512 пикселей.', p: '️ Скриншот поля загрузки иконки с примером красивой иконки', tip: 'Иконка — это первое, что видят пользователи. Сделайте её яркой и запоминающейся.' },
+    { n: 5, t: 'Загрузка иконки приложения', d: 'Загрузите иконку вашего приложения. Можно использовать эмодзи (например, 🚀) или загрузить изображение. Рекомендуемый размер иконки: 512x512 пикселей.', p: '🖼️ Скриншот поля загрузки иконки с примером красивой иконки', tip: 'Иконка — это первое, что видят пользователи. Сделайте её яркой и запоминающейся.' },
     { n: 6, t: 'Добавление скриншотов', d: 'Загрузите до 10 скриншотов вашего приложения. Скриншоты автоматически сжимаются для быстрой загрузки. Рекомендуемое соотношение сторон: 9:16.', p: '📸 Скриншот раздела загрузки скриншотов с превью изображений', tip: 'Первый скриншот самый важный — он отображается в каталоге.' },
     { n: 7, t: 'Указание ссылки на файл', d: 'Вставьте прямую ссылку на файл приложения (APK, ZIP, EXE и т.д.). Можно использовать Google Drive, Dropbox, свой сервер или любой другой хостинг.', p: '🔗 Скриншот полей "Ссылка на файл" и "Имя файла"', tip: 'Убедитесь, что ссылка публичная и не требует авторизации для скачивания.' },
     { n: 8, t: 'Публикация приложения', d: 'Проверьте все заполненные поля и нажмите кнопку "Опубликовать" внизу формы. Ваше приложение будет добавлено в каталог и станет доступно всем пользователям.', p: '✅ Скриншот кнопки "Опубликовать" и успешного уведомления', tip: 'После публикации приложение сразу появляется в каталоге.' }
   ];
-  steps.forEach(s => {
-    const se = el('div', { class: 'tutorial-step' });
-    se.append(el('div', { class: 'tutorial-step-header' }, el('div', { class: 'tutorial-step-number' }, String(s.n)), el('div', { class: 'tutorial-step-title' }, s.t)));
-    se.append(el('div', { class: 'tutorial-step-description' }, s.d));
-    se.append(el('div', { class: 'tutorial-step-image' }, el('div', { class: 'tutorial-step-placeholder' }, s.p)));
-    se.append(el('div', { class: 'tutorial-step-tips' }, el('strong', {}, '💡 Совет'), el('p', {}, s.tip)));
-    w.append(se);
-  });
+  steps.forEach(s => { const se = el('div', { class: 'tutorial-step' }); se.append(el('div', { class: 'tutorial-step-header' }, el('div', { class: 'tutorial-step-number' }, String(s.n)), el('div', { class: 'tutorial-step-title' }, s.t))); se.append(el('div', { class: 'tutorial-step-description' }, s.d)); se.append(el('div', { class: 'tutorial-step-image' }, el('div', { class: 'tutorial-step-placeholder' }, s.p))); se.append(el('div', { class: 'tutorial-step-tips' }, el('strong', {}, '💡 Совет'), el('p', {}, s.tip))); w.append(se); });
   const nav = el('div', { class: 'tutorial-nav' });
-  nav.append(el('button', { class: 'tutorial-nav-btn', onclick: () => go('home') }, '← На главную'));
+  nav.append(el('button', { class: 'tutorial-nav-btn', onclick: () => nav('home') }, '← На главную'));
   if (!S.cu) { nav.append(el('button', { class: 'tutorial-nav-btn primary', onclick: () => showAuth() }, 'Зарегистрироваться')); }
-  else if (S.cu.role === 'developer') { nav.append(el('button', { class: 'tutorial-nav-btn primary', onclick: () => go('developer', { tab: 'add' }) }, 'Опубликовать приложение →')); }
-  else { nav.append(el('button', { class: 'tutorial-nav-btn primary', onclick: () => go('profile') }, 'Перейти в профиль')); }
+  else if (S.cu.role === 'developer') { nav.append(el('button', { class: 'tutorial-nav-btn primary', onclick: () => nav('developer', { tab: 'add' }) }, 'Опубликовать приложение →')); }
+  else { nav.append(el('button', { class: 'tutorial-nav-btn primary', onclick: () => nav('profile') }, 'Перейти в профиль')); }
   w.append(nav);
   return w;
 }
 
-function rAbout() {
-  const w = el('div', {});
-  w.append(el('h1', { style: 'font-size:20px;font-weight:500;margin-bottom:16px' }, 'О awer'));
-  w.append(el('div', { class: 'sec' }, el('p', { style: 'margin-bottom:10px' }, 'awer — магазин приложений и игр.'), el('p', { style: 'margin-bottom:10px' }, 'Оплата НЕ в awer — она в чате с продавцом.'), el('p', { style: 'color:#f28b82;font-weight:500;margin-top:12px' }, '🚫 ЗАПРЕЩЕНО выкладывать приложения с вирусами.')));
-  return w;
-}
+function rAbout() { const w = el('div', {}); w.append(el('h1', { style: 'font-size: 20px; font-weight: 500; margin-bottom: 16px;' }, 'О awer')); w.append(el('div', { class: 'section' }, el('p', { style: 'margin-bottom: 10px;' }, 'awer — магазин приложений и игр.'), el('p', { style: 'margin-bottom: 10px;' }, 'Оплата НЕ в awer — она в чате с продавцом.'), el('p', { style: 'color: var(--error); font-weight: 500; margin-top: 12px;' }, '🚫 ЗАПРЕЩЕНО выкладывать приложения с вирусами.'))); return w; }
 
 // ============================================
 // MODALS
 // ============================================
 function showAuth() {
   const m = el('div', {});
-  const head = el('div', { class: 'mhead' }, el('h2', {}, 'Войти в awer'), el('div', { class: 'mclose', onclick: closeM }, '✕'));
-  const body = el('div', { class: 'mbody' });
+  const head = el('div', { class: 'modal-head' }, el('h2', {}, 'Войти в awer'), el('div', { class: 'modal-close', onclick: closeM }, '✕'));
+  const body = el('div', { class: 'modal-body' });
   let mode = 'login';
   function rf() {
     body.innerHTML = '';
     if (mode === 'login') {
-      body.append(el('div', { class: 'fg' }, el('label', {}, 'Ник'), el('input', { class: 'fc', id: 'aN', placeholder: 'Ваш ник' })));
-      const lb = el('button', { class: 'btn btnp btnf' });
-      lb.textContent = 'Войти';
-      lb.addEventListener('click', () => {
-        const n = $('#aN').value.trim();
-        if (!n) { toast('Введите ник', '', 'er'); return; }
-        loginNick(n).then(r => { S.cu = r; localStorage.setItem('awn', n); saveS(); closeM(); render(); updAB(); toast('Добро пожаловать!', n, 'ok'); }).catch(e => { toast('Ошибка', e.message, 'er'); });
-      });
-      body.append(lb);
-      body.append(el('p', { style: 'text-align:center;font-size:12px;color:#80868b;margin-top:12px' }, 'Нет аккаунта? ', el('span', { style: 'color:#81c995;cursor:pointer;font-weight:500', onclick: () => { mode = 'register'; rf(); } }, 'Зарегистрироваться')));
+      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Ник'), el('input', { class: 'form-control', id: 'aNick', placeholder: 'Ваш ник' })));
+      const loginBtn = el('button', { class: 'btn btn-primary btn-full' });
+      loginBtn.textContent = 'Войти';
+      loginBtn.addEventListener('click', () => { const nick = $('#aNick').value.trim(); if (!nick) { toast('Введите ник', '', 'er'); return; } loginWithNick(nick).then(result => { S.cu = result; localStorage.setItem('awn', nick); saveSettings(); closeM(); render(); updateAuthBtn(); toast('Добро пожаловать!', nick, 'ok'); }).catch(err => { toast('Ошибка', err.message, 'er'); }); });
+      body.append(loginBtn);
+      body.append(el('p', { style: 'text-align: center; font-size: 12px; color: var(--text3); margin-top: 12px;' }, 'Нет аккаунта? ', el('span', { style: 'color: var(--primary); cursor: pointer; font-weight: 500;', onclick: () => { mode = 'register'; rf(); } }, 'Зарегистрироваться')));
     } else {
-      body.append(el('div', { class: 'fg' }, el('label', {}, 'Ник'), el('input', { class: 'fc', id: 'rN', placeholder: 'Придумайте ник' })));
-      body.append(el('div', { class: 'fg' }, el('label', {}, 'Тип аккаунта')));
-      const rg = el('div', { class: 'rg' });
-      [['buyer', 'Покупатель'], ['developer', 'Разработчик']].forEach((x, idx) => {
-        const it = el('div', { class: 'ri' + (idx === 0 ? ' on' : ''), 'data-v': x[0] });
-        it.addEventListener('click', () => { $$('.ri', rg).forEach(y => { y.classList.remove('on'); }); it.classList.add('on'); });
-        it.append(el('div', { class: 'rd' }), el('div', { style: 'flex:1' }, el('strong', {}, x[1])));
-        rg.append(it);
-      });
+      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Ник'), el('input', { class: 'form-control', id: 'rNick', placeholder: 'Придумайте ник' })));
+      body.append(el('div', { class: 'form-group' }, el('label', {}, 'Тип аккаунта')));
+      const rg = el('div', { class: 'radio-group' });
+      [['buyer', 'Покупатель'], ['developer', 'Разработчик']].forEach((x, idx) => { const it = el('div', { class: 'radio-item' + (idx === 0 ? ' selected' : ''), 'data-val': x[0] }); it.addEventListener('click', () => { $$('.radio-item', rg).forEach(y => { y.classList.remove('selected'); }); it.classList.add('selected'); }); it.append(el('div', { class: 'radio-dot' }), el('div', { style: 'flex: 1;' }, el('strong', {}, x[1]))); rg.append(it); });
       body.append(rg);
-      const rb = el('button', { class: 'btn btnp btnf', style: 'margin-top:12px' });
-      rb.textContent = 'Зарегистрироваться';
-      rb.addEventListener('click', () => {
-        const n = $('#rN').value.trim();
-        const re = $$('.ri.on', rg)[0];
-        const role = re ? re.getAttribute('data-v') : 'buyer';
-        if (!n) { toast('Введите ник', '', 'er'); return; }
-        if (n.length < 3) { toast('Ник минимум 3 символа', '', 'er'); return; }
-        regNick(n, role).then(r => { S.cu = r; localStorage.setItem('awn', n); saveS(); closeM(); render(); updAB(); toast('Аккаунт создан!', n, 'ok'); }).catch(e => { toast('Ошибка', e.message, 'er'); });
-      });
-      body.append(rb);
-      body.append(el('p', { style: 'text-align:center;font-size:12px;color:#80868b;margin-top:12px' }, 'Есть аккаунт? ', el('span', { style: 'color:#81c995;cursor:pointer;font-weight:500', onclick: () => { mode = 'login'; rf(); } }, 'Войти')));
+      const regBtn = el('button', { class: 'btn btn-primary btn-full', style: 'margin-top: 12px;' });
+      regBtn.textContent = 'Зарегистрироваться';
+      regBtn.addEventListener('click', () => { const nick = $('#rNick').value.trim(); const roleEl = $('.radio-item.selected', rg); const role = roleEl ? roleEl.getAttribute('data-val') : 'buyer'; if (!nick) { toast('Введите ник', '', 'er'); return; } if (nick.length < 3) { toast('Ник минимум 3 символа', '', 'er'); return; } registerWithNick(nick, role).then(result => { S.cu = result; localStorage.setItem('awn', nick); saveSettings(); closeM(); render(); updateAuthBtn(); toast('Аккаунт создан!', nick, 'ok'); }).catch(err => { toast('Ошибка', err.message, 'er'); }); });
+      body.append(regBtn);
+      body.append(el('p', { style: 'text-align: center; font-size: 12px; color: var(--text3); margin-top: 12px;' }, 'Есть аккаунт? ', el('span', { style: 'color: var(--primary); cursor: pointer; font-weight: 500;', onclick: () => { mode = 'login'; rf(); } }, 'Войти')));
     }
   }
   rf();
@@ -1386,37 +982,23 @@ function showAuth() {
 
 function openOrder(appId) {
   if (!S.cu) { showAuth(); return; }
-  getAppById(appId, function (a) {
+  getAppById(appId, function(a) {
     if (!a) return;
     const m = el('div', {});
-    m.append(el('div', { class: 'mhead' }, el('h2', {}, 'Заявка'), el('div', { class: 'mclose', onclick: closeM }, '✕')));
-    const body = el('div', { class: 'mbody' });
-    body.append(el('div', { style: 'display:flex;gap:12px;align-items:center;padding:12px;background:#2d2d2d;border-radius:12px;margin-bottom:16px' },
-      a.iconUrl ? el('div', { class: 'oi', style: 'width:56px;height:56px;border-radius:12px' }, el('img', { src: a.iconUrl })) : el('div', { class: 'oi', style: 'width:56px;height:56px;border-radius:12px;background:' + col(a.id) }, a.icon || ''),
-      el('div', { style: 'flex:1' }, el('strong', { style: 'font-size:14px' }, a.name), el('div', { style: 'font-size:11px;color:#80868b;margin-top:2px' }, 'Продавец: ' + (a.devName || '—'), a.official ? el('span', { style: 'color:#ffd700' }, '🏆') : null), el('div', { style: 'font-weight:600;margin-top:2px;color:#81c995' }, fp(a.price || 0)))
-    ));
-    body.append(el('h3', { style: 'font-size:13px;font-weight:500;margin-bottom:10px' }, 'Способ оплаты'));
-    const rg = el('div', { class: 'rg' });
-    [['bank', 'Банковский перевод'], ['other', 'Другой способ'], ['discuss', 'Обсудить в чате']].forEach((x, idx) => {
-      const it = el('div', { class: 'ri' + (idx === 0 ? ' on' : ''), 'data-v': x[0] });
-      it.addEventListener('click', () => { $$('.ri', rg).forEach(y => { y.classList.remove('on'); }); it.classList.add('on'); });
-      it.append(el('div', { class: 'rd' }), el('div', { style: 'flex:1' }, el('strong', {}, x[1])));
-      rg.append(it);
-    });
+    m.append(el('div', { class: 'modal-head' }, el('h2', {}, 'Заявка'), el('div', { class: 'modal-close', onclick: closeM }, '✕')));
+    const body = el('div', { class: 'modal-body' });
+    body.append(el('div', { style: 'display: flex; gap: 12px; align-items: center; padding: 12px; background: var(--bg3); border-radius: var(--radius2); margin-bottom: 16px;' }, a.iconUrl ? el('div', { class: 'order-icon', style: 'width: 56px; height: 56px; border-radius: 12px;' }, el('img', { src: a.iconUrl })) : el('div', { class: 'order-icon', style: 'width: 56px; height: 56px; border-radius: 12px; background:' + col(a.id) }, a.icon || ''), el('div', { style: 'flex: 1;' }, el('strong', { style: 'font-size: 14px;' }, a.name), el('div', { style: 'font-size: 11px; color: var(--text3); margin-top: 2px;' }, 'Продавец: ' + (a.devName || '—'), a.official ? el('span', { style: 'color: #ffd700;' }, '🏆') : null), el('div', { style: 'font-weight: 600; margin-top: 2px; color: var(--primary);' }, fp(a.price || 0)))));
+    body.append(el('h3', { style: 'font-size: 13px; font-weight: 500; margin-bottom: 10px;' }, 'Способ оплаты'));
+    const rg = el('div', { class: 'radio-group' });
+    [['bank', 'Банковский перевод'], ['other', 'Другой способ'], ['discuss', 'Обсудить в чате']].forEach((x, idx) => { const it = el('div', { class: 'radio-item' + (idx === 0 ? ' selected' : ''), 'data-val': x[0] }); it.addEventListener('click', () => { $$('.radio-item', rg).forEach(y => { y.classList.remove('selected'); }); it.classList.add('selected'); }); it.append(el('div', { class: 'radio-dot' }), el('div', { style: 'flex: 1;' }, el('strong', {}, x[1]))); rg.append(it); });
     body.append(rg);
-    body.append(el('div', { class: 'cw', style: 'margin-top:12px' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи.'));
-    const foot = el('div', { class: 'mfoot' });
-    foot.append(el('button', { class: 'btn btno', onclick: closeM }, 'Отмена'));
-    const sb = el('button', { class: 'btn btnp' });
-    sb.textContent = 'Отправить';
-    sb.addEventListener('click', () => {
-      const me = $$('.ri.on', rg)[0];
-      const mv = me ? me.getAttribute('data-v') : '';
-      if (!mv) { toast('Выберите способ', '', 'er'); return; }
-      const ns = { bank: 'Банковский перевод', other: 'Другой способ', discuss: 'Обсудить в чате' };
-      db.collection('orders').add({ appId: a.id, appName: a.name, appIcon: a.icon, appIconUrl: a.iconUrl, buyerUid: S.cu.uid, buyerName: S.cu.name, devUid: a.devUid, devName: a.devName, paymentMethod: ns[mv], status: 'new', price: a.price || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { closeM(); toast('Отправлено', '', 'ok'); go('orders'); });
-    });
-    foot.append(sb);
+    body.append(el('div', { class: 'chat-warning', style: 'margin-top: 12px;' }, el('strong', {}, '⚠️ '), 'awer не принимает платежи.'));
+    const foot = el('div', { class: 'modal-foot' });
+    foot.append(el('button', { class: 'btn btn-outline', onclick: closeM }, 'Отмена'));
+    const submitBtn = el('button', { class: 'btn btn-primary' });
+    submitBtn.textContent = 'Отправить';
+    submitBtn.addEventListener('click', () => { const methodEl = $('.radio-item.selected', rg); const method = methodEl ? methodEl.getAttribute('data-val') : ''; if (!method) { toast('Выберите способ', '', 'er'); return; } const names = { bank: 'Банковский перевод', other: 'Другой способ', discuss: 'Обсудить в чате' }; db.collection('orders').add({ appId: a.id, appName: a.name, appIcon: a.icon, appIconUrl: a.iconUrl, buyerUid: S.cu.uid, buyerName: S.cu.name, devUid: a.devUid, devName: a.devName, paymentMethod: names[method], status: 'new', price: a.price || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { closeM(); toast('Отправлено', '', 'ok'); nav('orders'); }); });
+    foot.append(submitBtn);
     m.append(body, foot);
     openM(m);
   });
@@ -1424,62 +1006,46 @@ function openOrder(appId) {
 
 function openReport(appId) {
   if (!S.cu) { showAuth(); return; }
-  getAppById(appId, function (a) {
+  getAppById(appId, function(a) {
     if (!a) return;
     const m = el('div', {});
-    m.append(el('div', { class: 'mhead' }, el('h2', {}, 'Пожаловаться'), el('div', { class: 'mclose', onclick: closeM }, '✕')));
-    const body = el('div', { class: 'mbody' });
-    body.append(el('p', { style: 'margin-bottom:12px;font-size:13px' }, 'Приложение: ', el('strong', {}, a.name)));
-    const rg = el('div', { class: 'rg' });
-    ['Вирусы', 'Обман', 'Подделка', 'Нарушение правил', 'Другое'].forEach((r, idx) => {
-      const it = el('div', { class: 'ri' + (idx === 0 ? ' on' : ''), 'data-v': r });
-      it.addEventListener('click', () => { $$('.ri', rg).forEach(y => { y.classList.remove('on'); }); it.classList.add('on'); });
-      it.append(el('div', { class: 'rd' }), el('div', { style: 'flex:1' }, el('strong', {}, r)));
-      rg.append(it);
-    });
+    m.append(el('div', { class: 'modal-head' }, el('h2', {}, 'Пожаловаться'), el('div', { class: 'modal-close', onclick: closeM }, '✕')));
+    const body = el('div', { class: 'modal-body' });
+    body.append(el('p', { style: 'margin-bottom: 12px; font-size: 13px;' }, 'Приложение: ', el('strong', {}, a.name)));
+    const rg = el('div', { class: 'radio-group' });
+    ['Вирусы', 'Обман', 'Подделка', 'Нарушение правил', 'Другое'].forEach((r, idx) => { const it = el('div', { class: 'radio-item' + (idx === 0 ? ' selected' : ''), 'data-val': r }); it.addEventListener('click', () => { $$('.radio-item', rg).forEach(y => { y.classList.remove('selected'); }); it.classList.add('selected'); }); it.append(el('div', { class: 'radio-dot' }), el('div', { style: 'flex: 1;' }, el('strong', {}, r))); rg.append(it); });
     body.append(rg);
-    const foot = el('div', { class: 'mfoot' });
-    foot.append(el('button', { class: 'btn btno', onclick: closeM }, 'Отмена'));
-    const sb = el('button', { class: 'btn btnd' });
-    sb.textContent = 'Отправить';
-    sb.addEventListener('click', () => {
-      const re = $$('.ri.on', rg)[0];
-      const rv = re ? re.getAttribute('data-v') : '';
-      if (!rv) { toast('Выберите причину', '', 'er'); return; }
-      db.collection('reports').add({ appId: a.id, appName: a.name, appIcon: a.icon, userId: S.cu.uid, reason: rv, resolved: null, createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { closeM(); toast('Отправлено', '', 'ok'); });
-    });
-    foot.append(sb);
+    const foot = el('div', { class: 'modal-foot' });
+    foot.append(el('button', { class: 'btn btn-outline', onclick: closeM }, 'Отмена'));
+    const submitBtn = el('button', { class: 'btn btn-danger' });
+    submitBtn.textContent = 'Отправить';
+    submitBtn.addEventListener('click', () => { const reasonEl = $('.radio-item.selected', rg); const reason = reasonEl ? reasonEl.getAttribute('data-val') : ''; if (!reason) { toast('Выберите причину', '', 'er'); return; } db.collection('reports').add({ appId: a.id, appName: a.name, appIcon: a.icon, userId: S.cu.uid, reason: reason, resolved: null, createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { closeM(); toast('Отправлено', '', 'ok'); }); });
+    foot.append(submitBtn);
     m.append(body, foot);
     openM(m);
   });
 }
 
-function openSS(ss, sh) {
+function openScreenshotViewer(screenshots, currentSh) {
   let idx = -1;
-  for (let i = 0; i < ss.length; i++) { if (ss[i].url === sh.url) { idx = i; break; } }
+  for (let i = 0; i < screenshots.length; i++) { if (screenshots[i].url === currentSh.url) { idx = i; break; } }
   if (idx < 0) idx = 0;
   const m = el('div', {});
-  m.append(el('div', { class: 'mhead' }, el('h2', {}, 'Скриншот ' + (idx + 1) + ' из ' + ss.length), el('div', { class: 'mclose', onclick: closeM }, '✕')));
-  const body = el('div', { class: 'mbody' });
-  const iw = el('div', { style: 'text-align:center;min-height:300px;display:flex;align-items:center;justify-content:center;background:#2d2d2d;border-radius:12px;overflow:hidden' });
-  body.append(iw);
-  const nv = el('div', { style: 'display:flex;gap:6px;justify-content:center;margin-top:10px' });
-  const pb = el('button', { class: 'btn btno btns' });
-  pb.textContent = '← Назад';
-  pb.addEventListener('click', () => { idx = (idx - 1 + ss.length) % ss.length; show(); });
-  nv.append(pb);
-  const nb = el('button', { class: 'btn btno btns' });
-  nb.textContent = 'Далее →';
-  nb.addEventListener('click', () => { idx = (idx + 1) % ss.length; show(); });
-  nv.append(nb);
-  body.append(nv);
-  function show() {
-    const s = ss[idx];
-    iw.innerHTML = '';
-    iw.append(el('img', { src: s.url, style: 'max-width:100%;max-height:500px' }));
-    const h2 = $('h2', m);
-    if (h2) h2.textContent = 'Скриншот ' + (idx + 1) + ' из ' + ss.length;
-  }
+  m.append(el('div', { class: 'modal-head' }, el('h2', {}, 'Скриншот ' + (idx + 1) + ' из ' + screenshots.length), el('div', { class: 'modal-close', onclick: closeM }, '')));
+  const body = el('div', { class: 'modal-body' });
+  const imgWrap = el('div', { style: 'text-align: center; min-height: 300px; display: flex; align-items: center; justify-content: center; background: var(--bg3); border-radius: var(--radius2); overflow: hidden;' });
+  body.append(imgWrap);
+  const nav = el('div', { style: 'display: flex; gap: 6px; justify-content: center; margin-top: 10px;' });
+  const prevBtn = el('button', { class: 'btn btn-outline btn-sm' });
+  prevBtn.textContent = '← Назад';
+  prevBtn.addEventListener('click', () => { idx = (idx - 1 + screenshots.length) % screenshots.length; show(); });
+  nav.append(prevBtn);
+  const nextBtn = el('button', { class: 'btn btn-outline btn-sm' });
+  nextBtn.textContent = 'Далее →';
+  nextBtn.addEventListener('click', () => { idx = (idx + 1) % screenshots.length; show(); });
+  nav.append(nextBtn);
+  body.append(nav);
+  function show() { const sh = screenshots[idx]; imgWrap.innerHTML = ''; imgWrap.append(el('img', { src: sh.url, style: 'max-width: 100%; max-height: 500px;' })); const h2 = $('h2', m); if (h2) h2.textContent = 'Скриншот ' + (idx + 1) + ' из ' + screenshots.length; }
   show();
   m.append(body);
   openM(m, true);
@@ -1488,52 +1054,30 @@ function openSS(ss, sh) {
 // ============================================
 // IMAGE HELPERS
 // ============================================
-function cImg(file, maxW) {
+function compressImage(file, maxW) {
   maxW = maxW || 800;
   return new Promise((res, rej) => {
     const r = new FileReader();
-    r.onload = function (e) {
-      const img = new Image();
-      img.onload = function () {
-        let w = img.width, h = img.height;
-        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
-        const c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0, w, h);
-        c.toBlob(b => { if (!b) rej(new Error('Ошибка')); else res({ blob: b, width: w, height: h }); }, 'image/jpeg', 0.85);
-      };
-      img.onerror = () => rej(new Error('Не изображение'));
-      img.src = e.target.result;
-    };
+    r.onload = function(e) { const img = new Image(); img.onload = function() { let w = img.width, h = img.height; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; } const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); c.toBlob(b => { if (!b) rej(new Error('Ошибка')); else res({ blob: b, width: w, height: h }); }, 'image/jpeg', 0.85); }; img.onerror = () => rej(new Error('Не изображение')); img.src = e.target.result; };
     r.onerror = () => rej(new Error('Ошибка'));
     r.readAsDataURL(file);
   });
 }
 
-function uImg(file) {
+function uploadToImgBB(file) {
   return new Promise((res, rej) => {
     const fd = new FormData();
     fd.append('image', file);
     fd.append('key', IMGBB_KEY);
-    fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd })
-      .then(r => r.json())
-      .then(d => { if (d.success) res(d.data.url); else rej(new Error(d.error ? d.error.message : 'Ошибка')); })
-      .catch(rej);
+    fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd }).then(r => r.json()).then(d => { if (d.success) res(d.data.url); else rej(new Error(d.error ? d.error.message : 'Ошибка')); }).catch(rej);
   });
 }
 
 // ============================================
 // SEARCH
 // ============================================
-$('#sinp').addEventListener('input', e => {
+$('#searchInput').addEventListener('input', e => {
   const v = e.target.value.trim();
-  if (v.length >= 2) {
-    S.route = { p: 'catalog', params: { search: v } };
-    render();
-    updTabs();
-  } else if (v.length === 0 && S.route.p === 'catalog') {
-    S.route = { p: 'home' };
-    render();
-    updTabs();
-  }
+  if (v.length >= 2) { S.route = { p: 'catalog', params: { search: v } }; render(); updateTabs(); }
+  else if (v.length === 0 && S.route.p === 'catalog') { S.route = { p: 'home' }; render(); updateTabs(); }
 });
